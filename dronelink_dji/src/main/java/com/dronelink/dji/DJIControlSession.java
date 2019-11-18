@@ -1,5 +1,5 @@
 //  DJIControlSession.java
-//  DronelinkCore
+//  DronelinkDJI
 //
 //  Created by Jim McAndrew on 11/6/19.
 //  Copyright © 2019 Dronelink. All rights reserved.

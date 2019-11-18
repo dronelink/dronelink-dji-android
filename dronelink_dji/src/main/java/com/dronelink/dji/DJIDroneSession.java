@@ -1,5 +1,5 @@
 //  DJIControlSession.java
-//  DronelinkCore
+//  DronelinkDJI
 //
 //  Created by Jim McAndrew on 11/7/19.
 //  Copyright © 2019 Dronelink. All rights reserved.
@@ -14,6 +14,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.dronelink.core.CameraFile;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
 import com.dronelink.core.DroneSession;
@@ -105,6 +106,7 @@ import dji.sdk.base.BaseComponent;
 import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
+import dji.sdk.media.MediaFile;
 import dji.sdk.products.Aircraft;
 
 public class DJIDroneSession implements DroneSession {
@@ -310,6 +312,13 @@ public class DJIDroneSession implements DroneSession {
                         cameraStates.put(camera.getIndex(), new DatedValue<CameraStateAdapter>(new DJICameraStateAdapter(systemState)));
                     }
                 });
+            }
+        });
+
+        camera.setMediaFileCallback(new MediaFile.Callback() {
+            @Override
+            public void onNewFile(@NonNull final MediaFile mediaFile) {
+                onCameraFileGenerated(new DJICameraFile(camera.getIndex(), mediaFile));
             }
         });
     }
@@ -524,6 +533,12 @@ public class DJIDroneSession implements DroneSession {
     private void onCommandFinished(final Command command, final String error) {
         for (final Listener listener : listeners) {
             listener.onCommandFinished(this, command, error);
+        }
+    }
+
+    private void onCameraFileGenerated(final DJICameraFile file) {
+        for (final Listener listener : listeners) {
+            listener.onCameraFileGenerated(this, file);
         }
     }
 
