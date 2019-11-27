@@ -647,10 +647,10 @@ public class DJIDroneSession implements DroneSession {
             final Rotation.Builder rotation = new Rotation.Builder();
             rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
-            if (gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
                 rotation.pitch(-12);
             }
-            if (gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
                 rotation.roll(0);
             }
             gimbal.rotate(rotation.build(), null);
@@ -1028,7 +1028,7 @@ public class DJIDroneSession implements DroneSession {
     private String executeGimbalCommand(final GimbalCommand command, final com.dronelink.core.command.Command.Finisher finished) {
         final List<Gimbal> gimbals = adapter.getDrone().getGimbals();
         final DatedValue<GimbalStateAdapter> state = getGimbalState(command.channel);
-        if (command.channel > gimbals.size() ||  state == null) {
+        if (command.channel > gimbals.size() || state == null) {
             return context.getString(R.string.MissionDisengageReason_drone_gimbal_unavailable_title);
         }
         final Gimbal gimbal = gimbals.get(command.channel);
@@ -1050,7 +1050,7 @@ public class DJIDroneSession implements DroneSession {
             rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
 
-            if (gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && orientation.getPitch() != null) {
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && orientation.getPitch() != null) {
                 double pitch = Math.toDegrees(orientation.getPitch());
                 if (Math.abs(pitch + 90) < 0.1) {
                     pitch = -89.9;
@@ -1058,11 +1058,11 @@ public class DJIDroneSession implements DroneSession {
                 rotation.pitch((float)pitch);
             }
 
-            if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && orientation.getRoll() != null) {
+            if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && orientation.getRoll() != null) {
                 rotation.roll((float)Math.toDegrees(orientation.getRoll()));
             }
 
-            if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported() && orientation.getYaw() != null) {
+            if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported() && orientation.getYaw() != null) {
                 rotation.yaw((float)Math.toDegrees(orientation.getYaw()));
             }
 

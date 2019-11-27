@@ -44,15 +44,15 @@ public class DJIGimbalAdapter implements GimbalAdapter {
         final Rotation.Builder rotation = new Rotation.Builder();
         rotation.mode(RotationMode.SPEED);
 
-        if (gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
+        if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
             rotation.pitch((float) Math.toDegrees(command.velocity.getPitch()));
         }
 
-        if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
+        if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
             rotation.roll((float) Math.toDegrees(command.velocity.getRoll()));
         }
 
-        if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+        if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
             rotation.yaw((float)Math.toDegrees(command.velocity.getYaw()));
         }
 

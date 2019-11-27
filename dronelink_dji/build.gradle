@@ -8,9 +8,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
-        versionName "1.1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        versionName "1.1.1"
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -26,16 +24,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'org.bitbucket.dronelink:dronelink-core-android:1.1.0'
-    implementation('com.dji:dji-sdk:4.11', {
-        /**
-         * Uncomment the "library-anti-distortion" if your app does not need Anti Distortion for Mavic 2 Pro and Mavic 2 Zoom.
-         * Uncomment the "fly-safe-database" if you need database for release, or we will download it when DJISDKManager.getInstance().registerApp
-         * is called.
-         * Both will greatly reducing the size of the APK.
-         */
-        exclude module: 'library-anti-distortion'
-        exclude module: 'fly-safe-database'
-    })
-    compileOnly 'com.dji:dji-sdk-provided:4.11'
+    implementation 'org.bitbucket.dronelink:dronelink-core-android:1.1.3'
+    compileOnly 'com.dji:dji-sdk:4.11.1'
+    compileOnly 'com.dji:dji-sdk-provided:4.11.1'
 }
