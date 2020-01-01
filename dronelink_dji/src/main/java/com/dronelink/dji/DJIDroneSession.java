@@ -14,7 +14,6 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.dronelink.core.CameraFile;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
 import com.dronelink.core.DroneSession;
@@ -72,9 +71,11 @@ import com.dronelink.core.mission.command.gimbal.ModeGimbalCommand;
 import com.dronelink.core.mission.command.gimbal.OrientationGimbalCommand;
 import com.dronelink.core.mission.core.Message;
 import com.dronelink.core.mission.core.Orientation3Optional;
+import com.dronelink.core.mission.core.enums.GimbalMode;
 import com.dronelink.dji.adapters.DJICameraStateAdapter;
 import com.dronelink.dji.adapters.DJIDroneAdapter;
 import com.dronelink.dji.adapters.DJIDroneStateAdapter;
+import com.dronelink.dji.adapters.DJIGimbalAdapter;
 import com.dronelink.dji.adapters.DJIGimbalStateAdapter;
 
 import java.util.Date;
@@ -92,7 +93,6 @@ import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.gimbal.CapabilityKey;
-import dji.common.gimbal.GimbalMode;
 import dji.common.gimbal.GimbalState;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
@@ -168,6 +168,23 @@ public class DJIDroneSession implements DroneSession {
                                 droneCommands.process();
                                 cameraCommands.process();
                                 gimbalCommands.process();
+
+                                //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
+                                if (adapter.isGimbalDriftPossible()) {
+                                    final Gimbal gimbal = drone.getGimbals().get(0);
+                                    if (gimbal != null) {
+                                        final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
+                                        if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+                                            final DatedValue<GimbalStateAdapter> gimbalState = gimbalStates.get(0);
+                                            if (gimbalState != null && gimbalState.value.getMissionMode() == GimbalMode.YAW_FOLLOW && gimbalState.value instanceof DJIGimbalStateAdapter) {
+                                                final Rotation.Builder rotation = new Rotation.Builder();
+                                                rotation.mode(RotationMode.ABSOLUTE_ANGLE);
+                                                rotation.yaw(0);
+                                                gimbal.rotate(rotation.build(), null);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         });
                         sleep(100);

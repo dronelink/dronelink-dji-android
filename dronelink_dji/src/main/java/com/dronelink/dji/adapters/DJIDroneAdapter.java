@@ -155,4 +155,23 @@ public class DJIDroneAdapter implements DroneAdapter {
             flightController.sendVirtualStickFlightControlData(new FlightControlData(0, 0, 0, 0), completion);
         }
     }
+
+    public boolean isGimbalDriftPossible() {
+        switch (drone.getModel()) {
+            case MAVIC_2:
+            case MAVIC_2_ENTERPRISE:
+            case MAVIC_2_ENTERPRISE_DUAL:
+            case MAVIC_2_PRO:
+            case MAVIC_2_ZOOM:
+            case MAVIC_PRO:
+            case PHANTOM_4:
+            case PHANTOM_4_PRO:
+            case PHANTOM_4_PRO_V2:
+            case PHANTOM_4_RTK:
+            case PHANTOM_4_ADVANCED:
+                return true;
+            default:
+                return false;
+        }
+    }
 }
