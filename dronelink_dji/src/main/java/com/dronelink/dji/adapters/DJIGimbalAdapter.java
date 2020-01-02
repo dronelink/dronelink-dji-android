@@ -17,45 +17,38 @@ import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
 import dji.common.util.DJIParamCapability;
 import dji.sdk.gimbal.Gimbal;
-import dji.sdk.products.Aircraft;
 
 public class DJIGimbalAdapter implements GimbalAdapter {
-    private final Aircraft drone;
-    private final int index;
+    public final Gimbal gimbal;
+    public Rotation.Builder pendingSpeedRotationBuilder;
 
-    public DJIGimbalAdapter(final Aircraft drone, final int index) {
-        this.drone = drone;
-        this.index = index;
+    public DJIGimbalAdapter(final Gimbal gimbal) {
+        this.gimbal = gimbal;
     }
 
     @Override
     public int getIndex() {
-        return index;
+        return gimbal.getIndex();
     }
 
     @Override
     public void sendVelocityCommand(final VelocityGimbalCommand command, final GimbalMode mode) {
-        if (command.channel > drone.getGimbals().size()) {
-            return;
-        }
-
-        final Gimbal gimbal = drone.getGimbals().get(command.channel);
         final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
-        final Rotation.Builder rotation = new Rotation.Builder();
-        rotation.mode(RotationMode.SPEED);
+        final Rotation.Builder rotationBuilder = new Rotation.Builder();
+        rotationBuilder.mode(RotationMode.SPEED);
 
         if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
-            rotation.pitch((float) Math.toDegrees(command.velocity.getPitch()));
+            rotationBuilder.pitch((float) Math.toDegrees(command.velocity.getPitch()));
         }
 
-        if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
-            rotation.roll((float) Math.toDegrees(command.velocity.getRoll()));
+        if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
+            rotationBuilder.roll((float) Math.toDegrees(command.velocity.getRoll()));
         }
 
         if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
-            rotation.yaw((float)Math.toDegrees(command.velocity.getYaw()));
+            rotationBuilder.yaw((float)Math.toDegrees(command.velocity.getYaw()));
         }
 
-        gimbal.rotate(rotation.build(), null);
+        pendingSpeedRotationBuilder = rotationBuilder;
     }
 }

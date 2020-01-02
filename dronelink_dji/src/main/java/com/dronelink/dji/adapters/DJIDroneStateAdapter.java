@@ -96,11 +96,11 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Double getTakeoffAltitude() {
-        //TODO DJI reports wrong altitude?
-//        if (getTakeoffLocation() != null) {
-//            final float altitude = flightControllerState.value.getTakeoffLocationAltitude();
-//            return altitude == 0 ? null : new Double(flightControllerState.value.getTakeoffLocationAltitude());
-//        }
+        //DJI reports "MSL" altitude based on barometer...no good
+        //if (getTakeoffLocation() != null) {
+        //    final float altitude = flightControllerState.value.getTakeoffLocationAltitude();
+        //    return altitude == 0 ? null : new Double(flightControllerState.value.getTakeoffLocationAltitude());
+        //}
 
         return null;
     }

@@ -62,20 +62,26 @@ public class DJIDroneAdapter implements DroneAdapter {
 
     @Override
     public CameraAdapter getCamera(int channel) {
-        final CameraAdapter camera = cameras.get(channel);
-        if (camera == null) {
-            return cameras.put(channel, new DJICameraAdapter(drone, channel));
+        final CameraAdapter cameraAdapter = cameras.get(channel);
+        if (cameraAdapter == null && channel < drone.getCameras().size()) {
+            final Camera camera = drone.getCameras().get(channel);
+            if (camera != null) {
+                return cameras.put(channel, new DJICameraAdapter(camera));
+            }
         }
-        return camera;
+        return cameraAdapter;
     }
 
     @Override
     public GimbalAdapter getGimbal(int channel) {
-        final GimbalAdapter gimbal = gimbals.get(channel);
-        if (gimbal == null) {
-            return gimbals.put(channel, new DJIGimbalAdapter(drone, channel));
+        final GimbalAdapter gimbalAdapter = gimbals.get(channel);
+        if (gimbalAdapter == null && channel < drone.getGimbals().size()) {
+            final Gimbal gimbal = drone.getGimbals().get(channel);
+            if (gimbal != null) {
+                return gimbals.put(channel, new DJIGimbalAdapter(gimbal));
+            }
         }
-        return gimbal;
+        return gimbalAdapter;
     }
 
     @Override
@@ -153,25 +159,6 @@ public class DJIDroneAdapter implements DroneAdapter {
             flightController.setVerticalControlMode(VerticalControlMode.VELOCITY);
             flightController.setYawControlMode(YawControlMode.ANGULAR_VELOCITY);
             flightController.sendVirtualStickFlightControlData(new FlightControlData(0, 0, 0, 0), completion);
-        }
-    }
-
-    public boolean isGimbalDriftPossible() {
-        switch (drone.getModel()) {
-            case MAVIC_2:
-            case MAVIC_2_ENTERPRISE:
-            case MAVIC_2_ENTERPRISE_DUAL:
-            case MAVIC_2_PRO:
-            case MAVIC_2_ZOOM:
-            case MAVIC_PRO:
-            case PHANTOM_4:
-            case PHANTOM_4_PRO:
-            case PHANTOM_4_PRO_V2:
-            case PHANTOM_4_RTK:
-            case PHANTOM_4_ADVANCED:
-                return true;
-            default:
-                return false;
         }
     }
 }

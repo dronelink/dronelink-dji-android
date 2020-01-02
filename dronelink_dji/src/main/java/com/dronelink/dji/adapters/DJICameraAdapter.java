@@ -8,19 +8,17 @@ package com.dronelink.dji.adapters;
 
 import com.dronelink.core.adapters.CameraAdapter;
 
-import dji.sdk.products.Aircraft;
+import dji.sdk.camera.Camera;
 
 public class DJICameraAdapter implements CameraAdapter {
-    private final Aircraft drone;
-    private final int index;
+    private final Camera camera;
 
-    public DJICameraAdapter(final Aircraft drone, final int index) {
-        this.drone = drone;
-        this.index = index;
+    public DJICameraAdapter(final Camera camera) {
+        this.camera = camera;
     }
 
     @Override
     public int getIndex() {
-        return index;
+        return camera.getIndex();
     }
 }

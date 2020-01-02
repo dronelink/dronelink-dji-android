@@ -20,6 +20,7 @@ import com.dronelink.core.DroneSession;
 import com.dronelink.core.adapters.CameraStateAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.DroneStateAdapter;
+import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.GimbalStateAdapter;
 import com.dronelink.core.command.CommandQueue;
 import com.dronelink.core.command.MultiChannelCommandQueue;
@@ -170,18 +171,25 @@ public class DJIDroneSession implements DroneSession {
                                 gimbalCommands.process();
 
                                 //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
-                                if (adapter.isGimbalDriftPossible()) {
-                                    final Gimbal gimbal = drone.getGimbals().get(0);
-                                    if (gimbal != null) {
-                                        final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
+                                for (final GimbalAdapter gimbalAdapter : adapter.getGimbals()) {
+                                    if (gimbalAdapter instanceof DJIGimbalAdapter) {
+                                        final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter)gimbalAdapter;
+                                        Rotation.Builder rotationBuilder = djiGimbalAdapter.pendingSpeedRotationBuilder;
+                                        djiGimbalAdapter.pendingSpeedRotationBuilder = null;
+                                        final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = djiGimbalAdapter.gimbal.getCapabilities();
                                         if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
                                             final DatedValue<GimbalStateAdapter> gimbalState = gimbalStates.get(0);
                                             if (gimbalState != null && gimbalState.value.getMissionMode() == GimbalMode.YAW_FOLLOW && gimbalState.value instanceof DJIGimbalStateAdapter) {
-                                                final Rotation.Builder rotation = new Rotation.Builder();
-                                                rotation.mode(RotationMode.ABSOLUTE_ANGLE);
-                                                rotation.yaw(0);
-                                                gimbal.rotate(rotation.build(), null);
+                                                if (rotationBuilder == null) {
+                                                    rotationBuilder = new Rotation.Builder();
+                                                    rotationBuilder.mode(RotationMode.SPEED);
+                                                }
+                                                rotationBuilder.yaw((float)Math.min(Math.max(-((DJIGimbalStateAdapter)gimbalState.value).state.getYawRelativeToAircraftHeading() * 0.1, -5.0), 5.0));
                                             }
+                                        }
+
+                                        if (rotationBuilder != null) {
+                                            djiGimbalAdapter.gimbal.rotate(rotationBuilder.build(), null);
                                         }
                                     }
                                 }
@@ -670,6 +678,9 @@ public class DJIDroneSession implements DroneSession {
             if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
                 rotation.roll(0);
             }
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+                rotation.yaw(0);
+            }
             gimbal.rotate(rotation.build(), null);
         }
     }
@@ -1075,12 +1086,17 @@ public class DJIDroneSession implements DroneSession {
                 rotation.pitch((float)pitch);
             }
 
-            if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && orientation.getRoll() != null) {
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && orientation.getRoll() != null) {
                 rotation.roll((float)Math.toDegrees(orientation.getRoll()));
             }
 
-            if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported() && orientation.getYaw() != null) {
-                rotation.yaw((float)Math.toDegrees(orientation.getYaw()));
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+                if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE) {
+                    rotation.yaw((float) Math.toDegrees(orientation.getYaw()));
+                }
+                else {
+                    rotation.yaw(0);
+                }
             }
 
             gimbal.rotate(rotation.build(), createCompletionCallback(finished));
