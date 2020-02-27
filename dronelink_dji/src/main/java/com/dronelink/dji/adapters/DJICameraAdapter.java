@@ -18,6 +18,11 @@ public class DJICameraAdapter implements CameraAdapter {
     }
 
     @Override
+    public String getModel() {
+        return camera.getDisplayName();
+    }
+
+    @Override
     public int getIndex() {
         return camera.getIndex();
     }

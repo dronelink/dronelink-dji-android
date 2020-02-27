@@ -6,11 +6,17 @@
 //
 package com.dronelink.dji.adapters;
 
+import android.util.Log;
+
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.mission.command.gimbal.VelocityGimbalCommand;
 import com.dronelink.core.mission.core.enums.GimbalMode;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.Rotation;
@@ -19,8 +25,10 @@ import dji.common.util.DJIParamCapability;
 import dji.sdk.gimbal.Gimbal;
 
 public class DJIGimbalAdapter implements GimbalAdapter {
+    private ExecutorService serialQueue = Executors.newSingleThreadExecutor();
+
     public final Gimbal gimbal;
-    public Rotation.Builder pendingSpeedRotationBuilder;
+    private Rotation.Builder pendingSpeedRotationBuilder;
 
     public DJIGimbalAdapter(final Gimbal gimbal) {
         this.gimbal = gimbal;
@@ -49,6 +57,34 @@ public class DJIGimbalAdapter implements GimbalAdapter {
             rotationBuilder.yaw((float)Math.toDegrees(command.velocity.getYaw()));
         }
 
-        pendingSpeedRotationBuilder = rotationBuilder;
+        setPendingSpeedRotationBuilder(rotationBuilder);
+    }
+
+    @Override
+    public void reset() {
+        gimbal.reset(null);
+    }
+
+    public Rotation.Builder getPendingSpeedRotation() {
+        try {
+            return serialQueue.submit(new Callable<Rotation.Builder>() {
+                @Override
+                public Rotation.Builder call() {
+                    return pendingSpeedRotationBuilder;
+                }
+            }).get();
+        }
+        catch (final ExecutionException | InterruptedException e) {
+            return null;
+        }
+    }
+
+    public void setPendingSpeedRotationBuilder(final Rotation.Builder newPendingSpeedRotationBuilder) {
+        serialQueue.submit(new Runnable() {
+            @Override
+            public void run() {
+                pendingSpeedRotationBuilder = newPendingSpeedRotationBuilder;
+            }
+        });
     }
 }

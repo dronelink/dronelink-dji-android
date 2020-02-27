@@ -10,16 +10,19 @@ import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.GimbalAdapter;
+import com.dronelink.core.adapters.RemoteControllerAdapter;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.mission.command.drone.VelocityDroneCommand;
 import com.dronelink.core.mission.core.Vector2;
 import com.dronelink.dji.DronelinkDJI;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import dji.common.error.DJIError;
+import dji.common.error.DJIRemoteControllerError;
 import dji.common.flightcontroller.virtualstick.FlightControlData;
 import dji.common.flightcontroller.virtualstick.FlightCoordinateSystem;
 import dji.common.flightcontroller.virtualstick.RollPitchControlMode;
@@ -30,9 +33,11 @@ import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.products.Aircraft;
+import dji.sdk.remotecontroller.RemoteController;
 
 public class DJIDroneAdapter implements DroneAdapter {
     private final Aircraft drone;
+    private final SortedMap<Integer, RemoteControllerAdapter> remoteControllers = new TreeMap<>();
     private final SortedMap<Integer, CameraAdapter> cameras = new TreeMap<>();
     private final SortedMap<Integer, GimbalAdapter> gimbals = new TreeMap<>();
 
@@ -42,6 +47,12 @@ public class DJIDroneAdapter implements DroneAdapter {
 
     public Aircraft getDrone() {
         return this.drone;
+    }
+
+    @Override
+    public Collection<RemoteControllerAdapter> getRemoteControllers() {
+        getRemoteController(0);
+        return remoteControllers.values();
     }
 
     @Override
@@ -58,6 +69,18 @@ public class DJIDroneAdapter implements DroneAdapter {
             getGimbal(gimbal.getIndex());
         }
         return gimbals.values();
+    }
+
+    @Override
+    public RemoteControllerAdapter getRemoteController(int channel) {
+        final RemoteControllerAdapter remoteControllerAdapter = remoteControllers.get(channel);
+        if (remoteControllerAdapter == null && channel < 1) {
+            final RemoteController remoteController = drone.getRemoteController();
+            if (remoteController != null) {
+                return remoteControllers.put(channel, new DJIRemoteControllerAdapter(remoteController));
+            }
+        }
+        return remoteControllerAdapter;
     }
 
     @Override

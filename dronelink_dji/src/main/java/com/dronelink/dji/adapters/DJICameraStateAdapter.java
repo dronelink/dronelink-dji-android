@@ -7,16 +7,20 @@
 package com.dronelink.dji.adapters;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
+import com.dronelink.core.mission.core.enums.CameraExposureCompensation;
 import com.dronelink.core.mission.core.enums.CameraMode;
 
+import dji.common.camera.ExposureSettings;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.SystemState;
 
 public class DJICameraStateAdapter implements CameraStateAdapter {
     private final SystemState state;
+    private final ExposureSettings exposureSettings;
 
-    public DJICameraStateAdapter(final SystemState state) {
+    public DJICameraStateAdapter(final SystemState state, final ExposureSettings exposureSettings) {
         this.state = state;
+        this.exposureSettings = exposureSettings;
     }
 
     @Override
@@ -52,5 +56,45 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
             case UNKNOWN: return CameraMode.UNKNOWN;
         }
         return CameraMode.UNKNOWN;
+    }
+
+    @Override
+    public CameraExposureCompensation getMissionExposureCompensation() {
+        switch (exposureSettings == null ? SettingsDefinitions.ExposureCompensation.UNKNOWN : exposureSettings.getExposureCompensation()) {
+            case N_5_0: return CameraExposureCompensation.N_5_0;
+            case N_4_7: return CameraExposureCompensation.N_4_7;
+            case N_4_3: return CameraExposureCompensation.N_4_3;
+            case N_4_0: return CameraExposureCompensation.N_4_0;
+            case N_3_7: return CameraExposureCompensation.N_3_7;
+            case N_3_3: return CameraExposureCompensation.N_3_3;
+            case N_3_0: return CameraExposureCompensation.N_3_0;
+            case N_2_7: return CameraExposureCompensation.N_2_7;
+            case N_2_3: return CameraExposureCompensation.N_2_3;
+            case N_2_0: return CameraExposureCompensation.N_2_0;
+            case N_1_7: return CameraExposureCompensation.N_1_7;
+            case N_1_3: return CameraExposureCompensation.N_1_3;
+            case N_1_0: return CameraExposureCompensation.N_1_0;
+            case N_0_7: return CameraExposureCompensation.N_0_7;
+            case N_0_3: return CameraExposureCompensation.N_0_3;
+            case N_0_0: return CameraExposureCompensation.N_0_0;
+            case P_0_3: return CameraExposureCompensation.P_0_3;
+            case P_0_7: return CameraExposureCompensation.P_0_7;
+            case P_1_0: return CameraExposureCompensation.P_1_0;
+            case P_1_3: return CameraExposureCompensation.P_1_3;
+            case P_1_7: return CameraExposureCompensation.P_1_7;
+            case P_2_0: return CameraExposureCompensation.P_2_0;
+            case P_2_3: return CameraExposureCompensation.P_2_3;
+            case P_2_7: return CameraExposureCompensation.P_2_7;
+            case P_3_0: return CameraExposureCompensation.P_3_0;
+            case P_3_3: return CameraExposureCompensation.P_3_3;
+            case P_3_7: return CameraExposureCompensation.P_3_7;
+            case P_4_0: return CameraExposureCompensation.P_4_0;
+            case P_4_3: return CameraExposureCompensation.P_4_3;
+            case P_4_7: return CameraExposureCompensation.P_4_7;
+            case P_5_0: return CameraExposureCompensation.P_5_0;
+            case FIXED:
+            case UNKNOWN: return CameraExposureCompensation.UNKNOWN;
+        }
+        return CameraExposureCompensation.UNKNOWN;
     }
 }

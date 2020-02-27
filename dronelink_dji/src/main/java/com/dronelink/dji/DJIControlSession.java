@@ -83,20 +83,36 @@ public class DJIControlSession implements DroneControlSession {
                 }
 
                 state = State.TAKEOFF_ATTEMPTING;
-                Log.i(TAG, "Attempting takeoff");
-                flightController.startTakeoff(new CommonCallbacks.CompletionCallback() {
+
+                Log.i(TAG, "Attempting precision takeoff");
+                flightController.startPrecisionTakeoff(new CommonCallbacks.CompletionCallback() {
                     @Override
-                    public void onResult(DJIError djiError) {
+                    public void onResult(final DJIError djiError) {
                         if (djiError != null) {
-                            attemptDisengageReason = new Message(context.getString(R.string.MissionDisengageReason_take_off_failed_title), djiError.getDescription());
-                            deactivate();
+                            Log.e(TAG, "Precision takeoff failed: " + djiError.getDescription());
+                            Log.i(TAG, "Attempting takeoff");
+                            flightController.startTakeoff(new CommonCallbacks.CompletionCallback() {
+                                @Override
+                                public void onResult(final DJIError djiError) {
+                                    if (djiError != null) {
+                                        Log.e(TAG, "Takeoff failed: " + djiError.getDescription());
+                                        attemptDisengageReason = new Message(context.getString(R.string.MissionDisengageReason_take_off_failed_title), djiError.getDescription());
+                                        deactivate();
+                                        return;
+                                    }
+
+                                    Log.i(TAG, "Takeoff succeeded");
+                                    state = State.TAKEOFF_COMPLETE;
+                                }
+                            });
                             return;
                         }
 
-                        Log.i(TAG, "Takeoff succeeded");
+                        Log.i(TAG, "Precision takeoff succeeded");
                         state = State.TAKEOFF_COMPLETE;
                     }
                 });
+
                 return false;
 
             case TAKEOFF_ATTEMPTING:

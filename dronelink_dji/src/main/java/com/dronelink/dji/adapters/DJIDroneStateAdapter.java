@@ -10,18 +10,23 @@ import android.location.Location;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
+import com.dronelink.core.Device;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.mission.core.Orientation3;
 
+import java.util.Date;
 import java.util.UUID;
 
 import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.LocationCoordinate3D;
+import dji.common.flightcontroller.ObstacleDetectionSector;
+import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.model.LocationCoordinate2D;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<FlightControllerState> flightControllerState;
+    public DatedValue<VisionDetectionState> visionDetectionState;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
     public String name;
@@ -30,6 +35,10 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public boolean initialized = false;
     public boolean located = false;
     public Location lastKnownGroundLocation;
+
+    public DatedValue<DroneStateAdapter> toDatedValue() {
+        return new DatedValue<DroneStateAdapter>(this, flightControllerState == null ? new Date() : flightControllerState.date);
+    }
 
     @Override
     public boolean isFlying() {
@@ -132,6 +141,27 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         }
 
         return location.getAltitude();
+    }
+
+    @Override
+    public Double getObstacleDistance() {
+        if (visionDetectionState == null) {
+            return null;
+        }
+
+        double minObstacleDistance = 0.0;
+        final ObstacleDetectionSector[] detectionSectors = visionDetectionState.value.getDetectionSectors();
+        if (detectionSectors != null) {
+            for (final ObstacleDetectionSector detectionSector : detectionSectors) {
+                minObstacleDistance = minObstacleDistance == 0 ? detectionSector.getObstacleDistanceInMeters() : Math.min(minObstacleDistance, detectionSector.getObstacleDistanceInMeters());
+            }
+        }
+
+        if (minObstacleDistance == 0) {
+            return null;
+        }
+
+        return minObstacleDistance;
     }
 
     @Override
