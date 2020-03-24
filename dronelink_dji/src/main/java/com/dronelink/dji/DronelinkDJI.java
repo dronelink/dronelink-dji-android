@@ -15,6 +15,7 @@ import com.dronelink.core.mission.core.enums.CameraExposureMode;
 import com.dronelink.core.mission.core.enums.CameraFileIndexMode;
 import com.dronelink.core.mission.core.enums.CameraFocusMode;
 import com.dronelink.core.mission.core.enums.CameraISO;
+import com.dronelink.core.mission.core.enums.CameraMeteringMode;
 import com.dronelink.core.mission.core.enums.CameraMode;
 import com.dronelink.core.mission.core.enums.CameraPhotoAspectRatio;
 import com.dronelink.core.mission.core.enums.CameraPhotoFileFormat;
@@ -268,6 +269,16 @@ public class DronelinkDJI {
             case UNKNOWN: return SettingsDefinitions.ISO.UNKNOWN;
         }
         return SettingsDefinitions.ISO.UNKNOWN;
+    }
+
+    public static SettingsDefinitions.MeteringMode getCameraMeteringMode(final CameraMeteringMode value) {
+        switch (value) {
+            case CENTER: return SettingsDefinitions.MeteringMode.CENTER;
+            case AVERAGE: return SettingsDefinitions.MeteringMode.AVERAGE;
+            case SPOT: return SettingsDefinitions.MeteringMode.SPOT;
+            case UNKNOWN: return SettingsDefinitions.MeteringMode.UNKNOWN;
+        }
+        return SettingsDefinitions.MeteringMode.UNKNOWN;
     }
 
     public static SettingsDefinitions.CameraMode getCameraMode(final CameraMode value) {

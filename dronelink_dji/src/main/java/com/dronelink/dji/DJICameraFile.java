@@ -71,4 +71,8 @@ public class DJICameraFile implements CameraFile {
     public Orientation3 getOrientation() {
         return orientation;
     }
+
+    public MediaFile getMediaFile() {
+        return mediaFile;
+    }
 }

@@ -7,6 +7,7 @@
 package com.dronelink.dji;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -42,6 +43,7 @@ import com.dronelink.core.mission.command.camera.FileIndexModeCameraCommand;
 import com.dronelink.core.mission.command.camera.FocusCameraCommand;
 import com.dronelink.core.mission.command.camera.FocusModeCameraCommand;
 import com.dronelink.core.mission.command.camera.ISOCameraCommand;
+import com.dronelink.core.mission.command.camera.MeteringModeCameraCommand;
 import com.dronelink.core.mission.command.camera.ModeCameraCommand;
 import com.dronelink.core.mission.command.camera.PhotoAspectRatioCameraCommand;
 import com.dronelink.core.mission.command.camera.PhotoFileFormatCameraCommand;
@@ -50,6 +52,7 @@ import com.dronelink.core.mission.command.camera.PhotoModeCameraCommand;
 import com.dronelink.core.mission.command.camera.SaturationCameraCommand;
 import com.dronelink.core.mission.command.camera.SharpnessCameraCommand;
 import com.dronelink.core.mission.command.camera.ShutterSpeedCameraCommand;
+import com.dronelink.core.mission.command.camera.SpotMeteringTargetCameraCommand;
 import com.dronelink.core.mission.command.camera.StartCaptureCameraCommand;
 import com.dronelink.core.mission.command.camera.StopCaptureCameraCommand;
 import com.dronelink.core.mission.command.camera.StorageLocationCameraCommand;
@@ -1101,6 +1104,11 @@ public class DJIDroneSession implements DroneSession {
             return null;
         }
 
+        if (command instanceof MeteringModeCameraCommand) {
+            camera.setMeteringMode(DronelinkDJI.getCameraMeteringMode(((MeteringModeCameraCommand) command).meteringMode), createCompletionCallback(finished));
+            return null;
+        }
+
         if (command instanceof ModeCameraCommand) {
             camera.setMode(DronelinkDJI.getCameraMode(((ModeCameraCommand) command).mode), createCompletionCallback(finished));
             return null;
@@ -1138,6 +1146,12 @@ public class DJIDroneSession implements DroneSession {
 
         if (command instanceof ShutterSpeedCameraCommand) {
             camera.setShutterSpeed(DronelinkDJI.getCameraShutterSpeed(((ShutterSpeedCameraCommand) command).shutterSpeed), createCompletionCallback(finished));
+            return null;
+        }
+
+        if (command instanceof SpotMeteringTargetCameraCommand) {
+            final SpotMeteringTargetCameraCommand spotMeteringTargetCameraCommand = (SpotMeteringTargetCameraCommand)command;
+            camera.setSpotMeteringTarget(new Point((int)Math.round(spotMeteringTargetCameraCommand.spotMeteringTarget.x * 11), (int)Math.round(spotMeteringTargetCameraCommand.spotMeteringTarget.y * 7)), createCompletionCallback(finished));
             return null;
         }
 
