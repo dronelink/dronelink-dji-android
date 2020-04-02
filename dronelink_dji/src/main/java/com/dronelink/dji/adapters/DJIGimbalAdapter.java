@@ -80,7 +80,7 @@ public class DJIGimbalAdapter implements GimbalAdapter {
     }
 
     public void setPendingSpeedRotationBuilder(final Rotation.Builder newPendingSpeedRotationBuilder) {
-        serialQueue.submit(new Runnable() {
+        serialQueue.execute(new Runnable() {
             @Override
             public void run() {
                 pendingSpeedRotationBuilder = newPendingSpeedRotationBuilder;

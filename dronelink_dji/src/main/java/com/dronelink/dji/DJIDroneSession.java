@@ -10,7 +10,6 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 
@@ -83,7 +82,6 @@ import com.dronelink.core.mission.command.drone.ReturnHomeAltitudeDroneCommand;
 import com.dronelink.core.mission.command.gimbal.GimbalCommand;
 import com.dronelink.core.mission.command.gimbal.ModeGimbalCommand;
 import com.dronelink.core.mission.command.gimbal.OrientationGimbalCommand;
-import com.dronelink.core.mission.core.GeoCoordinate;
 import com.dronelink.core.mission.core.Message;
 import com.dronelink.core.mission.core.Orientation3;
 import com.dronelink.core.mission.core.Orientation3Optional;
@@ -108,6 +106,7 @@ import java.util.concurrent.Executors;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
+import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
 import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
@@ -127,6 +126,7 @@ import dji.sdk.airlink.LightbridgeLink;
 import dji.sdk.airlink.OcuSyncLink;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.camera.Camera;
+import dji.sdk.flightcontroller.FlightAssistant;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.flightcontroller.LandingGear;
 import dji.sdk.gimbal.Gimbal;
@@ -144,6 +144,7 @@ public class DJIDroneSession implements DroneSession {
     private boolean closed = false;
 
     private final List<Listener> listeners = new LinkedList<>();
+    private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
     private final CommandQueue droneCommands = new CommandQueue();
     private final MultiChannelCommandQueue cameraCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue gimbalCommands = new MultiChannelCommandQueue();
@@ -156,6 +157,7 @@ public class DJIDroneSession implements DroneSession {
 
     private ExecutorService cameraSerialQueue = Executors.newSingleThreadExecutor();
     private Map<Integer, DatedValue<SystemState>> cameraStates = new HashMap<>();
+    private Map<Integer, DatedValue<StorageState>> cameraStorageStates = new HashMap<>();
     private Map<Integer, DatedValue<ExposureSettings>> cameraExposureSettings = new HashMap<>();
 
     private ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
@@ -192,7 +194,7 @@ public class DJIDroneSession implements DroneSession {
                         cameraCommands.process();
                         gimbalCommands.process();
 
-                        gimbalSerialQueue.submit(new Runnable() {
+                        gimbalSerialQueue.execute(new Runnable() {
                             @Override
                             public void run() {
                                 //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
@@ -243,7 +245,7 @@ public class DJIDroneSession implements DroneSession {
             remoteController.setHardwareStateCallback(new HardwareState.HardwareStateCallback() {
                 @Override
                 public void onUpdate(@NonNull final HardwareState hardwareState) {
-                    remoteControllerSerialQueue.submit(new Runnable() {
+                    remoteControllerSerialQueue.execute(new Runnable() {
                         @Override
                         public void run() {
                             remoteControllerState = new DatedValue<>(hardwareState);
@@ -347,7 +349,7 @@ public class DJIDroneSession implements DroneSession {
 
             @Override
             public void onUpdate(@NonNull final FlightControllerState flightControllerStateUpdated) {
-                stateSerialQueue.submit(new Runnable() {
+                stateSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
                         state.flightControllerState = new DatedValue<>(flightControllerStateUpdated);
@@ -360,19 +362,22 @@ public class DJIDroneSession implements DroneSession {
             }
         });
 
-        flightController.getFlightAssistant().setVisionDetectionStateUpdatedCallback(new VisionDetectionState.Callback() {
-            @Override
-            public void onUpdate(@NonNull final VisionDetectionState visionDetectionState) {
-                if (visionDetectionState.getPosition() == VisionSensorPosition.NOSE) {
-                    stateSerialQueue.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            state.visionDetectionState = new DatedValue<>(visionDetectionState);
-                        }
-                    });
+        final FlightAssistant flightAssistant = flightController.getFlightAssistant();
+        if (flightAssistant != null) {
+            flightAssistant.setVisionDetectionStateUpdatedCallback(new VisionDetectionState.Callback() {
+                @Override
+                public void onUpdate(@NonNull final VisionDetectionState visionDetectionState) {
+                    if (visionDetectionState.getPosition() == VisionSensorPosition.NOSE) {
+                        stateSerialQueue.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                state.visionDetectionState = new DatedValue<>(visionDetectionState);
+                            }
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     private void initCamera(final Camera camera) {
@@ -380,7 +385,7 @@ public class DJIDroneSession implements DroneSession {
         camera.setSystemStateCallback(new SystemState.Callback() {
             @Override
             public void onUpdate(@NonNull final SystemState systemState) {
-                cameraSerialQueue.submit(new Runnable() {
+                cameraSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
                         cameraStates.put(camera.getIndex(), new DatedValue<>(systemState));
@@ -389,10 +394,24 @@ public class DJIDroneSession implements DroneSession {
             }
         });
 
+        camera.setStorageStateCallBack(new StorageState.Callback() {
+            @Override
+            public void onUpdate(final StorageState storageState) {
+                if (storageState.getStorageLocation() == SettingsDefinitions.StorageLocation.SDCARD) {
+                    cameraSerialQueue.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            cameraStorageStates.put(camera.getIndex(), new DatedValue<>(storageState));
+                        }
+                    });
+                }
+            }
+        });
+
         camera.setExposureSettingsCallback(new ExposureSettings.Callback() {
             @Override
             public void onUpdate(@NonNull final ExposureSettings exposureSettings) {
-                cameraSerialQueue.submit(new Runnable() {
+                cameraSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
                         cameraExposureSettings.put(camera.getIndex(), new DatedValue<>(exposureSettings));
@@ -404,7 +423,7 @@ public class DJIDroneSession implements DroneSession {
         camera.setMediaFileCallback(new MediaFile.Callback() {
             @Override
             public void onNewFile(@NonNull final MediaFile mediaFile) {
-                AsyncTask.execute(new Runnable() {
+                listenerExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         Orientation3 orientation = state.getMissionOrientation();
@@ -415,8 +434,7 @@ public class DJIDroneSession implements DroneSession {
                             if (gimbalState.value.getMissionMode() == GimbalMode.FREE) {
                                 orientation.z = gimbalState.value.getMissionOrientation().z;
                             }
-                        }
-                        else {
+                        } else {
                             orientation.x = 0.0;
                             orientation.y = 0.0;
                         }
@@ -454,7 +472,7 @@ public class DJIDroneSession implements DroneSession {
         gimbal.setStateCallback(new GimbalState.Callback() {
             @Override
             public void onUpdate(@NonNull final GimbalState gimbalState) {
-                gimbalSerialQueue.submit(new Runnable() {
+                gimbalSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
                         gimbalStates.put(gimbal.getIndex(), new DatedValue<>(gimbalState));
@@ -487,7 +505,7 @@ public class DJIDroneSession implements DroneSession {
     protected void componentDisconnected(final BaseComponent component) {
         if (component instanceof FlightController) {
             Log.i(TAG, "Flight controller disconnected");
-            stateSerialQueue.submit(new Runnable() {
+            stateSerialQueue.execute(new Runnable() {
                 @Override
                 public void run() {
                     state.flightControllerState = null;
@@ -497,10 +515,11 @@ public class DJIDroneSession implements DroneSession {
         }
         else if (component instanceof Camera) {
             final Camera camera = (Camera)component;
-            cameraSerialQueue.submit(new Runnable() {
+            cameraSerialQueue.execute(new Runnable() {
                 @Override
                 public void run() {
                     cameraStates.put(camera.getIndex(), null);
+                    cameraStorageStates.put(camera.getIndex(), null);
                     cameraExposureSettings.put(camera.getIndex(), null);
                 }
             });
@@ -508,7 +527,7 @@ public class DJIDroneSession implements DroneSession {
         }
         else if (component instanceof Gimbal) {
             final Gimbal gimbal = (Gimbal)component;
-            gimbalSerialQueue.submit(new Runnable() {
+            gimbalSerialQueue.execute(new Runnable() {
                 @Override
                 public void run() {
                     gimbalStates.put(gimbal.getIndex(), null);
@@ -658,7 +677,7 @@ public class DJIDroneSession implements DroneSession {
 
     private void onLocated() {
         final DJIDroneSession self = this;
-        AsyncTask.execute(new Runnable() {
+        listenerExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 for (final Listener listener : listeners) {
@@ -670,7 +689,7 @@ public class DJIDroneSession implements DroneSession {
 
     private void onMotorsChanged(final boolean value) {
         final DJIDroneSession self = this;
-        AsyncTask.execute(new Runnable() {
+        listenerExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 for (final Listener listener : listeners) {
@@ -681,15 +700,27 @@ public class DJIDroneSession implements DroneSession {
     }
 
     private void onCommandExecuted(final Command command) {
-        for (final Listener listener : listeners) {
-            listener.onCommandExecuted(this, command);
-        }
+        final DJIDroneSession self = this;
+        listenerExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (final Listener listener : listeners) {
+                    listener.onCommandExecuted(self, command);
+                }
+            }
+        });
     }
 
     private void onCommandFinished(final Command command, final String error) {
-        for (final Listener listener : listeners) {
-            listener.onCommandFinished(this, command, error);
-        }
+        final DJIDroneSession self = this;
+        listenerExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (final Listener listener : listeners) {
+                    listener.onCommandFinished(self, command, error);
+                }
+            }
+        });
     }
 
     private void onCameraFileGenerated(final DJICameraFile file) {
@@ -812,8 +843,9 @@ public class DJIDroneSession implements DroneSession {
                         return null;
                     }
 
+                    final DatedValue<StorageState> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel);
-                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, exposureSettings == null ? null : exposureSettings.value);
+                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, storageState == null ? null : storageState.value, exposureSettings == null ? null : exposureSettings.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
                 }
             }).get();

@@ -12,14 +12,17 @@ import com.dronelink.core.mission.core.enums.CameraMode;
 
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.SettingsDefinitions;
+import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
 
 public class DJICameraStateAdapter implements CameraStateAdapter {
-    private final SystemState state;
-    private final ExposureSettings exposureSettings;
+    public final SystemState state;
+    public final StorageState storageState;
+    public final ExposureSettings exposureSettings;
 
-    public DJICameraStateAdapter(final SystemState state, final ExposureSettings exposureSettings) {
+    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings) {
         this.state = state;
+        this.storageState = storageState;
         this.exposureSettings = exposureSettings;
     }
 
@@ -43,6 +46,14 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
                 || state.isShootingRAWBurstPhoto()
                 || state.isShootingShallowFocusPhoto()
                 || state.isShootingPanoramaPhoto());
+    }
+
+    @Override
+    public boolean isSDCardInserted() {
+        if (storageState != null) {
+            return storageState.isInserted();
+        }
+        return true;
     }
 
     @Override
