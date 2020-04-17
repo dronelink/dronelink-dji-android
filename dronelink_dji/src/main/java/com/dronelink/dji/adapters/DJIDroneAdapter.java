@@ -12,12 +12,14 @@ import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.RemoteControllerAdapter;
 import com.dronelink.core.command.Command;
+import com.dronelink.core.command.CommandError;
 import com.dronelink.core.mission.command.drone.VelocityDroneCommand;
 import com.dronelink.core.mission.core.Vector2;
 import com.dronelink.dji.DronelinkDJI;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -57,16 +59,22 @@ public class DJIDroneAdapter implements DroneAdapter {
 
     @Override
     public Collection<CameraAdapter> getCameras() {
-        for (final Camera camera : drone.getCameras()) {
-            getCamera(camera.getIndex());
+        final List<Camera> djiCameras = drone.getCameras();
+        if (djiCameras != null) {
+            for (final Camera camera : djiCameras) {
+                getCamera(camera.getIndex());
+            }
         }
         return cameras.values();
     }
 
     @Override
     public Collection<GimbalAdapter> getGimbals() {
-        for (final Gimbal gimbal : drone.getGimbals()) {
-            getGimbal(gimbal.getIndex());
+        final List<Gimbal> djiGimbals = drone.getGimbals();
+        if (djiGimbals != null) {
+            for (final Gimbal gimbal : djiGimbals) {
+                getGimbal(gimbal.getIndex());
+            }
         }
         return gimbals.values();
     }
@@ -138,7 +146,7 @@ public class DJIDroneAdapter implements DroneAdapter {
         final FlightController flightController = drone.getFlightController();
         if (flightController == null) {
             if (finisher != null) {
-                finisher.execute("Flight controller unavailable");
+                finisher.execute(new CommandError("Flight controller unavailable"));
             }
             return;
         }
@@ -147,7 +155,7 @@ public class DJIDroneAdapter implements DroneAdapter {
             @Override
             public void onResult(final DJIError djiError) {
                 if (finisher != null) {
-                    finisher.execute(djiError == null ? null : djiError.getDescription());
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
                 }
             }
         });
@@ -158,7 +166,7 @@ public class DJIDroneAdapter implements DroneAdapter {
         final FlightController flightController = drone.getFlightController();
         if (flightController == null) {
             if (finisher != null) {
-                finisher.execute("Flight controller unavailable");
+                finisher.execute(new CommandError("Flight controller unavailable"));
             }
             return;
         }
@@ -167,7 +175,7 @@ public class DJIDroneAdapter implements DroneAdapter {
             @Override
             public void onResult(final DJIError djiError) {
                 if (finisher != null) {
-                    finisher.execute(djiError == null ? null : djiError.getDescription());
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
                 }
             }
         });

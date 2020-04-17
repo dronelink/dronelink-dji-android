@@ -56,7 +56,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return null;
         }
 
-        if (aircraftLocation.getLatitude() == 0 && aircraftLocation.getLongitude() == 0) {
+        if (Math.abs(aircraftLocation.getLatitude()) < 0.000001 && Math.abs(aircraftLocation.getLongitude()) < 0.000001) {
             return null;
         }
 

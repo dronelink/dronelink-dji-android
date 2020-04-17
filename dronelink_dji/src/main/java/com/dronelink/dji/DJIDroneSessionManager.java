@@ -39,7 +39,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
     @Override
     public void addListener(final Listener listener) {
-        this.listeners.add(listener);
+        listeners.add(listener);
         final DroneSession session = this.session;
         if (session != null) {
             listener.onOpened(session);
@@ -48,7 +48,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
     @Override
     public void removeListener(final Listener listener) {
-        this.listeners.remove(listener);
+        listeners.remove(listener);
     }
 
     @Override
