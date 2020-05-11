@@ -8,7 +8,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
-        versionName "1.4.1"
+        versionName "1.5.0"
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -24,7 +24,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'org.bitbucket.dronelink:dronelink-core-android:1.4.1'
-    compileOnly 'com.dji:dji-sdk:4.11.2'
-    compileOnly 'com.dji:dji-sdk-provided:4.11.2'
+    implementation 'com.github.dronelink:dronelink-core-android:1.5.0'
+    compileOnly 'com.dji:dji-sdk:4.12'
+    compileOnly 'com.dji:dji-sdk-provided:4.12'
 }

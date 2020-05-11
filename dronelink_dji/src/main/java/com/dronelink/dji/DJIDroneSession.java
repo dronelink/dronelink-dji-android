@@ -1234,14 +1234,14 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof UpwardsAvoidanceDroneCommand) {
-            flightAssistant.getUpwardsAvoidanceEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
+            flightAssistant.getUpwardAvoidanceEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
                 @Override
                 public void execute(final Boolean current) {
                     final Boolean target = ((UpwardsAvoidanceDroneCommand) command).enabled;
                     Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
                         @Override
                         public void execute() {
-                            flightAssistant.setUpwardsAvoidanceEnabled(target, createCompletionCallback(finished));
+                            flightAssistant.setUpwardAvoidanceEnabled(target, createCompletionCallback(finished));
                         }
                     });
                 }
@@ -1851,7 +1851,17 @@ public class DJIDroneSession implements DroneSession {
                 case VIDEO:
                     if (state.value.isCapturingVideo()) {
                         Log.d(TAG, "Camera stop capture video");
-                        camera.stopRecordVideo(createCompletionCallback(finished));
+                        camera.stopRecordVideo(new CommonCallbacks.CompletionCallback() {
+                            @Override
+                            public void onResult(final DJIError djiError) {
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        finished.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                                    }
+                                }, 2000);
+                            }
+                        });
                     }
                     else {
                         Log.d(TAG, "Camera stop capture skipped, not recording video");
