@@ -17,6 +17,7 @@ import com.dronelink.core.mission.core.Orientation3;
 import java.util.Date;
 import java.util.UUID;
 
+import dji.common.battery.BatteryState;
 import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.LocationCoordinate3D;
@@ -26,6 +27,7 @@ import dji.common.model.LocationCoordinate2D;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<FlightControllerState> flightControllerState;
+    public DatedValue<BatteryState> batteryState;
     public DatedValue<VisionDetectionState> visionDetectionState;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
@@ -141,6 +143,15 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         }
 
         return location.getAltitude();
+    }
+
+    @Override
+    public Double getBatteryPercent() {
+        if (batteryState == null) {
+            return null;
+        }
+
+        return (double)batteryState.value.getChargeRemainingInPercent() / 100.0;
     }
 
     @Override

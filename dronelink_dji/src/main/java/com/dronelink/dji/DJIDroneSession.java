@@ -121,6 +121,7 @@ import java.util.concurrent.Executors;
 import dji.common.airlink.ChannelSelectionMode;
 import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
+import dji.common.battery.BatteryState;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
@@ -145,6 +146,7 @@ import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
 import dji.sdk.airlink.OcuSyncLink;
 import dji.sdk.base.BaseComponent;
+import dji.sdk.battery.Battery;
 import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightAssistant;
 import dji.sdk.flightcontroller.FlightController;
@@ -374,6 +376,8 @@ public class DJIDroneSession implements DroneSession {
         });
 
         flightController.setStateCallback(new FlightControllerState.Callback() {
+            private Double lastNonZeroFlyingAltitude = null;
+            private boolean isFlyingPrevious = false;
             private boolean areMotorsOnPrevious = false;
 
             @Override
@@ -381,15 +385,57 @@ public class DJIDroneSession implements DroneSession {
                 stateSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
+                        //automatically adjust the drone altitude offset if:
+                        //1) altitude continuity is enabled
+                        //2) the drone is going from flying to not flying
+                        //3) the altitude reference is ground level
+                        //4) the current drone altitude offset is not zero
+                        //5) the last flight altitude is available
+                        //6) the absolute value of last non-zero flying altitude is more than 1m
+                        if (Dronelink.getInstance().droneOffsets.droneAltitudeContinuity &&
+                                isFlyingPrevious &&
+                                !flightControllerStateUpdated.isFlying() &&
+                                (Dronelink.getInstance().droneOffsets.droneAltitudeReference == null || Dronelink.getInstance().droneOffsets.droneAltitudeReference == 0) &&
+                                lastNonZeroFlyingAltitude != null && Math.abs(lastNonZeroFlyingAltitude) > 1) {
+                            //adjust by the last non-zero flying altitude
+                            Dronelink.getInstance().droneOffsets.droneAltitude -= lastNonZeroFlyingAltitude;
+                        }
+
                         state.flightControllerState = new DatedValue<>(flightControllerStateUpdated);
                         if (areMotorsOnPrevious != flightControllerStateUpdated.areMotorsOn()) {
                             onMotorsChanged(flightControllerStateUpdated.areMotorsOn());
                         }
+
+                        isFlyingPrevious = flightControllerStateUpdated.isFlying();
                         areMotorsOnPrevious = flightControllerStateUpdated.areMotorsOn();
+
+                        if (flightControllerStateUpdated.isFlying()) {
+                            if (flightControllerStateUpdated.getAircraftLocation().getAltitude() != 0) {
+                                lastNonZeroFlyingAltitude = (double)flightControllerStateUpdated.getAircraftLocation().getAltitude();
+                            }
+                        }
+                        else {
+                            lastNonZeroFlyingAltitude = null;
+                        }
                     }
                 });
             }
         });
+
+        final Battery battery = drone.getBattery();
+        if (battery != null) {
+            battery.setStateCallback(new BatteryState.Callback() {
+                @Override
+                public void onUpdate(final BatteryState batteryState) {
+                    stateSerialQueue.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            state.batteryState = new DatedValue<>(batteryState);
+                        }
+                    });
+                }
+            });
+        }
 
         final FlightAssistant flightAssistant = flightController.getFlightAssistant();
         if (flightAssistant != null) {
