@@ -29,6 +29,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<FlightControllerState> flightControllerState;
     public DatedValue<BatteryState> batteryState;
     public DatedValue<VisionDetectionState> visionDetectionState;
+    public DatedValue<Integer> airLinkSignalQuality;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
     public String name;
@@ -185,5 +186,15 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             orientation.z = Convert.DegreesToRadians(attitude.yaw);
         }
         return orientation;
+    }
+
+    @Override
+    public Integer getGPSSatellites() {
+        return flightControllerState == null ? null : flightControllerState.value.getSatelliteCount();
+    }
+
+    @Override
+    public Double getSignalStrength() {
+        return airLinkSignalQuality == null ? null : airLinkSignalQuality.value.doubleValue();
     }
 }

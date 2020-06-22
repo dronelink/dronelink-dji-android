@@ -64,14 +64,16 @@ public class DJIControlSession implements DroneControlSession {
         return null;
     }
 
-    public boolean activate() {
+    public Boolean activate() {
         final FlightController flightController = droneSession.getAdapter().getDrone().getFlightController();
         if (flightController == null) {
+            deactivate();
             return false;
         }
 
         final DatedValue<FlightControllerState> flightControllerState = droneSession.getFlightControllerState();
         if (flightControllerState == null) {
+            deactivate();
             return false;
         }
 
@@ -113,17 +115,17 @@ public class DJIControlSession implements DroneControlSession {
                     }
                 });
 
-                return false;
+                return null;
 
             case TAKEOFF_ATTEMPTING:
-                return false;
+                return null;
 
             case TAKEOFF_COMPLETE:
                 if (flightControllerState.value.isFlying() && flightControllerState.value.getFlightMode() != FlightMode.AUTO_TAKEOFF) {
                     state = State.VIRTUAL_STICK_START;
                     return activate();
                 }
-                return false;
+                return null;
 
             case VIRTUAL_STICK_START:
                 if (virtualStickAttemptPrevious == null || (System.currentTimeMillis() - virtualStickAttemptPrevious.getTime()) > 2000) {
@@ -152,10 +154,10 @@ public class DJIControlSession implements DroneControlSession {
                         }
                     });
                 }
-                return false;
+                return null;
 
             case VIRTUAL_STICK_ATTEMPTING:
-                return false;
+                return null;
 
             case FLIGHT_MODE_JOYSTICK_ATTEMPTING:
                 if (flightControllerState.value.getFlightMode() == FlightMode.JOYSTICK) {
@@ -173,17 +175,16 @@ public class DJIControlSession implements DroneControlSession {
                 }
 
                 droneSession.sendResetVelocityCommand(null);
-                return false;
+                return null;
 
             case FLIGHT_MODE_JOYSTICK_COMPLETE:
                 return true;
 
             case DEACTIVATED:
                 return false;
-
-            default:
-                return false;
         }
+
+        return false;
     }
 
     public void deactivate() {
@@ -196,9 +197,6 @@ public class DJIControlSession implements DroneControlSession {
                 }
             }
         });
-
-        droneSession.sendResetGimbalCommands();
-        droneSession.sendResetCameraCommands();
 
         state = State.DEACTIVATED;
     }

@@ -16,6 +16,7 @@ import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 
+import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
 import com.dronelink.core.DroneSession;
@@ -142,6 +143,9 @@ import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.common.util.DJIParamCapability;
+import dji.keysdk.AirLinkKey;
+import dji.keysdk.DJIKey;
+import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
 import dji.sdk.airlink.OcuSyncLink;
@@ -155,6 +159,7 @@ import dji.sdk.gimbal.Gimbal;
 import dji.sdk.media.MediaFile;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
+import dji.sdk.sdkmanager.DJISDKManager;
 
 public class DJIDroneSession implements DroneSession {
     private static final String TAG = DJIDroneSession.class.getCanonicalName();
@@ -181,9 +186,12 @@ public class DJIDroneSession implements DroneSession {
     private SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
     private SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
     private SparseArray<DatedValue<ExposureSettings>> cameraExposureSettings = new SparseArray<>();
+    private SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
 
     private ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
     private SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
+
+    private KeyListener airlinkListener;
 
     public DJIDroneSession(final Context context, final Aircraft drone) {
         this.context = context;
@@ -246,10 +254,11 @@ public class DJIDroneSession implements DroneSession {
                         });
                         sleep(100);
                     }
-                }
-                catch (final InterruptedException e) {
 
+                    DJISDKManager.getInstance().getKeyManager().removeListener(airlinkListener);
+                    Log.i(TAG, "Drone session closed");
                 }
+                catch (final InterruptedException e) {}
             }
         }.start();
     }
@@ -453,6 +462,24 @@ public class DJIDroneSession implements DroneSession {
                 }
             });
         }
+
+        airlinkListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Integer) {
+                            state.airLinkSignalQuality = new DatedValue<>((Integer) newValue);
+                        }
+                        else {
+                            state.airLinkSignalQuality = null;
+                        }
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.DOWNLINK_SIGNAL_QUALITY), airlinkListener);
     }
 
     private void initCamera(final Camera camera) {
@@ -540,7 +567,20 @@ public class DJIDroneSession implements DroneSession {
             }
         });
 
-        Log.i(TAG, "camera.getDisplayName(): " + camera.getDisplayName());
+        camera.getLensInformation(new CommonCallbacks.CompletionCallbackWith<String>() {
+            @Override
+            public void onSuccess(final String info) {
+                cameraSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        cameraLensInformation.put(camera.getIndex(), new DatedValue<>(info));
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(final DJIError djiError) {}
+        });
     }
 
 
@@ -598,6 +638,7 @@ public class DJIDroneSession implements DroneSession {
                     cameraStates.put(camera.getIndex(), null);
                     cameraStorageStates.put(camera.getIndex(), null);
                     cameraExposureSettings.put(camera.getIndex(), null);
+                    cameraLensInformation.put(camera.getIndex(), null);
                 }
             });
             Log.i(TAG, String.format("Camera[%d] disconnected", camera.getIndex()));
@@ -937,7 +978,8 @@ public class DJIDroneSession implements DroneSession {
 
                     final DatedValue<StorageState> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel);
-                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, storageState == null ? null : storageState.value, exposureSettings == null ? null : exposureSettings.value);
+                    final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
+                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, storageState == null ? null : storageState.value, exposureSettings == null ? null : exposureSettings.value, lensInformation == null ? null : lensInformation.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
                 }
             }).get();
@@ -969,6 +1011,12 @@ public class DJIDroneSession implements DroneSession {
     }
 
     @Override
+    public void resetPayloads() {
+        sendResetGimbalCommands();
+        sendResetCameraCommands();
+    }
+
+    @Override
     public void close() {
         this.closed = true;
     }
@@ -989,10 +1037,24 @@ public class DJIDroneSession implements DroneSession {
             if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
                 rotation.roll(0);
             }
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
-                rotation.yaw(0);
+
+            final DatedValue<GimbalStateAdapter> state = getGimbalState(gimbal.getIndex());
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported() && state != null && state.value.getMissionMode() != GimbalMode.YAW_FOLLOW) {
+                gimbal.setMode(dji.common.gimbal.GimbalMode.YAW_FOLLOW, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(final DJIError setModeError) {
+                        gimbal.reset(new CommonCallbacks.CompletionCallback() {
+                            @Override
+                            public void onResult(final DJIError resetError) {
+                                gimbal.rotate(rotation.build(), null);
+                            }
+                        });
+                    }
+                });
             }
-            gimbal.rotate(rotation.build(), null);
+            else {
+                gimbal.rotate(rotation.build(), null);
+            }
         }
     }
 
@@ -2058,7 +2120,22 @@ public class DJIDroneSession implements DroneSession {
             Command.conditionallyExecute(state.value.getMissionMode() != target, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
-                    gimbal.setMode(DronelinkDJI.getGimbalMode(target), createCompletionCallback(finished));
+                    gimbal.setMode(DronelinkDJI.getGimbalMode(target), new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(final DJIError djiError) {
+                            if (djiError != null) {
+                                finished.execute(new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                                return;
+                            }
+
+                            if (DronelinkDJI.getGimbalMode(target) == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
+                                gimbal.reset(createCompletionCallback(finished));
+                            }
+                            else {
+                                finished.execute(null);
+                            }
+                        }
+                    });
                 }
             });
             return null;
@@ -2072,30 +2149,47 @@ public class DJIDroneSession implements DroneSession {
             }
 
             final Rotation.Builder rotation = new Rotation.Builder();
-            rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
 
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && orientation.getPitch() != null) {
-                double pitch = Math.toDegrees(orientation.getPitch());
-                if (Math.abs(pitch + 90) < 0.1) {
-                    pitch = -89.9;
-                }
-                rotation.pitch((float)pitch);
+            Double pitch = orientation.getPitch() == null ? null : Convert.RadiansToDegrees(orientation.getPitch());
+            if (pitch != null && Math.abs(pitch + 90) < 0.1) {
+                pitch = -89.9;
             }
 
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && orientation.getRoll() != null) {
-                rotation.roll((float)Math.toDegrees(orientation.getRoll()));
+            Double roll = orientation.getRoll() == null ? null : Convert.RadiansToDegrees(orientation.getRoll());
+
+            Double yaw = orientation.getYaw();
+            if (state.value.getMissionMode() == GimbalMode.FREE && yaw != null) {
+                //use relative angle because absolute angle for yaw is not predictable
+                if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && pitch != null) {
+                    rotation.pitch((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(Convert.DegreesToRadians(pitch), state.value.getMissionOrientation().getPitch())));
+                }
+
+                if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && roll != null) {
+                    rotation.roll((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(Convert.DegreesToRadians(roll), state.value.getMissionOrientation().getRoll())));
+                }
+
+                rotation.yaw((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(yaw, state.value.getMissionOrientation().getYaw())));
+
+                rotation.mode(RotationMode.RELATIVE_ANGLE);
+                gimbal.rotate(rotation.build(), createCompletionCallback(finished));
+                return null;
             }
 
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
-                if (state.value.getMissionMode() == com.dronelink.core.mission.core.enums.GimbalMode.FREE) {
-                    rotation.yaw((float) Math.toDegrees(orientation.getYaw()));
-                }
-                else {
-                    rotation.yaw(0);
-                }
+            if (pitch == null && roll == null) {
+                finished.execute(null);
+                return null;
             }
 
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && pitch != null) {
+                rotation.pitch(pitch.floatValue());
+            }
+
+            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && roll != null) {
+                rotation.roll(roll.floatValue());
+            }
+
+            rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             gimbal.rotate(rotation.build(), createCompletionCallback(finished));
             return null;
         }

@@ -19,11 +19,13 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     public final SystemState state;
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
+    public final String lensInformation;
 
-    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings) {
+    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation) {
         this.state = state;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
+        this.lensInformation = lensInformation;
     }
 
     @Override
@@ -72,40 +74,77 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public CameraExposureCompensation getMissionExposureCompensation() {
         switch (exposureSettings == null ? SettingsDefinitions.ExposureCompensation.UNKNOWN : exposureSettings.getExposureCompensation()) {
-            case N_5_0: return CameraExposureCompensation.N_5_0;
-            case N_4_7: return CameraExposureCompensation.N_4_7;
-            case N_4_3: return CameraExposureCompensation.N_4_3;
-            case N_4_0: return CameraExposureCompensation.N_4_0;
-            case N_3_7: return CameraExposureCompensation.N_3_7;
-            case N_3_3: return CameraExposureCompensation.N_3_3;
-            case N_3_0: return CameraExposureCompensation.N_3_0;
-            case N_2_7: return CameraExposureCompensation.N_2_7;
-            case N_2_3: return CameraExposureCompensation.N_2_3;
-            case N_2_0: return CameraExposureCompensation.N_2_0;
-            case N_1_7: return CameraExposureCompensation.N_1_7;
-            case N_1_3: return CameraExposureCompensation.N_1_3;
-            case N_1_0: return CameraExposureCompensation.N_1_0;
-            case N_0_7: return CameraExposureCompensation.N_0_7;
-            case N_0_3: return CameraExposureCompensation.N_0_3;
-            case N_0_0: return CameraExposureCompensation.N_0_0;
-            case P_0_3: return CameraExposureCompensation.P_0_3;
-            case P_0_7: return CameraExposureCompensation.P_0_7;
-            case P_1_0: return CameraExposureCompensation.P_1_0;
-            case P_1_3: return CameraExposureCompensation.P_1_3;
-            case P_1_7: return CameraExposureCompensation.P_1_7;
-            case P_2_0: return CameraExposureCompensation.P_2_0;
-            case P_2_3: return CameraExposureCompensation.P_2_3;
-            case P_2_7: return CameraExposureCompensation.P_2_7;
-            case P_3_0: return CameraExposureCompensation.P_3_0;
-            case P_3_3: return CameraExposureCompensation.P_3_3;
-            case P_3_7: return CameraExposureCompensation.P_3_7;
-            case P_4_0: return CameraExposureCompensation.P_4_0;
-            case P_4_3: return CameraExposureCompensation.P_4_3;
-            case P_4_7: return CameraExposureCompensation.P_4_7;
-            case P_5_0: return CameraExposureCompensation.P_5_0;
+            case N_5_0:
+                return CameraExposureCompensation.N_5_0;
+            case N_4_7:
+                return CameraExposureCompensation.N_4_7;
+            case N_4_3:
+                return CameraExposureCompensation.N_4_3;
+            case N_4_0:
+                return CameraExposureCompensation.N_4_0;
+            case N_3_7:
+                return CameraExposureCompensation.N_3_7;
+            case N_3_3:
+                return CameraExposureCompensation.N_3_3;
+            case N_3_0:
+                return CameraExposureCompensation.N_3_0;
+            case N_2_7:
+                return CameraExposureCompensation.N_2_7;
+            case N_2_3:
+                return CameraExposureCompensation.N_2_3;
+            case N_2_0:
+                return CameraExposureCompensation.N_2_0;
+            case N_1_7:
+                return CameraExposureCompensation.N_1_7;
+            case N_1_3:
+                return CameraExposureCompensation.N_1_3;
+            case N_1_0:
+                return CameraExposureCompensation.N_1_0;
+            case N_0_7:
+                return CameraExposureCompensation.N_0_7;
+            case N_0_3:
+                return CameraExposureCompensation.N_0_3;
+            case N_0_0:
+                return CameraExposureCompensation.N_0_0;
+            case P_0_3:
+                return CameraExposureCompensation.P_0_3;
+            case P_0_7:
+                return CameraExposureCompensation.P_0_7;
+            case P_1_0:
+                return CameraExposureCompensation.P_1_0;
+            case P_1_3:
+                return CameraExposureCompensation.P_1_3;
+            case P_1_7:
+                return CameraExposureCompensation.P_1_7;
+            case P_2_0:
+                return CameraExposureCompensation.P_2_0;
+            case P_2_3:
+                return CameraExposureCompensation.P_2_3;
+            case P_2_7:
+                return CameraExposureCompensation.P_2_7;
+            case P_3_0:
+                return CameraExposureCompensation.P_3_0;
+            case P_3_3:
+                return CameraExposureCompensation.P_3_3;
+            case P_3_7:
+                return CameraExposureCompensation.P_3_7;
+            case P_4_0:
+                return CameraExposureCompensation.P_4_0;
+            case P_4_3:
+                return CameraExposureCompensation.P_4_3;
+            case P_4_7:
+                return CameraExposureCompensation.P_4_7;
+            case P_5_0:
+                return CameraExposureCompensation.P_5_0;
             case FIXED:
-            case UNKNOWN: return CameraExposureCompensation.UNKNOWN;
+            case UNKNOWN:
+                return CameraExposureCompensation.UNKNOWN;
         }
         return CameraExposureCompensation.UNKNOWN;
+    }
+
+    @Override
+    public String getLensDetails() {
+        return lensInformation;
     }
 }
