@@ -60,6 +60,7 @@ import com.dronelink.core.mission.command.camera.SpotMeteringTargetCameraCommand
 import com.dronelink.core.mission.command.camera.StartCaptureCameraCommand;
 import com.dronelink.core.mission.command.camera.StopCaptureCameraCommand;
 import com.dronelink.core.mission.command.camera.StorageLocationCameraCommand;
+import com.dronelink.core.mission.command.camera.VideoCaptionCameraCommand;
 import com.dronelink.core.mission.command.camera.VideoFileCompressionStandardCameraCommand;
 import com.dronelink.core.mission.command.camera.VideoFileFormatCameraCommand;
 import com.dronelink.core.mission.command.camera.VideoResolutionFrameRateCameraCommand;
@@ -98,6 +99,7 @@ import com.dronelink.core.mission.command.drone.VisionAssistedPositioningDroneCo
 import com.dronelink.core.mission.command.gimbal.GimbalCommand;
 import com.dronelink.core.mission.command.gimbal.ModeGimbalCommand;
 import com.dronelink.core.mission.command.gimbal.OrientationGimbalCommand;
+import com.dronelink.core.mission.command.gimbal.YawSimultaneousFollowGimbalCommand;
 import com.dronelink.core.mission.core.Message;
 import com.dronelink.core.mission.core.Orientation3;
 import com.dronelink.core.mission.core.Orientation3Optional;
@@ -2003,6 +2005,22 @@ public class DJIDroneSession implements DroneSession {
             return null;
         }
 
+        if (command instanceof VideoCaptionCameraCommand) {
+            camera.getVideoCaptionEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
+                @Override
+                public void execute(final Boolean current) {
+                    final Boolean target = ((VideoCaptionCameraCommand) command).enabled;
+                    Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
+                        @Override
+                        public void execute() {
+                            camera.setVideoCaptionEnabled(target, createCompletionCallback(finished));
+                        }
+                    });
+                }
+            }, finished));
+            return null;
+        }
+
         if (command instanceof VideoFileCompressionStandardCameraCommand) {
             camera.getVideoFileCompressionStandard(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.VideoFileCompressionStandard>() {
                 @Override
@@ -2191,6 +2209,23 @@ public class DJIDroneSession implements DroneSession {
 
             rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             gimbal.rotate(rotation.build(), createCompletionCallback(finished));
+            return null;
+        }
+
+        if (command instanceof YawSimultaneousFollowGimbalCommand) {
+// TODO getYawSimultaneousFollowEnabled always returns false right now, DJI bug?
+//            gimbal.getYawSimultaneousFollowEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
+//                @Override
+//                public void execute(final Boolean current) {
+                    final Boolean target = ((YawSimultaneousFollowGimbalCommand) command).enabled;
+//                    Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
+//                        @Override
+//                        public void execute() {
+                            gimbal.setYawSimultaneousFollowEnabled(target, createCompletionCallback(finished));
+//                        }
+//                    });
+//                }
+//            }, finished));
             return null;
         }
 

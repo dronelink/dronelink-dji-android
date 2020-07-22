@@ -20,6 +20,7 @@ import java.util.UUID;
 import dji.common.battery.BatteryState;
 import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightControllerState;
+import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
@@ -55,7 +56,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         }
 
         final LocationCoordinate3D aircraftLocation = flightControllerState.value.getAircraftLocation();
-        if (aircraftLocation == null || !flightControllerState.value.isHomeLocationSet() || Double.isNaN(aircraftLocation.getLatitude()) || Double.isNaN(aircraftLocation.getLongitude())) {
+        if (aircraftLocation == null || !flightControllerState.value.isHomeLocationSet() || flightControllerState.value.getSatelliteCount() == 0 || Double.isNaN(aircraftLocation.getLatitude()) || Double.isNaN(aircraftLocation.getLongitude())) {
             return null;
         }
 

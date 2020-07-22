@@ -8,6 +8,7 @@ package com.dronelink.dji.adapters;
 
 import android.util.Log;
 
+import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.mission.command.gimbal.VelocityGimbalCommand;
 import com.dronelink.core.mission.core.enums.GimbalMode;
@@ -63,6 +64,11 @@ public class DJIGimbalAdapter implements GimbalAdapter {
     @Override
     public void reset() {
         gimbal.reset(null);
+    }
+
+    @Override
+    public void fineTuneRoll(double roll) {
+        gimbal.fineTuneRollInDegrees((float)Convert.RadiansToDegrees(roll), null);
     }
 
     public Rotation.Builder getPendingSpeedRotation() {
