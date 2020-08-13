@@ -21,6 +21,7 @@ import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.Dronelink;
+import com.dronelink.core.MissionExecutor;
 import com.dronelink.core.Version;
 import com.dronelink.core.adapters.CameraStateAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
@@ -226,35 +227,39 @@ public class DJIDroneSession implements DroneSession {
                         cameraCommands.process();
                         gimbalCommands.process();
 
-                        gimbalSerialQueue.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
-                                for (final GimbalAdapter gimbalAdapter : adapter.getGimbals()) {
-                                    if (gimbalAdapter instanceof DJIGimbalAdapter) {
-                                        final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter)gimbalAdapter;
-                                        Rotation.Builder rotationBuilder = djiGimbalAdapter.getPendingSpeedRotation();
-                                        djiGimbalAdapter.setPendingSpeedRotationBuilder(null);
-                                        final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = djiGimbalAdapter.gimbal.getCapabilities();
-                                        if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
-                                            final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
-                                            if (gimbalState != null && gimbalState.value.getMode() == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
-                                                if (rotationBuilder == null) {
-                                                    rotationBuilder = new Rotation.Builder();
-                                                    rotationBuilder.mode(RotationMode.SPEED);
-                                                }
-                                                rotationBuilder.yaw((float)Math.min(Math.max(-gimbalState.value.getYawRelativeToAircraftHeading() * 0.1, -5.0), 5.0));
-                                            }
-                                        }
+                        final MissionExecutor missionExecutor = Dronelink.getInstance().getMissionExecutor();
+                        if (missionExecutor != null && Dronelink.getInstance().getMissionExecutor().isEngaged()) {
+                            gimbalSerialQueue.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
+                                    for (final GimbalAdapter gimbalAdapter : adapter.getGimbals()) {
+                                        if (gimbalAdapter instanceof DJIGimbalAdapter) {
+                                            final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter)gimbalAdapter;
+                                            Rotation.Builder rotationBuilder = djiGimbalAdapter.getPendingSpeedRotation();
+                                            djiGimbalAdapter.setPendingSpeedRotationBuilder(null);
+                                            final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = djiGimbalAdapter.gimbal.getCapabilities();
+                                            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+                                                final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
+                                                if (gimbalState != null && gimbalState.value.getMode() == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
+                                                    if (rotationBuilder == null) {
+                                                        rotationBuilder = new Rotation.Builder();
+                                                        rotationBuilder.mode(RotationMode.SPEED);
+                                                    }
 
-                                        if (rotationBuilder != null) {
-                                            djiGimbalAdapter.gimbal.rotate(rotationBuilder.build(), null);
+                                                    rotationBuilder.yaw((float)Math.min(Math.max(-Convert.RadiansToDegrees(gimbalYawRelativeToAircraftHeadingCorrected(gimbalState.value)) * 0.25, -25.0), 25.0));
+                                                }
+                                            }
+
+                                            if (rotationBuilder != null) {
+                                                djiGimbalAdapter.gimbal.rotate(rotationBuilder.build(), null);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        });
-                        sleep(100);
+                            });
+                            sleep(100);
+                        }
                     }
 
                     DJISDKManager.getInstance().getKeyManager().removeListener(airlinkListener);
@@ -263,6 +268,22 @@ public class DJIDroneSession implements DroneSession {
                 catch (final InterruptedException e) {}
             }
         }.start();
+    }
+
+    private double gimbalYawRelativeToAircraftHeadingCorrected(final GimbalState gimbalState) {
+        final Aircraft drone = adapter.getDrone();
+        switch (drone.getModel()) {
+            case PHANTOM_4:
+            case PHANTOM_4_PRO:
+            case PHANTOM_4_PRO_V2:
+            case PHANTOM_4_ADVANCED:
+            case PHANTOM_4_RTK:
+                return Convert.AngleDifferenceSigned(Convert.DegreesToRadians(gimbalState.getAttitudeInDegrees().getYaw()), state.getMissionOrientation().getYaw());
+            default:
+                break;
+        }
+
+        return Convert.DegreesToRadians(gimbalState.getYawRelativeToAircraftHeading());
     }
 
     private void initDrone() {
@@ -751,7 +772,6 @@ public class DJIDroneSession implements DroneSession {
             return new Message(context.getString(R.string.MissionDisengageReason_drone_control_unavailable_title));
         }
 
-
         if (state.flightControllerState == null) {
             return new Message(context.getString(R.string.MissionDisengageReason_telemetry_unavailable_title));
         }
@@ -1039,6 +1059,7 @@ public class DJIDroneSession implements DroneSession {
             if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
                 rotation.roll(0);
             }
+
 
             final DatedValue<GimbalStateAdapter> state = getGimbalState(gimbal.getIndex());
             if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported() && state != null && state.value.getMissionMode() != GimbalMode.YAW_FOLLOW) {
@@ -1344,14 +1365,14 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof UpwardsAvoidanceDroneCommand) {
-            flightAssistant.getUpwardAvoidanceEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
+            flightAssistant.getUpwardVisionObstacleAvoidanceEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
                 @Override
                 public void execute(final Boolean current) {
                     final Boolean target = ((UpwardsAvoidanceDroneCommand) command).enabled;
                     Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
                         @Override
                         public void execute() {
-                            flightAssistant.setUpwardAvoidanceEnabled(target, createCompletionCallback(finished));
+                            flightAssistant.setUpwardVisionObstacleAvoidanceEnabled(target, createCompletionCallback(finished));
                         }
                     });
                 }
@@ -2131,7 +2152,6 @@ public class DJIDroneSession implements DroneSession {
             return new CommandError(context.getString(R.string.MissionDisengageReason_drone_gimbal_unavailable_title));
         }
         final Gimbal gimbal = gimbals.get(command.channel);
-        final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
 
         if (command instanceof ModeGimbalCommand) {
             final GimbalMode target = ((ModeGimbalCommand) command).mode;
@@ -2166,6 +2186,7 @@ public class DJIDroneSession implements DroneSession {
                 return null;
             }
 
+            final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
             final Rotation.Builder rotation = new Rotation.Builder();
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
 
@@ -2199,11 +2220,11 @@ public class DJIDroneSession implements DroneSession {
                 return null;
             }
 
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && pitch != null) {
+            if (pitch != null) {
                 rotation.pitch(pitch.floatValue());
             }
 
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && roll != null) {
+            if (roll != null) {
                 rotation.roll(roll.floatValue());
             }
 

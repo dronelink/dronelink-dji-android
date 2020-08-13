@@ -101,6 +101,9 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                         }
 
                         @Override
+                        public void onProductChanged(final BaseProduct baseProduct) {}
+
+                        @Override
                         public void onComponentChange(final BaseProduct.ComponentKey componentKey, final BaseComponent oldComponent, final BaseComponent newComponent) {
                             if (newComponent != null) {
                                 final BaseComponent component = newComponent;
