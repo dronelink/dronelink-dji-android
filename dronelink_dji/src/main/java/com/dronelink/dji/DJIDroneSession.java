@@ -147,7 +147,6 @@ import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.common.util.DJIParamCapability;
 import dji.keysdk.AirLinkKey;
-import dji.keysdk.DJIKey;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
@@ -384,14 +383,14 @@ public class DJIDroneSession implements DroneSession {
             }
 
             @Override
-            public void onFailure(DJIError djiError) {
+            public void onFailure(final DJIError djiError) {
 
             }
         });
 
         flightController.setMultipleFlightModeEnabled(true, new CommonCallbacks.CompletionCallback() {
             @Override
-            public void onResult(DJIError djiError) {
+            public void onResult(final DJIError djiError) {
                 if (djiError == null) {
                     Log.i(TAG, "Flight controller multiple flight mode enabled");
                 }
@@ -400,9 +399,18 @@ public class DJIDroneSession implements DroneSession {
 
         flightController.setNoviceModeEnabled(false, new CommonCallbacks.CompletionCallback() {
             @Override
-            public void onResult(DJIError djiError) {
+            public void onResult(final DJIError djiError) {
                 if (djiError == null) {
                     Log.i(TAG, "Flight controller novice mode disabled");
+                }
+            }
+        });
+
+        flightController.setVirtualStickModeEnabled(false, new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (djiError == null) {
+                    Log.i(TAG, "Flight controller virtual stick deactivated");
                 }
             }
         });
@@ -580,7 +588,7 @@ public class DJIDroneSession implements DroneSession {
 
         camera.setMediaFileCustomInformation(xmp, new CommonCallbacks.CompletionCallback() {
             @Override
-            public void onResult(DJIError djiError) {
+            public void onResult(final DJIError djiError) {
                 if (djiError == null) {
                     Log.i(TAG, "Set media file custom information: " + xmp);
                 }
@@ -622,7 +630,7 @@ public class DJIDroneSession implements DroneSession {
         });
         gimbal.setPitchRangeExtensionEnabled(true, new CommonCallbacks.CompletionCallback() {
             @Override
-            public void onResult(DJIError djiError) {
+            public void onResult(final DJIError djiError) {
                 if (djiError == null) {
                     Log.i(TAG, String.format("Gimbal[%d] pitch range extension enabled", gimbal.getIndex()));
                 }
