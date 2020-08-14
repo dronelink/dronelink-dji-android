@@ -228,7 +228,7 @@ public class DJIDroneSession implements DroneSession {
                         gimbalCommands.process();
 
                         final MissionExecutor missionExecutor = Dronelink.getInstance().getMissionExecutor();
-                        if (missionExecutor != null && Dronelink.getInstance().getMissionExecutor().isEngaged()) {
+                        if (missionExecutor != null && missionExecutor.isEngaged()) {
                             gimbalSerialQueue.execute(new Runnable() {
                                 @Override
                                 public void run() {
@@ -258,8 +258,8 @@ public class DJIDroneSession implements DroneSession {
                                     }
                                 }
                             });
-                            sleep(100);
                         }
+                        sleep(100);
                     }
 
                     DJISDKManager.getInstance().getKeyManager().removeListener(airlinkListener);
