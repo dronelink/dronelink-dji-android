@@ -1629,14 +1629,14 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof AutoExposureLockCameraCommand) {
-            camera.getAutoAEUnlockEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
+            camera.getAELock(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
                 @Override
                 public void execute(final Boolean current) {
                     final Boolean target = ((AutoExposureLockCameraCommand) command).enabled;
                     Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
                         @Override
                         public void execute() {
-                            camera.setAutoAEUnlockEnabled(target, createCompletionCallback(finished));
+                            camera.setAELock(target, createCompletionCallback(finished));
                         }
                     });
                 }
