@@ -9,7 +9,7 @@ package com.dronelink.dji;
 import android.location.Location;
 
 import com.dronelink.core.CameraFile;
-import com.dronelink.core.mission.core.Orientation3;
+import com.dronelink.core.kernel.core.Orientation3;
 
 import java.util.Date;
 

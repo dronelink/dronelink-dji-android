@@ -22,6 +22,7 @@ import com.dronelink.core.DroneControlSession;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.Dronelink;
 import com.dronelink.core.MissionExecutor;
+import com.dronelink.core.ModeExecutor;
 import com.dronelink.core.Version;
 import com.dronelink.core.adapters.CameraStateAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
@@ -33,79 +34,81 @@ import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
 import com.dronelink.core.command.CommandQueue;
 import com.dronelink.core.command.MultiChannelCommandQueue;
-import com.dronelink.core.mission.command.camera.AEBCountCameraCommand;
-import com.dronelink.core.mission.command.camera.ApertureCameraCommand;
-import com.dronelink.core.mission.command.camera.AutoExposureLockCameraCommand;
-import com.dronelink.core.mission.command.camera.AutoLockGimbalCameraCommand;
-import com.dronelink.core.mission.command.camera.CameraCommand;
-import com.dronelink.core.mission.command.camera.ColorCameraCommand;
-import com.dronelink.core.mission.command.camera.ContrastCameraCommand;
-import com.dronelink.core.mission.command.camera.ExposureCompensationCameraCommand;
-import com.dronelink.core.mission.command.camera.ExposureCompensationStepCameraCommand;
-import com.dronelink.core.mission.command.camera.ExposureModeCameraCommand;
-import com.dronelink.core.mission.command.camera.FileIndexModeCameraCommand;
-import com.dronelink.core.mission.command.camera.FocusCameraCommand;
-import com.dronelink.core.mission.command.camera.FocusModeCameraCommand;
-import com.dronelink.core.mission.command.camera.ISOCameraCommand;
-import com.dronelink.core.mission.command.camera.MechanicalShutterCameraCommand;
-import com.dronelink.core.mission.command.camera.MeteringModeCameraCommand;
-import com.dronelink.core.mission.command.camera.ModeCameraCommand;
-import com.dronelink.core.mission.command.camera.PhotoAspectRatioCameraCommand;
-import com.dronelink.core.mission.command.camera.PhotoFileFormatCameraCommand;
-import com.dronelink.core.mission.command.camera.PhotoIntervalCameraCommand;
-import com.dronelink.core.mission.command.camera.PhotoModeCameraCommand;
-import com.dronelink.core.mission.command.camera.SaturationCameraCommand;
-import com.dronelink.core.mission.command.camera.SharpnessCameraCommand;
-import com.dronelink.core.mission.command.camera.ShutterSpeedCameraCommand;
-import com.dronelink.core.mission.command.camera.SpotMeteringTargetCameraCommand;
-import com.dronelink.core.mission.command.camera.StartCaptureCameraCommand;
-import com.dronelink.core.mission.command.camera.StopCaptureCameraCommand;
-import com.dronelink.core.mission.command.camera.StorageLocationCameraCommand;
-import com.dronelink.core.mission.command.camera.VideoCaptionCameraCommand;
-import com.dronelink.core.mission.command.camera.VideoFileCompressionStandardCameraCommand;
-import com.dronelink.core.mission.command.camera.VideoFileFormatCameraCommand;
-import com.dronelink.core.mission.command.camera.VideoResolutionFrameRateCameraCommand;
-import com.dronelink.core.mission.command.camera.VideoStandardCameraCommand;
-import com.dronelink.core.mission.command.camera.WhiteBalanceCustomCameraCommand;
-import com.dronelink.core.mission.command.camera.WhiteBalancePresetCameraCommand;
-import com.dronelink.core.mission.command.drone.CollisionAvoidanceDroneCommand;
-import com.dronelink.core.mission.command.drone.ConnectionFailSafeBehaviorDroneCommand;
-import com.dronelink.core.mission.command.drone.DroneCommand;
-import com.dronelink.core.mission.command.drone.FlightAssistantDroneCommand;
-import com.dronelink.core.mission.command.drone.LandingGearAutomaticMovementDroneCommand;
-import com.dronelink.core.mission.command.drone.LandingGearDeployDroneCommand;
-import com.dronelink.core.mission.command.drone.LandingGearDroneCommand;
-import com.dronelink.core.mission.command.drone.LandingGearRetractDroneCommand;
-import com.dronelink.core.mission.command.drone.LandingProtectionDroneCommand;
-import com.dronelink.core.mission.command.drone.LightbridgeChannelDroneCommand;
-import com.dronelink.core.mission.command.drone.LightbridgeChannelSelectionModeDroneCommand;
-import com.dronelink.core.mission.command.drone.LightbridgeDroneCommand;
-import com.dronelink.core.mission.command.drone.LightbridgeFrequencyBandDroneCommand;
-import com.dronelink.core.mission.command.drone.LowBatteryWarningThresholdDroneCommand;
-import com.dronelink.core.mission.command.drone.MaxAltitudeDroneCommand;
-import com.dronelink.core.mission.command.drone.MaxDistanceDroneCommand;
-import com.dronelink.core.mission.command.drone.MaxDistanceLimitationDroneCommand;
-import com.dronelink.core.mission.command.drone.OcuSyncChannelDroneCommand;
-import com.dronelink.core.mission.command.drone.OcuSyncChannelSelectionModeDroneCommand;
-import com.dronelink.core.mission.command.drone.OcuSyncDroneCommand;
-import com.dronelink.core.mission.command.drone.OcuSyncFrequencyBandDroneCommand;
-import com.dronelink.core.mission.command.drone.PrecisionLandingDroneCommand;
-import com.dronelink.core.mission.command.drone.ReturnHomeAltitudeDroneCommand;
-import com.dronelink.core.mission.command.drone.ReturnHomeObstacleAvoidanceDroneCommand;
-import com.dronelink.core.mission.command.drone.ReturnHomeRemoteObstacleAvoidanceDroneCommand;
-import com.dronelink.core.mission.command.drone.SeriousLowBatteryWarningThresholdDroneCommand;
-import com.dronelink.core.mission.command.drone.SmartReturnHomeDroneCommand;
-import com.dronelink.core.mission.command.drone.UpwardsAvoidanceDroneCommand;
-import com.dronelink.core.mission.command.drone.VisionAssistedPositioningDroneCommand;
-import com.dronelink.core.mission.command.gimbal.GimbalCommand;
-import com.dronelink.core.mission.command.gimbal.ModeGimbalCommand;
-import com.dronelink.core.mission.command.gimbal.OrientationGimbalCommand;
-import com.dronelink.core.mission.command.gimbal.YawSimultaneousFollowGimbalCommand;
-import com.dronelink.core.mission.core.Message;
-import com.dronelink.core.mission.core.Orientation3;
-import com.dronelink.core.mission.core.Orientation3Optional;
-import com.dronelink.core.mission.core.enums.CameraMode;
-import com.dronelink.core.mission.core.enums.GimbalMode;
+import com.dronelink.core.kernel.command.camera.AEBCountCameraCommand;
+import com.dronelink.core.kernel.command.camera.ApertureCameraCommand;
+import com.dronelink.core.kernel.command.camera.AutoExposureLockCameraCommand;
+import com.dronelink.core.kernel.command.camera.AutoLockGimbalCameraCommand;
+import com.dronelink.core.kernel.command.camera.CameraCommand;
+import com.dronelink.core.kernel.command.camera.ColorCameraCommand;
+import com.dronelink.core.kernel.command.camera.ContrastCameraCommand;
+import com.dronelink.core.kernel.command.camera.ExposureCompensationCameraCommand;
+import com.dronelink.core.kernel.command.camera.ExposureCompensationStepCameraCommand;
+import com.dronelink.core.kernel.command.camera.ExposureModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.FileIndexModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.FocusCameraCommand;
+import com.dronelink.core.kernel.command.camera.FocusModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.ISOCameraCommand;
+import com.dronelink.core.kernel.command.camera.MechanicalShutterCameraCommand;
+import com.dronelink.core.kernel.command.camera.MeteringModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.ModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.PhotoAspectRatioCameraCommand;
+import com.dronelink.core.kernel.command.camera.PhotoFileFormatCameraCommand;
+import com.dronelink.core.kernel.command.camera.PhotoIntervalCameraCommand;
+import com.dronelink.core.kernel.command.camera.PhotoModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.SaturationCameraCommand;
+import com.dronelink.core.kernel.command.camera.SharpnessCameraCommand;
+import com.dronelink.core.kernel.command.camera.ShutterSpeedCameraCommand;
+import com.dronelink.core.kernel.command.camera.SpotMeteringTargetCameraCommand;
+import com.dronelink.core.kernel.command.camera.StartCaptureCameraCommand;
+import com.dronelink.core.kernel.command.camera.StopCaptureCameraCommand;
+import com.dronelink.core.kernel.command.camera.StorageLocationCameraCommand;
+import com.dronelink.core.kernel.command.camera.VideoCaptionCameraCommand;
+import com.dronelink.core.kernel.command.camera.VideoFileCompressionStandardCameraCommand;
+import com.dronelink.core.kernel.command.camera.VideoFileFormatCameraCommand;
+import com.dronelink.core.kernel.command.camera.VideoResolutionFrameRateCameraCommand;
+import com.dronelink.core.kernel.command.camera.VideoStandardCameraCommand;
+import com.dronelink.core.kernel.command.camera.WhiteBalanceCustomCameraCommand;
+import com.dronelink.core.kernel.command.camera.WhiteBalancePresetCameraCommand;
+import com.dronelink.core.kernel.command.drone.CollisionAvoidanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.ConnectionFailSafeBehaviorDroneCommand;
+import com.dronelink.core.kernel.command.drone.DroneCommand;
+import com.dronelink.core.kernel.command.drone.FlightAssistantDroneCommand;
+import com.dronelink.core.kernel.command.drone.HomeLocationDroneCommand;
+import com.dronelink.core.kernel.command.drone.LandingGearAutomaticMovementDroneCommand;
+import com.dronelink.core.kernel.command.drone.LandingGearDeployDroneCommand;
+import com.dronelink.core.kernel.command.drone.LandingGearDroneCommand;
+import com.dronelink.core.kernel.command.drone.LandingGearRetractDroneCommand;
+import com.dronelink.core.kernel.command.drone.LandingProtectionDroneCommand;
+import com.dronelink.core.kernel.command.drone.LightbridgeChannelDroneCommand;
+import com.dronelink.core.kernel.command.drone.LightbridgeChannelSelectionModeDroneCommand;
+import com.dronelink.core.kernel.command.drone.LightbridgeDroneCommand;
+import com.dronelink.core.kernel.command.drone.LightbridgeFrequencyBandDroneCommand;
+import com.dronelink.core.kernel.command.drone.LowBatteryWarningThresholdDroneCommand;
+import com.dronelink.core.kernel.command.drone.MaxAltitudeDroneCommand;
+import com.dronelink.core.kernel.command.drone.MaxDistanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.MaxDistanceLimitationDroneCommand;
+import com.dronelink.core.kernel.command.drone.OcuSyncChannelDroneCommand;
+import com.dronelink.core.kernel.command.drone.OcuSyncChannelSelectionModeDroneCommand;
+import com.dronelink.core.kernel.command.drone.OcuSyncDroneCommand;
+import com.dronelink.core.kernel.command.drone.OcuSyncFrequencyBandDroneCommand;
+import com.dronelink.core.kernel.command.drone.PrecisionLandingDroneCommand;
+import com.dronelink.core.kernel.command.drone.ReturnHomeAltitudeDroneCommand;
+import com.dronelink.core.kernel.command.drone.ReturnHomeObstacleAvoidanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.ReturnHomeRemoteObstacleAvoidanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.SeriousLowBatteryWarningThresholdDroneCommand;
+import com.dronelink.core.kernel.command.drone.SmartReturnHomeDroneCommand;
+import com.dronelink.core.kernel.command.drone.UpwardsAvoidanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.VisionAssistedPositioningDroneCommand;
+import com.dronelink.core.kernel.command.gimbal.GimbalCommand;
+import com.dronelink.core.kernel.command.gimbal.ModeGimbalCommand;
+import com.dronelink.core.kernel.command.gimbal.OrientationGimbalCommand;
+import com.dronelink.core.kernel.command.gimbal.YawSimultaneousFollowGimbalCommand;
+import com.dronelink.core.kernel.core.GeoCoordinate;
+import com.dronelink.core.kernel.core.Message;
+import com.dronelink.core.kernel.core.Orientation3;
+import com.dronelink.core.kernel.core.Orientation3Optional;
+import com.dronelink.core.kernel.core.enums.CameraMode;
+import com.dronelink.core.kernel.core.enums.GimbalMode;
 import com.dronelink.dji.adapters.DJICameraStateAdapter;
 import com.dronelink.dji.adapters.DJIDroneAdapter;
 import com.dronelink.dji.adapters.DJIDroneStateAdapter;
@@ -116,7 +119,6 @@ import com.dronelink.dji.adapters.DJIRemoteControllerStateAdapter;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -138,14 +140,13 @@ import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.LandingGearState;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.flightcontroller.VisionSensorPosition;
-import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalState;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
+import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
-import dji.common.util.DJIParamCapability;
 import dji.keysdk.AirLinkKey;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
@@ -227,7 +228,8 @@ public class DJIDroneSession implements DroneSession {
                         gimbalCommands.process();
 
                         final MissionExecutor missionExecutor = Dronelink.getInstance().getMissionExecutor();
-                        if (missionExecutor != null && missionExecutor.isEngaged()) {
+                        final ModeExecutor modeExecutor = Dronelink.getInstance().getModeExecutor();
+                        if ((missionExecutor != null && missionExecutor.isEngaged()) || (modeExecutor != null && modeExecutor.isEngaged())) {
                             gimbalSerialQueue.execute(new Runnable() {
                                 @Override
                                 public void run() {
@@ -237,8 +239,7 @@ public class DJIDroneSession implements DroneSession {
                                             final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter)gimbalAdapter;
                                             Rotation.Builder rotationBuilder = djiGimbalAdapter.getPendingSpeedRotation();
                                             djiGimbalAdapter.setPendingSpeedRotationBuilder(null);
-                                            final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = djiGimbalAdapter.gimbal.getCapabilities();
-                                            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+                                            if (DronelinkDJI.isAdjustYawSupported(djiGimbalAdapter.gimbal) && !DronelinkDJI.isAdjustYaw360Supported(djiGimbalAdapter.gimbal)) {
                                                 final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
                                                 if (gimbalState != null && gimbalState.value.getMode() == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
                                                     if (rotationBuilder == null) {
@@ -271,15 +272,17 @@ public class DJIDroneSession implements DroneSession {
 
     private double gimbalYawRelativeToAircraftHeadingCorrected(final GimbalState gimbalState) {
         final Aircraft drone = adapter.getDrone();
-        switch (drone.getModel()) {
-            case PHANTOM_4:
-            case PHANTOM_4_PRO:
-            case PHANTOM_4_PRO_V2:
-            case PHANTOM_4_ADVANCED:
-            case PHANTOM_4_RTK:
-                return Convert.AngleDifferenceSigned(Convert.DegreesToRadians(gimbalState.getAttitudeInDegrees().getYaw()), state.getMissionOrientation().getYaw());
-            default:
-                break;
+        if (drone != null) {
+            switch (drone.getModel()) {
+                case PHANTOM_4:
+                case PHANTOM_4_PRO:
+                case PHANTOM_4_PRO_V2:
+                case PHANTOM_4_ADVANCED:
+                case PHANTOM_4_RTK:
+                    return Convert.AngleDifferenceSigned(Convert.DegreesToRadians(gimbalState.getAttitudeInDegrees().getYaw()), state.getOrientation().getYaw());
+                default:
+                    break;
+            }
         }
 
         return Convert.DegreesToRadians(gimbalState.getYawRelativeToAircraftHeading());
@@ -293,20 +296,7 @@ public class DJIDroneSession implements DroneSession {
             initFlightController(adapter.getDrone().getFlightController());
         }
 
-        final RemoteController remoteController = drone.getRemoteController();
-        if (remoteController != null) {
-            remoteController.setHardwareStateCallback(new HardwareState.HardwareStateCallback() {
-                @Override
-                public void onUpdate(@NonNull final HardwareState hardwareState) {
-                    remoteControllerSerialQueue.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            remoteControllerState = new DatedValue<>(hardwareState);
-                        }
-                    });
-                }
-            });
-        }
+        initRemoteController(drone, 0);
 
         final List<Camera> cameras = drone.getCameras();
         if (cameras != null) {
@@ -321,6 +311,33 @@ public class DJIDroneSession implements DroneSession {
                 initGimbal(gimbal);
             }
         }
+    }
+
+    private void initRemoteController(final Aircraft drone, final int attempt) {
+        final RemoteController remoteController = drone.getRemoteController();
+        if (remoteController == null) {
+            if (attempt < 3) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initRemoteController(drone, attempt + 1);
+                    }
+                }, 1000);
+            }
+            return;
+        }
+
+        remoteController.setHardwareStateCallback(new HardwareState.HardwareStateCallback() {
+            @Override
+            public void onUpdate(@NonNull final HardwareState hardwareState) {
+                remoteControllerSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        remoteControllerState = new DatedValue<>(hardwareState);
+                    }
+                });
+            }
+        });
     }
 
     private void initFlightController(final FlightController flightController) {
@@ -559,13 +576,13 @@ public class DJIDroneSession implements DroneSession {
                 listenerExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
-                        Orientation3 orientation = state.getMissionOrientation();
+                        Orientation3 orientation = state.getOrientation();
                         final DatedValue<GimbalStateAdapter> gimbalState = getGimbalState(camera.getIndex());
                         if (gimbalState != null) {
-                            orientation.x = gimbalState.value.getMissionOrientation().x;
-                            orientation.y = gimbalState.value.getMissionOrientation().y;
-                            if (gimbalState.value.getMissionMode() == GimbalMode.FREE) {
-                                orientation.z = gimbalState.value.getMissionOrientation().z;
+                            orientation.x = gimbalState.value.getOrientation().x;
+                            orientation.y = gimbalState.value.getOrientation().y;
+                            if (gimbalState.value.getMode() == GimbalMode.FREE) {
+                                orientation.z = gimbalState.value.getOrientation().z;
                             }
                         } else {
                             orientation.x = 0.0;
@@ -780,12 +797,21 @@ public class DJIDroneSession implements DroneSession {
             return new Message(context.getString(R.string.MissionDisengageReason_drone_control_unavailable_title));
         }
 
-        if (state.flightControllerState == null) {
+        final DatedValue<FlightControllerState> flightControllerState = state.flightControllerState;
+        if (flightControllerState == null || flightControllerState.value == null) {
             return new Message(context.getString(R.string.MissionDisengageReason_telemetry_unavailable_title));
         }
 
         if (isTelemetryDelayed()) {
             return new Message(context.getString(R.string.MissionDisengageReason_telemetry_delayed_title));
+        }
+
+        if (flightControllerState.value.hasReachedMaxFlightHeight()) {
+            return new Message(context.getString(R.string.MissionDisengageReason_drone_max_altitude_title), context.getString(R.string.MissionDisengageReason_drone_max_altitude_details));
+        }
+
+        if (flightControllerState.value.hasReachedMaxFlightRadius()) {
+            return new Message(context.getString(R.string.MissionDisengageReason_drone_max_distance_title), context.getString(R.string.MissionDisengageReason_drone_max_distance_details));
         }
 
         return null;
@@ -855,7 +881,7 @@ public class DJIDroneSession implements DroneSession {
         });
     }
 
-    private void onCommandExecuted(final com.dronelink.core.mission.command.Command command) {
+    private void onCommandExecuted(final com.dronelink.core.kernel.command.Command command) {
         final DJIDroneSession self = this;
         listenerExecutor.execute(new Runnable() {
             @Override
@@ -867,7 +893,7 @@ public class DJIDroneSession implements DroneSession {
         });
     }
 
-    private void onCommandFinished(final com.dronelink.core.mission.command.Command command, final CommandError error) {
+    private void onCommandFinished(final com.dronelink.core.kernel.command.Command command, final CommandError error) {
         final DJIDroneSession self = this;
         CommandError errorResolved = error;
         if (error != null && error.code == DJIError.COMMAND_NOT_SUPPORTED_BY_HARDWARE.getErrorCode()) {
@@ -893,7 +919,7 @@ public class DJIDroneSession implements DroneSession {
     }
 
     @Override
-    public void addCommand(final com.dronelink.core.mission.command.Command command) throws CommandTypeUnhandledException {
+    public void addCommand(final com.dronelink.core.kernel.command.Command command) throws Dronelink.UnregisteredException, CommandTypeUnhandledException {
         if (command instanceof DroneCommand) {
             droneCommands.addCommand(
                     new Command(
@@ -1057,20 +1083,19 @@ public class DJIDroneSession implements DroneSession {
 
     protected void sendResetGimbalCommands() {
         for (final Gimbal gimbal : adapter.getDrone().getGimbals()) {
-            final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
             final Rotation.Builder rotation = new Rotation.Builder();
             rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
+            if (DronelinkDJI.isAdjustPitchSupported(gimbal)) {
                 rotation.pitch(-12);
             }
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
+            if (DronelinkDJI.isAdjustRollSupported(gimbal)) {
                 rotation.roll(0);
             }
 
 
             final DatedValue<GimbalStateAdapter> state = getGimbalState(gimbal.getIndex());
-            if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported() && state != null && state.value.getMissionMode() != GimbalMode.YAW_FOLLOW) {
+            if (DronelinkDJI.isAdjustYawSupported(gimbal) && state != null && state.value.getMode() != GimbalMode.YAW_FOLLOW) {
                 gimbal.setMode(dji.common.gimbal.GimbalMode.YAW_FOLLOW, new CommonCallbacks.CompletionCallback() {
                     @Override
                     public void onResult(final DJIError setModeError) {
@@ -1161,6 +1186,12 @@ public class DJIDroneSession implements DroneSession {
                     });
                 }
             }, finished));
+            return null;
+        }
+
+        if (command instanceof HomeLocationDroneCommand) {
+            final GeoCoordinate coordinate = ((HomeLocationDroneCommand) command).coordinate;
+            flightController.setHomeLocation(new LocationCoordinate2D(coordinate.latitude, coordinate.longitude), createCompletionCallback(finished));
             return null;
         }
 
@@ -1688,7 +1719,7 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof ExposureCompensationStepCameraCommand) {
-            final SettingsDefinitions.ExposureCompensation target = DronelinkDJI.getCameraExposureCompensation(state.value.getMissionExposureCompensation().offset(((ExposureCompensationStepCameraCommand) command).exposureCompensationSteps));
+            final SettingsDefinitions.ExposureCompensation target = DronelinkDJI.getCameraExposureCompensation(state.value.getExposureCompensation().offset(((ExposureCompensationStepCameraCommand) command).exposureCompensationSteps));
             Command.conditionallyExecute(djiState.exposureSettings.getExposureCompensation() != target, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
@@ -1798,7 +1829,7 @@ public class DJIDroneSession implements DroneSession {
 
         if (command instanceof ModeCameraCommand) {
             final CameraMode target = ((ModeCameraCommand) command).mode;
-            Command.conditionallyExecute(state.value.getMissionMode() != target, finished, new Command.ConditionalExecutor() {
+            Command.conditionallyExecute(state.value.getMode() != target, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
                     camera.setMode(DronelinkDJI.getCameraMode(target), createCompletionCallback(finished));
@@ -1921,7 +1952,7 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof StartCaptureCameraCommand) {
-            switch (state.value.getMissionMode()) {
+            switch (state.value.getMode()) {
                 case PHOTO:
                     if (state.value.isCapturingPhotoInterval()) {
                         Log.d(TAG, "Camera start capture skipped, already shooting interval photos");
@@ -1968,14 +1999,14 @@ public class DJIDroneSession implements DroneSession {
                 case DOWNLOAD:
                 case BROADCAST:
                 case UNKNOWN:
-                    Log.i(TAG, "Camera start capture invalid mode: " + state.value.getMissionMode().toString());
+                    Log.i(TAG, "Camera start capture invalid mode: " + state.value.getMode().toString());
                     return new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_mode_invalid_title));
             }
             return null;
         }
 
         if (command instanceof StopCaptureCameraCommand) {
-            switch (state.value.getMissionMode()) {
+            switch (state.value.getMode()) {
                 case PHOTO:
                     if (state.value.isCapturingPhotoInterval()) {
                         Log.d(TAG, "Camera stop capture interval photo");
@@ -2012,7 +2043,7 @@ public class DJIDroneSession implements DroneSession {
                 case DOWNLOAD:
                 case BROADCAST:
                 case UNKNOWN:
-                    Log.i(TAG, "Camera start capture invalid mode: " + state.value.getMissionMode().toString());
+                    Log.i(TAG, "Camera start capture invalid mode: " + state.value.getMode().toString());
                     return new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_mode_invalid_title));
             }
             return null;
@@ -2163,7 +2194,7 @@ public class DJIDroneSession implements DroneSession {
 
         if (command instanceof ModeGimbalCommand) {
             final GimbalMode target = ((ModeGimbalCommand) command).mode;
-            Command.conditionallyExecute(state.value.getMissionMode() != target, finished, new Command.ConditionalExecutor() {
+            Command.conditionallyExecute(state.value.getMode() != target, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
                     gimbal.setMode(DronelinkDJI.getGimbalMode(target), new CommonCallbacks.CompletionCallback() {
@@ -2194,7 +2225,6 @@ public class DJIDroneSession implements DroneSession {
                 return null;
             }
 
-            final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
             final Rotation.Builder rotation = new Rotation.Builder();
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
 
@@ -2206,17 +2236,17 @@ public class DJIDroneSession implements DroneSession {
             Double roll = orientation.getRoll() == null ? null : Convert.RadiansToDegrees(orientation.getRoll());
 
             Double yaw = orientation.getYaw();
-            if (state.value.getMissionMode() == GimbalMode.FREE && yaw != null) {
+            if (yaw != null && (state.value.getMode() == GimbalMode.FREE || DronelinkDJI.isAdjustYaw360Supported(gimbal))) {
                 //use relative angle because absolute angle for yaw is not predictable
-                if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) && gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported() && pitch != null) {
-                    rotation.pitch((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(Convert.DegreesToRadians(pitch), state.value.getMissionOrientation().getPitch())));
+                if (DronelinkDJI.isAdjustPitchSupported(gimbal) && pitch != null) {
+                    rotation.pitch((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(Convert.DegreesToRadians(pitch), state.value.getOrientation().getPitch())));
                 }
 
-                if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported() && roll != null) {
-                    rotation.roll((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(Convert.DegreesToRadians(roll), state.value.getMissionOrientation().getRoll())));
+                if (DronelinkDJI.isAdjustRollSupported(gimbal) && roll != null) {
+                    rotation.roll((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(Convert.DegreesToRadians(roll), state.value.getOrientation().getRoll())));
                 }
 
-                rotation.yaw((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(yaw, state.value.getMissionOrientation().getYaw())));
+                rotation.yaw((float)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(yaw, state.value.getOrientation().getYaw())));
 
                 rotation.mode(RotationMode.RELATIVE_ANGLE);
                 gimbal.rotate(rotation.build(), createCompletionCallback(finished));

@@ -7,8 +7,8 @@
 package com.dronelink.dji.adapters;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
-import com.dronelink.core.mission.core.enums.CameraExposureCompensation;
-import com.dronelink.core.mission.core.enums.CameraMode;
+import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
+import com.dronelink.core.kernel.core.enums.CameraMode;
 
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.SettingsDefinitions;
@@ -59,7 +59,7 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
-    public CameraMode getMissionMode() {
+    public CameraMode getMode() {
         switch (state == null ? SettingsDefinitions.CameraMode.UNKNOWN : state.getMode()) {
             case SHOOT_PHOTO: return CameraMode.PHOTO;
             case RECORD_VIDEO: return CameraMode.VIDEO;
@@ -72,7 +72,7 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
-    public CameraExposureCompensation getMissionExposureCompensation() {
+    public CameraExposureCompensation getExposureCompensation() {
         switch (exposureSettings == null ? SettingsDefinitions.ExposureCompensation.UNKNOWN : exposureSettings.getExposureCompensation()) {
             case N_5_0:
                 return CameraExposureCompensation.N_5_0;

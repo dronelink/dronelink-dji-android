@@ -6,23 +6,20 @@
 //
 package com.dronelink.dji.adapters;
 
-import android.util.Log;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.GimbalAdapter;
-import com.dronelink.core.mission.command.gimbal.VelocityGimbalCommand;
-import com.dronelink.core.mission.core.enums.GimbalMode;
+import com.dronelink.core.kernel.command.gimbal.VelocityGimbalCommand;
+import com.dronelink.core.kernel.core.enums.GimbalMode;
+import com.dronelink.dji.DronelinkDJI;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
-import dji.common.util.DJIParamCapability;
 import dji.sdk.gimbal.Gimbal;
 
 public class DJIGimbalAdapter implements GimbalAdapter {
@@ -42,19 +39,18 @@ public class DJIGimbalAdapter implements GimbalAdapter {
 
     @Override
     public void sendVelocityCommand(final VelocityGimbalCommand command, final GimbalMode mode) {
-        final Map<CapabilityKey, DJIParamCapability> gimbalCapabilities = gimbal.getCapabilities();
         final Rotation.Builder rotationBuilder = new Rotation.Builder();
         rotationBuilder.mode(RotationMode.SPEED);
 
-        if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_PITCH) &&  gimbalCapabilities.get(CapabilityKey.ADJUST_PITCH).isSupported()) {
-            rotationBuilder.pitch((float) Math.toDegrees(command.velocity.getPitch()));
+        if (DronelinkDJI.isAdjustPitchSupported(gimbal)) {
+            rotationBuilder.pitch((float) Math.max(-90, Math.min(90, Math.toDegrees(command.velocity.getPitch()))));
         }
 
-        if (gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_ROLL) && gimbalCapabilities.get(CapabilityKey.ADJUST_ROLL).isSupported()) {
-            rotationBuilder.roll((float) Math.toDegrees(command.velocity.getRoll()));
+        if (DronelinkDJI.isAdjustRollSupported(gimbal)) {
+            rotationBuilder.roll((float) Math.max(-90, Math.min(90, Math.toDegrees(command.velocity.getRoll()))));
         }
 
-        if (mode == GimbalMode.FREE && gimbalCapabilities != null && gimbalCapabilities.containsKey(CapabilityKey.ADJUST_YAW) && gimbalCapabilities.get(CapabilityKey.ADJUST_YAW).isSupported()) {
+        if (mode == GimbalMode.FREE || DronelinkDJI.isAdjustYaw360Supported(gimbal)) {
             rotationBuilder.yaw((float)Math.toDegrees(command.velocity.getYaw()));
         }
 

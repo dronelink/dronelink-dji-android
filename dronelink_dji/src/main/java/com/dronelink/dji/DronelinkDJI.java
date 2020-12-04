@@ -7,40 +7,46 @@
 package com.dronelink.dji;
 
 
-import com.dronelink.core.mission.core.enums.CameraAEBCount;
-import com.dronelink.core.mission.core.enums.CameraAperture;
-import com.dronelink.core.mission.core.enums.CameraColor;
-import com.dronelink.core.mission.core.enums.CameraExposureCompensation;
-import com.dronelink.core.mission.core.enums.CameraExposureMode;
-import com.dronelink.core.mission.core.enums.CameraFileIndexMode;
-import com.dronelink.core.mission.core.enums.CameraFocusMode;
-import com.dronelink.core.mission.core.enums.CameraISO;
-import com.dronelink.core.mission.core.enums.CameraMeteringMode;
-import com.dronelink.core.mission.core.enums.CameraMode;
-import com.dronelink.core.mission.core.enums.CameraPhotoAspectRatio;
-import com.dronelink.core.mission.core.enums.CameraPhotoFileFormat;
-import com.dronelink.core.mission.core.enums.CameraPhotoMode;
-import com.dronelink.core.mission.core.enums.CameraShutterSpeed;
-import com.dronelink.core.mission.core.enums.CameraStorageLocation;
-import com.dronelink.core.mission.core.enums.CameraVideoFieldOfView;
-import com.dronelink.core.mission.core.enums.CameraVideoFileCompressionStandard;
-import com.dronelink.core.mission.core.enums.CameraVideoFileFormat;
-import com.dronelink.core.mission.core.enums.CameraVideoFrameRate;
-import com.dronelink.core.mission.core.enums.CameraVideoResolution;
-import com.dronelink.core.mission.core.enums.CameraVideoStandard;
-import com.dronelink.core.mission.core.enums.CameraWhiteBalancePreset;
-import com.dronelink.core.mission.core.enums.DroneConnectionFailSafeBehavior;
-import com.dronelink.core.mission.core.enums.DroneLightbridgeChannelSelectionMode;
-import com.dronelink.core.mission.core.enums.DroneLightbridgeFrequencyBand;
-import com.dronelink.core.mission.core.enums.DroneOcuSyncChannelSelectionMode;
-import com.dronelink.core.mission.core.enums.DroneOcuSyncFrequencyBand;
+import com.dronelink.core.kernel.core.enums.CameraAEBCount;
+import com.dronelink.core.kernel.core.enums.CameraAperture;
+import com.dronelink.core.kernel.core.enums.CameraColor;
+import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
+import com.dronelink.core.kernel.core.enums.CameraExposureMode;
+import com.dronelink.core.kernel.core.enums.CameraFileIndexMode;
+import com.dronelink.core.kernel.core.enums.CameraFocusMode;
+import com.dronelink.core.kernel.core.enums.CameraISO;
+import com.dronelink.core.kernel.core.enums.CameraMeteringMode;
+import com.dronelink.core.kernel.core.enums.CameraMode;
+import com.dronelink.core.kernel.core.enums.CameraPhotoAspectRatio;
+import com.dronelink.core.kernel.core.enums.CameraPhotoFileFormat;
+import com.dronelink.core.kernel.core.enums.CameraPhotoMode;
+import com.dronelink.core.kernel.core.enums.CameraShutterSpeed;
+import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
+import com.dronelink.core.kernel.core.enums.CameraVideoFieldOfView;
+import com.dronelink.core.kernel.core.enums.CameraVideoFileCompressionStandard;
+import com.dronelink.core.kernel.core.enums.CameraVideoFileFormat;
+import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
+import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
+import com.dronelink.core.kernel.core.enums.CameraVideoStandard;
+import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
+import com.dronelink.core.kernel.core.enums.DroneConnectionFailSafeBehavior;
+import com.dronelink.core.kernel.core.enums.DroneLightbridgeChannelSelectionMode;
+import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
+import com.dronelink.core.kernel.core.enums.DroneOcuSyncChannelSelectionMode;
+import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
+
+import java.util.Map;
 
 import dji.common.airlink.ChannelSelectionMode;
 import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
+import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
+import dji.common.util.DJIParamCapability;
+import dji.common.util.DJIParamMinMaxCapability;
+import dji.sdk.gimbal.Gimbal;
 
 public class DronelinkDJI {
     public static final double GimbalRotationMinTime = 0.1;
@@ -533,7 +539,7 @@ public class DronelinkDJI {
         return SettingsDefinitions.WhiteBalancePreset.UNKNOWN;
     }
 
-    public static GimbalMode getGimbalMode(final com.dronelink.core.mission.core.enums.GimbalMode value) {
+    public static GimbalMode getGimbalMode(final com.dronelink.core.kernel.core.enums.GimbalMode value) {
         switch (value) {
             case FREE: return GimbalMode.FREE;
             case FPV: return GimbalMode.FPV;
@@ -541,5 +547,32 @@ public class DronelinkDJI {
             case UNKNOWN: return GimbalMode.UNKNOWN;
         }
         return GimbalMode.UNKNOWN;
+    }
+
+    public static boolean isAdjustPitchSupported(final Gimbal gimbal) {
+        final Map<CapabilityKey, DJIParamCapability> capabilities = gimbal.getCapabilities();
+        return capabilities != null && capabilities.containsKey(CapabilityKey.ADJUST_PITCH) &&  capabilities.get(CapabilityKey.ADJUST_PITCH).isSupported();
+    }
+
+    public static boolean isAdjustRollSupported(final Gimbal gimbal) {
+        final Map<CapabilityKey, DJIParamCapability> capabilities = gimbal.getCapabilities();
+        return capabilities != null && capabilities.containsKey(CapabilityKey.ADJUST_ROLL) &&  capabilities.get(CapabilityKey.ADJUST_ROLL).isSupported();
+    }
+
+    public static boolean isAdjustYawSupported(final Gimbal gimbal) {
+        final Map<CapabilityKey, DJIParamCapability> capabilities = gimbal.getCapabilities();
+        return capabilities != null && capabilities.containsKey(CapabilityKey.ADJUST_YAW) &&  capabilities.get(CapabilityKey.ADJUST_YAW).isSupported();
+    }
+
+    public static boolean isAdjustYaw360Supported(final Gimbal gimbal) {
+        final Map<CapabilityKey, DJIParamCapability> capabilities = gimbal.getCapabilities();
+        if (capabilities != null && capabilities.containsKey(CapabilityKey.ADJUST_YAW)) {
+            final DJIParamCapability capability = capabilities.get(CapabilityKey.ADJUST_YAW);
+            if (capability instanceof DJIParamMinMaxCapability) {
+                final DJIParamMinMaxCapability capabilityMinMax = (DJIParamMinMaxCapability)capability;
+                return capabilityMinMax.isSupported() && capabilityMinMax.getMin().intValue() <= -180 && capabilityMinMax.getMax().intValue() >= 180;
+            }
+        }
+        return false;
     }
 }

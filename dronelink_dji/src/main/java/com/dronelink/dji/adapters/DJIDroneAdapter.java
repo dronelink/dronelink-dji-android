@@ -13,18 +13,17 @@ import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.RemoteControllerAdapter;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
-import com.dronelink.core.mission.command.drone.VelocityDroneCommand;
-import com.dronelink.core.mission.core.Vector2;
+import com.dronelink.core.kernel.command.drone.RemoteControllerSticksDroneCommand;
+import com.dronelink.core.kernel.command.drone.VelocityDroneCommand;
+import com.dronelink.core.kernel.core.Vector2;
 import com.dronelink.dji.DronelinkDJI;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import dji.common.error.DJIError;
-import dji.common.error.DJIRemoteControllerError;
 import dji.common.flightcontroller.virtualstick.FlightControlData;
 import dji.common.flightcontroller.virtualstick.FlightCoordinateSystem;
 import dji.common.flightcontroller.virtualstick.RollPitchControlMode;
@@ -139,6 +138,29 @@ public class DJIDroneAdapter implements DroneAdapter {
                 (float)horizontal.getX(),
                 (float)Math.toDegrees(velocityCommand.heading == null ? velocityCommand.velocity.getRotational() : Convert.AngleDifferenceSigned(velocityCommand.heading, 0)),
                 (float)velocityCommand.velocity.getVertical()), null);
+    }
+
+    @Override
+    public void sendRemoteControllerSticksCommand(final RemoteControllerSticksDroneCommand remoteControllerSticks) {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController == null) {
+            return;
+        }
+
+        flightController.setRollPitchControlMode(RollPitchControlMode.ANGLE);
+        flightController.setRollPitchCoordinateSystem(FlightCoordinateSystem.BODY);
+        flightController.setVerticalControlMode(VerticalControlMode.VELOCITY);
+        if (remoteControllerSticks == null) {
+            flightController.setYawControlMode(YawControlMode.ANGULAR_VELOCITY);
+            flightController.sendVirtualStickFlightControlData(new FlightControlData(0, 0, 0, 0), null);
+            return;
+        }
+
+        flightController.setYawControlMode(remoteControllerSticks.heading == null ? YawControlMode.ANGULAR_VELOCITY : YawControlMode.ANGLE);
+        flightController.sendVirtualStickFlightControlData(new FlightControlData((float)-remoteControllerSticks.rightStick.y * 30,
+                (float)remoteControllerSticks.rightStick.x * 30,
+                (float)Math.toDegrees(remoteControllerSticks.heading == null ? remoteControllerSticks.leftStick.x * 100 : Convert.AngleDifferenceSigned(remoteControllerSticks.heading, 0)),
+                (float)(remoteControllerSticks.leftStick.y * 4.0)), null);
     }
 
     @Override

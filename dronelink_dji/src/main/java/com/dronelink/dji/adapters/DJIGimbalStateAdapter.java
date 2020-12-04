@@ -8,8 +8,8 @@ package com.dronelink.dji.adapters;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.GimbalStateAdapter;
-import com.dronelink.core.mission.core.Orientation3;
-import com.dronelink.core.mission.core.enums.GimbalMode;
+import com.dronelink.core.kernel.core.Orientation3;
+import com.dronelink.core.kernel.core.enums.GimbalMode;
 
 import dji.common.gimbal.Attitude;
 import dji.common.gimbal.GimbalState;
@@ -22,7 +22,7 @@ public class DJIGimbalStateAdapter implements GimbalStateAdapter {
     }
 
     @Override
-    public GimbalMode getMissionMode() {
+    public GimbalMode getMode() {
         switch (state == null ? dji.common.gimbal.GimbalMode.UNKNOWN : state.getMode()) {
             case FREE: return GimbalMode.FREE;
             case FPV: return GimbalMode.FPV;
@@ -33,7 +33,7 @@ public class DJIGimbalStateAdapter implements GimbalStateAdapter {
     }
 
     @Override
-    public Orientation3 getMissionOrientation() {
+    public Orientation3 getOrientation() {
         final Orientation3 orientation = new Orientation3();
         if (state != null) {
             final Attitude attitude = state.getAttitudeInDegrees();

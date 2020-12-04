@@ -4,6 +4,10 @@
     <string name="MissionDisengageReason_take_off_failed_title">Unable to Take Off</string>
     <string name="MissionDisengageReason_take_control_failed_title">Unable to Take Control</string>
     <string name="MissionDisengageReason_telemetry_delayed_title">Telemetry Delayed</string>
+    <string name="MissionDisengageReason_drone_max_altitude_title">Max Altitude Reached</string>
+    <string name="MissionDisengageReason_drone_max_altitude_details">Increase the max altitude setting to continue.</string>
+    <string name="MissionDisengageReason_drone_max_distance_title">Max Distance Reached</string>
+    <string name="MissionDisengageReason_drone_max_distance_details">Increase the max distance setting to continue.</string>
     <string name="MissionDisengageReason_drone_flight_assistant_unavailable_title">Flight Assistant Unavailable</string>
     <string name="MissionDisengageReason_drone_landing_gear_unavailable_title">Landing Gear Unavailable</string>
     <string name="MissionDisengageReason_drone_lightbridge_unavailable_title">Lightbridge Link Unavailable</string>

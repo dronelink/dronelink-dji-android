@@ -7,19 +7,24 @@
 package com.dronelink.dji;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
-import com.dronelink.core.mission.core.Message;
+import com.dronelink.core.kernel.core.Message;
 
 import java.util.Date;
 
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.FlightMode;
+import dji.common.remotecontroller.SoftSwitchJoyStickMode;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.remotecontroller.RemoteController;
 
 public class DJIControlSession implements DroneControlSession {
     private static final String TAG = DJIControlSession.class.getCanonicalName();
@@ -28,6 +33,8 @@ public class DJIControlSession implements DroneControlSession {
         TAKEOFF_START,
         TAKEOFF_ATTEMPTING,
         TAKEOFF_COMPLETE,
+        SOFT_SWITCH_JOYSTICK_MODE_START,
+        SOFT_SWITCH_JOYSTICK_MODE_ATTEMPTING,
         VIRTUAL_STICK_START,
         VIRTUAL_STICK_ATTEMPTING,
         FLIGHT_MODE_JOYSTICK_ATTEMPTING,
@@ -122,9 +129,51 @@ public class DJIControlSession implements DroneControlSession {
 
             case TAKEOFF_COMPLETE:
                 if (flightControllerState.value.isFlying() && flightControllerState.value.getFlightMode() != FlightMode.AUTO_TAKEOFF) {
+                    state = State.SOFT_SWITCH_JOYSTICK_MODE_START;
+                    return activate();
+                }
+                return null;
+
+            case SOFT_SWITCH_JOYSTICK_MODE_START:
+                final RemoteController remoteController = droneSession.getAdapter().getDrone().getRemoteController();
+                if (remoteController == null) {
                     state = State.VIRTUAL_STICK_START;
                     return activate();
                 }
+
+                Log.i(TAG, "Verifying soft switch joystick mode");
+                remoteController.getSoftSwitchJoyStickMode(new CommonCallbacks.CompletionCallbackWith<SoftSwitchJoyStickMode>() {
+                    @Override
+                    public void onSuccess(final SoftSwitchJoyStickMode softSwitchJoyStickMode) {
+                        if (softSwitchJoyStickMode == SoftSwitchJoyStickMode.POSITION) {
+                            state = State.VIRTUAL_STICK_START;
+                            return;
+                        }
+
+                        Log.i(TAG, "Changing soft switch joystick mode to P");
+                        remoteController.setSoftSwitchJoyStickMode(SoftSwitchJoyStickMode.POSITION, new CommonCallbacks.CompletionCallback() {
+                            @Override
+                            public void onResult(final DJIError djiError) {
+                                //if try to activate virtual stick immediately it can fail, so delay
+                                new Handler(Looper.myLooper()).postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        state = State.VIRTUAL_STICK_START;
+                                        return;
+                                    }
+                                }, 1000);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(final DJIError djiError) {
+                        state = State.VIRTUAL_STICK_START;
+                    }
+                });
+                return null;
+
+            case SOFT_SWITCH_JOYSTICK_MODE_ATTEMPTING:
                 return null;
 
             case VIRTUAL_STICK_START:

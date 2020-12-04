@@ -10,9 +10,8 @@ import android.location.Location;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
-import com.dronelink.core.Device;
 import com.dronelink.core.adapters.DroneStateAdapter;
-import com.dronelink.core.mission.core.Orientation3;
+import com.dronelink.core.kernel.core.Orientation3;
 
 import java.util.Date;
 import java.util.UUID;
@@ -20,7 +19,6 @@ import java.util.UUID;
 import dji.common.battery.BatteryState;
 import dji.common.flightcontroller.Attitude;
 import dji.common.flightcontroller.FlightControllerState;
-import dji.common.flightcontroller.GPSSignalLevel;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
@@ -46,17 +44,19 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public boolean isFlying() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState != null && flightControllerState.value.isFlying();
     }
 
     @Override
     public Location getLocation() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         if (flightControllerState == null) {
             return null;
         }
 
         final LocationCoordinate3D aircraftLocation = flightControllerState.value.getAircraftLocation();
-        if (aircraftLocation == null || !flightControllerState.value.isHomeLocationSet() || flightControllerState.value.getSatelliteCount() == 0 || Double.isNaN(aircraftLocation.getLatitude()) || Double.isNaN(aircraftLocation.getLongitude())) {
+        if (aircraftLocation == null || flightControllerState.value.getSatelliteCount() == 0 || Double.isNaN(aircraftLocation.getLatitude()) || Double.isNaN(aircraftLocation.getLongitude())) {
             return null;
         }
 
@@ -72,6 +72,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Location getHomeLocation() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         if (flightControllerState == null || !flightControllerState.value.isHomeLocationSet()) {
             return null;
         }
@@ -94,6 +95,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Location getTakeoffLocation() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         if (flightControllerState != null && flightControllerState.value.isFlying()) {
             if (lastKnownGroundLocation != null) {
                 return lastKnownGroundLocation;
@@ -120,21 +122,25 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public double getCourse() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState == null ? 0 : Math.atan2(flightControllerState.value.getVelocityY(), flightControllerState.value.getVelocityX());
     }
 
     @Override
     public double getHorizontalSpeed() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState == null ? 0 : Math.sqrt(Math.pow(flightControllerState.value.getVelocityX(), 2) + Math.pow(flightControllerState.value.getVelocityY(), 2));
     }
 
     @Override
     public double getVerticalSpeed() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState == null ? 0 : flightControllerState.value.getVelocityZ() == 0 ? 0 : -flightControllerState.value.getVelocityZ();
     }
 
     @Override
     public double getAltitude() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         if (flightControllerState == null) {
             return 0;
         }
@@ -149,6 +155,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Double getBatteryPercent() {
+        final DatedValue<BatteryState> batteryState = this.batteryState;
         if (batteryState == null) {
             return null;
         }
@@ -158,6 +165,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Double getObstacleDistance() {
+        final DatedValue<VisionDetectionState> visionDetectionState = this.visionDetectionState;
         if (visionDetectionState == null) {
             return null;
         }
@@ -178,7 +186,8 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     }
 
     @Override
-    public Orientation3 getMissionOrientation() {
+    public Orientation3 getOrientation() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         final Orientation3 orientation = new Orientation3();
         if (flightControllerState != null) {
             final Attitude attitude = flightControllerState.value.getAttitude();
@@ -191,11 +200,13 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Integer getGPSSatellites() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState == null ? null : flightControllerState.value.getSatelliteCount();
     }
 
     @Override
     public Double getSignalStrength() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return airLinkSignalQuality == null ? null : airLinkSignalQuality.value.doubleValue();
     }
 }
