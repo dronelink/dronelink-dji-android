@@ -116,6 +116,7 @@ import com.dronelink.dji.adapters.DJIGimbalAdapter;
 import com.dronelink.dji.adapters.DJIGimbalStateAdapter;
 import com.dronelink.dji.adapters.DJIRemoteControllerStateAdapter;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -153,6 +154,7 @@ import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
 import dji.sdk.airlink.OcuSyncLink;
 import dji.sdk.base.BaseComponent;
+import dji.sdk.base.DJIDiagnostics;
 import dji.sdk.battery.Battery;
 import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightAssistant;
@@ -180,7 +182,7 @@ public class DJIDroneSession implements DroneSession {
     private final MultiChannelCommandQueue gimbalCommands = new MultiChannelCommandQueue();
 
     private ExecutorService stateSerialQueue = Executors.newSingleThreadExecutor();
-    private final DJIDroneStateAdapter state = new DJIDroneStateAdapter();
+    private final DJIDroneStateAdapter state;
 
     private ExecutorService remoteControllerSerialQueue = Executors.newSingleThreadExecutor();
     private DatedValue<HardwareState> remoteControllerState;
@@ -194,11 +196,12 @@ public class DJIDroneSession implements DroneSession {
     private ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
     private SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
 
-    private KeyListener airlinkListener;
+    private List<KeyListener> keyListeners = new ArrayList<>();
 
     public DJIDroneSession(final Context context, final Aircraft drone) {
         this.context = context;
         this.adapter = new DJIDroneAdapter(drone);
+        this.state = new DJIDroneStateAdapter(context);
         initDrone();
 
         new Thread() {
@@ -262,7 +265,9 @@ public class DJIDroneSession implements DroneSession {
                         sleep(100);
                     }
 
-                    DJISDKManager.getInstance().getKeyManager().removeListener(airlinkListener);
+                    for (final KeyListener listener : keyListeners) {
+                        DJISDKManager.getInstance().getKeyManager().removeListener(listener);
+                    }
                     Log.i(TAG, "Drone session closed");
                 }
                 catch (final InterruptedException e) {}
@@ -292,6 +297,29 @@ public class DJIDroneSession implements DroneSession {
         Log.i(TAG, "Drone session opened");
 
         final Aircraft drone = adapter.getDrone();
+
+        drone.setDiagnosticsInformationCallback(new DJIDiagnostics.DiagnosticsInformationCallback() {
+            @Override
+            public void onUpdate(final List<DJIDiagnostics> list) {
+                final List<Message> messages = new ArrayList<>();
+                if (list != null) {
+                    for (final DJIDiagnostics diagnostics : list) {
+                        final Message message = DronelinkDJI.getMessage(diagnostics);
+                        if (message != null) {
+                            messages.add(message);
+                        }
+                    }
+                }
+
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        state.diagnosticsInformationMessages = new DatedValue<>(messages);
+                    }
+                });
+            }
+        });
+
         if (drone.getFlightController() != null) {
             initFlightController(adapter.getDrone().getFlightController());
         }
@@ -311,6 +339,8 @@ public class DJIDroneSession implements DroneSession {
                 initGimbal(gimbal);
             }
         }
+
+        initListeners();
     }
 
     private void initRemoteController(final Aircraft drone, final int attempt) {
@@ -510,24 +540,6 @@ public class DJIDroneSession implements DroneSession {
                 }
             });
         }
-
-        airlinkListener = new KeyListener() {
-            @Override
-            public void onValueChange(final Object oldValue, final Object newValue) {
-                stateSerialQueue.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (newValue != null && newValue instanceof Integer) {
-                            state.airLinkSignalQuality = new DatedValue<>((Integer) newValue);
-                        }
-                        else {
-                            state.airLinkSignalQuality = null;
-                        }
-                    }
-                });
-            }
-        };
-        DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.DOWNLINK_SIGNAL_QUALITY), airlinkListener);
     }
 
     private void initCamera(final Camera camera) {
@@ -631,7 +643,6 @@ public class DJIDroneSession implements DroneSession {
         });
     }
 
-
     private void initGimbal(final Gimbal gimbal) {
         Log.i(TAG, String.format("Gimbal[%d] connected", gimbal.getIndex()));
         gimbal.setStateCallback(new GimbalState.Callback() {
@@ -653,6 +664,46 @@ public class DJIDroneSession implements DroneSession {
                 }
             }
         });
+    }
+
+    private void initListeners() {
+        final KeyListener downlinkListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Integer) {
+                            state.downlinkSignalQuality = new DatedValue<>((Integer) newValue);
+                        }
+                        else {
+                            state.downlinkSignalQuality = null;
+                        }
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.DOWNLINK_SIGNAL_QUALITY), downlinkListener);
+        keyListeners.add(downlinkListener);
+
+        final KeyListener uplinkListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Integer) {
+                            state.uplinkSignalQuality = new DatedValue<>((Integer) newValue);
+                        }
+                        else {
+                            state.uplinkSignalQuality = null;
+                        }
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.UPLINK_SIGNAL_QUALITY), uplinkListener);
+        keyListeners.add(uplinkListener);
     }
 
     protected void componentConnected(final BaseComponent component) {

@@ -6,14 +6,20 @@
 //
 package com.dronelink.dji.adapters;
 
+import android.content.Context;
 import android.location.Location;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.adapters.DroneStateAdapter;
+import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
+import com.dronelink.dji.DronelinkDJI;
+import com.dronelink.dji.R;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import dji.common.battery.BatteryState;
@@ -23,12 +29,17 @@ import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.model.LocationCoordinate2D;
+import dji.sdk.products.Aircraft;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {
+    private final Context context;
+
     public DatedValue<FlightControllerState> flightControllerState;
     public DatedValue<BatteryState> batteryState;
     public DatedValue<VisionDetectionState> visionDetectionState;
-    public DatedValue<Integer> airLinkSignalQuality;
+    public DatedValue<Integer> downlinkSignalQuality;
+    public DatedValue<Integer> uplinkSignalQuality;
+    public DatedValue<List<Message>> diagnosticsInformationMessages;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
     public String name;
@@ -38,8 +49,42 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public boolean located = false;
     public Location lastKnownGroundLocation;
 
+    public DJIDroneStateAdapter(final Context context) {
+        this.context = context;
+    }
+
     public DatedValue<DroneStateAdapter> toDatedValue() {
         return new DatedValue<DroneStateAdapter>(this, flightControllerState == null ? new Date() : flightControllerState.date);
+    }
+
+    @Override
+    public List<Message> getStatusMessages() {
+        final List<Message> messages = new ArrayList<>();
+
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        if (flightControllerState != null) {
+            messages.addAll(DronelinkDJI.getStatusMessages(context, flightControllerState.value));
+        }
+        else {
+            messages.add(new Message(context.getString(R.string.DJIDroneStateAdapter_telemetry_unavailable), Message.Level.DANGER));
+        }
+
+        final DatedValue<List<Message>> diagnosticsInformationMessages = this.diagnosticsInformationMessages;
+        if (diagnosticsInformationMessages != null) {
+            messages.addAll(diagnosticsInformationMessages.value);
+        }
+
+        return messages;
+    }
+
+    @Override
+    public String getMode() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        if (flightControllerState != null) {
+            return flightControllerState.value.getFlightModeString();
+        }
+
+        return null;
     }
 
     @Override
@@ -55,19 +100,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return null;
         }
 
-        final LocationCoordinate3D aircraftLocation = flightControllerState.value.getAircraftLocation();
-        if (aircraftLocation == null || flightControllerState.value.getSatelliteCount() == 0 || Double.isNaN(aircraftLocation.getLatitude()) || Double.isNaN(aircraftLocation.getLongitude())) {
-            return null;
-        }
-
-        if (Math.abs(aircraftLocation.getLatitude()) < 0.000001 && Math.abs(aircraftLocation.getLongitude()) < 0.000001) {
-            return null;
-        }
-
-        final Location location = new Location("");
-        location.setLatitude(aircraftLocation.getLatitude());
-        location.setLongitude(aircraftLocation.getLongitude());
-        return location;
+        return DronelinkDJI.getLocation(flightControllerState.value);
     }
 
     @Override
@@ -205,8 +238,14 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     }
 
     @Override
-    public Double getSignalStrength() {
+    public Double getDownlinkSignalStrength() {
         final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
-        return airLinkSignalQuality == null ? null : airLinkSignalQuality.value.doubleValue();
+        return downlinkSignalQuality == null ? null : downlinkSignalQuality.value.doubleValue();
+    }
+
+    @Override
+    public Double getUplinkSignalStrength() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        return uplinkSignalQuality == null ? null : uplinkSignalQuality.value.doubleValue();
     }
 }
