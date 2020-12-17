@@ -1829,29 +1829,13 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof ModeCameraCommand) {
-            if (camera.isFlatCameraModeSupported()) {
-                camera.getFlatMode(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.FlatCameraMode>() {
-                    @Override
-                    public void execute(final SettingsDefinitions.FlatCameraMode current) {
-                        final SettingsDefinitions.FlatCameraMode target = DronelinkDJI.getCameraModeFlat(((ModeCameraCommand) command).mode);
-                        Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
-                            @Override
-                            public void execute() {
-                                camera.setFlatMode(target, createCompletionCallback(finished));
-                            }
-                        });
-                    }
-                }, finished));
-            }
-            else {
-                final CameraMode target = ((ModeCameraCommand) command).mode;
-                Command.conditionallyExecute(state.value.getMode() != target, finished, new Command.ConditionalExecutor() {
-                    @Override
-                    public void execute() {
-                        camera.setMode(DronelinkDJI.getCameraMode(target), createCompletionCallback(finished));
-                    }
-                });
-            }
+            final CameraMode target = ((ModeCameraCommand) command).mode;
+            Command.conditionallyExecute(state.value.getMode() != target, finished, new Command.ConditionalExecutor() {
+                @Override
+                public void execute() {
+                    camera.setMode(DronelinkDJI.getCameraMode(target), createCompletionCallback(finished));
+                }
+            });
             return null;
         }
 
@@ -1904,34 +1888,18 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof PhotoModeCameraCommand) {
-            if (camera.isFlatCameraModeSupported()) {
-                camera.getFlatMode(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.FlatCameraMode>() {
-                    @Override
-                    public void execute(final SettingsDefinitions.FlatCameraMode current) {
-                        final SettingsDefinitions.FlatCameraMode target = DronelinkDJI.getCameraModeFlat(((PhotoModeCameraCommand) command).photoMode);
-                        Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
-                            @Override
-                            public void execute() {
-                                camera.setFlatMode(target, createCompletionCallback(finished));
-                            }
-                        });
-                    }
-                }, finished));
-            }
-            else {
-                camera.getShootPhotoMode(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.ShootPhotoMode>() {
-                    @Override
-                    public void execute(final SettingsDefinitions.ShootPhotoMode current) {
-                        final SettingsDefinitions.ShootPhotoMode target = DronelinkDJI.getCameraPhotoMode(((PhotoModeCameraCommand) command).photoMode);
-                        Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
-                            @Override
-                            public void execute() {
-                                camera.setShootPhotoMode(target, createCompletionCallback(finished));
-                            }
-                        });
-                    }
-                }, finished));
-            }
+            camera.getShootPhotoMode(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.ShootPhotoMode>() {
+                @Override
+                public void execute(final SettingsDefinitions.ShootPhotoMode current) {
+                    final SettingsDefinitions.ShootPhotoMode target = DronelinkDJI.getCameraPhotoMode(((PhotoModeCameraCommand) command).photoMode);
+                    Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
+                        @Override
+                        public void execute() {
+                            camera.setShootPhotoMode(target, createCompletionCallback(finished));
+                        }
+                    });
+                }
+            }, finished));
             return null;
         }
 
@@ -2147,28 +2115,12 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof VideoModeCameraCommand) {
-            if (camera.isFlatCameraModeSupported()) {
-                camera.getFlatMode(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.FlatCameraMode>() {
-                    @Override
-                    public void execute(final SettingsDefinitions.FlatCameraMode current) {
-                        final SettingsDefinitions.FlatCameraMode target = DronelinkDJI.getCameraModeFlat(((VideoModeCameraCommand) command).videoMode);
-                        Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
-                            @Override
-                            public void execute() {
-                                camera.setFlatMode(target, createCompletionCallback(finished));
-                            }
-                        });
-                    }
-                }, finished));
-            }
-            else {
-                Command.conditionallyExecute(state.value.getMode() != CameraMode.VIDEO, finished, new Command.ConditionalExecutor() {
-                    @Override
-                    public void execute() {
-                        camera.setMode(SettingsDefinitions.CameraMode.RECORD_VIDEO, createCompletionCallback(finished));
-                    }
-                });
-            }
+            Command.conditionallyExecute(state.value.getMode() != CameraMode.VIDEO, finished, new Command.ConditionalExecutor() {
+                @Override
+                public void execute() {
+                    camera.setMode(SettingsDefinitions.CameraMode.RECORD_VIDEO, createCompletionCallback(finished));
+                }
+            });
             return null;
         }
 

@@ -300,49 +300,6 @@ public class DronelinkDJI {
         return SettingsDefinitions.CameraMode.UNKNOWN;
     }
 
-    public static SettingsDefinitions.FlatCameraMode getCameraModeFlat(final CameraMode value) {
-        switch (value) {
-            case PHOTO: return SettingsDefinitions.FlatCameraMode.PHOTO_SINGLE;
-            case VIDEO: return SettingsDefinitions.FlatCameraMode.VIDEO_NORMAL;
-            case PLAYBACK: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-            case DOWNLOAD: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-            case BROADCAST: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-            case UNKNOWN: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-        }
-        return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-    }
-
-    public static SettingsDefinitions.FlatCameraMode getCameraModeFlat(final CameraPhotoMode value) {
-        switch (value) {
-            case SINGLE: return SettingsDefinitions.FlatCameraMode.PHOTO_SINGLE;
-            case HDR: return SettingsDefinitions.FlatCameraMode.PHOTO_HDR;
-            case BURST: return SettingsDefinitions.FlatCameraMode.PHOTO_BURST;
-            case AEB: return SettingsDefinitions.FlatCameraMode.PHOTO_AEB;
-            case INTERVAL: return SettingsDefinitions.FlatCameraMode.PHOTO_INTERVAL;
-            case TIME_LAPSE: return SettingsDefinitions.FlatCameraMode.PHOTO_TIME_LAPSE;
-            case RAW_BURST: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-            case SHALLOW_FOCUS: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-            case PANORAMA: return SettingsDefinitions.FlatCameraMode.PHOTO_PANORAMA;
-            case EHDR: return SettingsDefinitions.FlatCameraMode.PHOTO_EHDR;
-            case HYPER_LIGHT: return SettingsDefinitions.FlatCameraMode.PHOTO_HYPER_LIGHT;
-            case HIGH_RESOLUTION: return SettingsDefinitions.FlatCameraMode.PHOTO_HIGH_RESOLUTION;
-            case SMART: return SettingsDefinitions.FlatCameraMode.PHOTO_SMART;
-            case INTERNAL_AI_SPOT_CHECKING: return SettingsDefinitions.FlatCameraMode.INTERNAL_AI_SPOT_CHECKING;
-            case UNKNOWN: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-        }
-        return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-    }
-
-    public static SettingsDefinitions.FlatCameraMode getCameraModeFlat(final CameraVideoMode value) {
-        switch (value) {
-            case NORMAL: return SettingsDefinitions.FlatCameraMode.VIDEO_NORMAL;
-            case HDR: return SettingsDefinitions.FlatCameraMode.VIDEO_HDR;
-            case SLOW_MOTION: return SettingsDefinitions.FlatCameraMode.SLOW_MOTION;
-            case UNKNOWN: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-        }
-        return SettingsDefinitions.FlatCameraMode.UNKNOWN;
-    }
-
     public static SettingsDefinitions.PhotoAspectRatio getCameraPhotoAspectRatio(final CameraPhotoAspectRatio value) {
         switch (value) {
             case _4_3: return SettingsDefinitions.PhotoAspectRatio.RATIO_4_3;
