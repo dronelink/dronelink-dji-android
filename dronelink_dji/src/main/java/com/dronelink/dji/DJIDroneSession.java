@@ -149,6 +149,7 @@ import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
+import dji.keysdk.FlightControllerKey;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
@@ -704,6 +705,25 @@ public class DJIDroneSession implements DroneSession {
         };
         DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.UPLINK_SIGNAL_QUALITY), uplinkListener);
         keyListeners.add(uplinkListener);
+
+        final KeyListener lowBatteryWarningThresholdListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Double)
+                            state.lowBatteryWarningThreshold = new DatedValue<>((Double) newValue);
+                        else if (oldValue != null && oldValue instanceof Double)
+                            state.lowBatteryWarningThreshold = new DatedValue<>((Double) oldValue);
+                        else
+                            state.lowBatteryWarningThreshold = null;
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(FlightControllerKey.create(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), lowBatteryWarningThresholdListener);
+        keyListeners.add(lowBatteryWarningThresholdListener);
     }
 
     protected void componentConnected(final BaseComponent component) {
@@ -2341,4 +2361,5 @@ public class DJIDroneSession implements DroneSession {
 
         return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
     }
+
 }
