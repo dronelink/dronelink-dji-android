@@ -195,7 +195,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return null;
         }
 
-        return (double)batteryState.value.getChargeRemainingInPercent();
+        return (double)batteryState.value.getChargeRemainingInPercent() / 100;
     }
 
     @Override

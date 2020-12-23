@@ -87,15 +87,10 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public CameraStorageLocation getStorageLocation() {
-        switch (storageState.getStorageLocation()) {
-            case SDCARD:
-                return CameraStorageLocation.SD_CARD;
-            case INTERNAL_STORAGE:
-                return CameraStorageLocation.INTERNAL;
-            case UNKNOWN:
-                return CameraStorageLocation.UNKNOWN;
+        if (storageState == null) {
+            return CameraStorageLocation.UNKNOWN;
         }
-        return CameraStorageLocation.UNKNOWN;
+        return DronelinkDJI.getStorageLocation(storageState.getStorageLocation());
     }
 
     @Override
