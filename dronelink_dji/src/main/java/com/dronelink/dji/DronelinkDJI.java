@@ -450,6 +450,18 @@ public class DronelinkDJI {
         return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
     }
 
+    public static CameraStorageLocation getStorageLocation(final SettingsDefinitions.StorageLocation value) {
+        switch (value) {
+            case SDCARD:
+                return CameraStorageLocation.SD_CARD;
+            case INTERNAL_STORAGE:
+                return CameraStorageLocation.INTERNAL;
+            case UNKNOWN:
+                return CameraStorageLocation.UNKNOWN;
+        }
+        return CameraStorageLocation.UNKNOWN;
+    }
+
     public static SettingsDefinitions.ShutterSpeed getCameraShutterSpeed(final CameraShutterSpeed value) {
         switch (value) {
             case _1_8000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_8000;

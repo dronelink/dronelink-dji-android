@@ -24,7 +24,11 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.github.dronelink:dronelink-core-android:2.0.0'
+    //implementation 'com.github.dronelink:dronelink-core-android:2.0.0'
+    implementation project(':dronelink_core')
     compileOnly 'com.dji:dji-sdk:4.13.1'
     compileOnly 'com.dji:dji-sdk-provided:4.13.1'
+}
+repositories {
+    mavenCentral()
 }

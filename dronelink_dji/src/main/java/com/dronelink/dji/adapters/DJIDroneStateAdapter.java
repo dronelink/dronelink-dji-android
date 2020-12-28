@@ -30,6 +30,7 @@ import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.products.Aircraft;
+import dji.sdk.sdkmanager.DJISDKManager;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {
     private final Context context;
@@ -39,6 +40,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<VisionDetectionState> visionDetectionState;
     public DatedValue<Integer> downlinkSignalQuality;
     public DatedValue<Integer> uplinkSignalQuality;
+    public DatedValue<Double> lowBatteryWarningThreshold;
     public DatedValue<List<Message>> diagnosticsInformationMessages;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
@@ -193,7 +195,15 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return null;
         }
 
-        return (double)batteryState.value.getChargeRemainingInPercent() / 100.0;
+        return (double)batteryState.value.getChargeRemainingInPercent() / 100;
+    }
+
+    @Override
+    public Double getLowBatteryThreshold() {
+        if (lowBatteryWarningThreshold == null) {
+            return null;
+        }
+        return (lowBatteryWarningThreshold.value / 100);
     }
 
     @Override
@@ -235,6 +245,12 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public Integer getGPSSatellites() {
         final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState == null ? null : flightControllerState.value.getSatelliteCount();
+    }
+
+    @Override
+    public Integer getGPSSignalStrength() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        return flightControllerState == null ? null : flightControllerState.value.getGPSSignalLevel().value();
     }
 
     @Override

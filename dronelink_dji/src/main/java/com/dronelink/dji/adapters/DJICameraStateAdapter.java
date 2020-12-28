@@ -7,12 +7,14 @@
 package com.dronelink.dji.adapters;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
+import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraISO;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.core.kernel.core.enums.CameraPhotoMode;
 import com.dronelink.core.kernel.core.enums.CameraShutterSpeed;
+import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.dji.DronelinkDJI;
 
@@ -57,11 +59,38 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
+    public boolean isCapturingContinuous() {
+        return state != null && (isCapturingPhotoInterval() || isCapturingVideo());
+    }
+
+    //todo: add isShootingHyperanalytic in new version
+    @Override
+    public boolean isBusy() {
+        return state != null && (state.isStoringPhoto()
+                || state.isShootingSinglePhoto()
+                || state.isShootingSinglePhotoInRAWFormat()
+                || state.isShootingIntervalPhoto()
+                || state.isShootingBurstPhoto()
+                || state.isShootingRAWBurstPhoto()
+                || state.isShootingShallowFocusPhoto()
+                || state.isShootingPanoramaPhoto());
+                //|| state.isShootingHyperanalytic();
+    }
+
+    @Override
     public boolean isSDCardInserted() {
         if (storageState != null) {
             return storageState.isInserted();
         }
         return true;
+    }
+
+    @Override
+    public CameraStorageLocation getStorageLocation() {
+        if (storageState == null) {
+            return CameraStorageLocation.UNKNOWN;
+        }
+        return DronelinkDJI.getStorageLocation(storageState.getStorageLocation());
     }
 
     @Override
