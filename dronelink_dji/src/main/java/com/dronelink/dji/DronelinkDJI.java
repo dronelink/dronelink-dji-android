@@ -31,6 +31,7 @@ import com.dronelink.core.kernel.core.enums.CameraVideoFieldOfView;
 import com.dronelink.core.kernel.core.enums.CameraVideoFileCompressionStandard;
 import com.dronelink.core.kernel.core.enums.CameraVideoFileFormat;
 import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
+import com.dronelink.core.kernel.core.enums.CameraVideoMode;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraVideoStandard;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;

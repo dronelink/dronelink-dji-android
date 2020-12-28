@@ -65,6 +65,7 @@ import com.dronelink.core.kernel.command.camera.StorageLocationCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoCaptionCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoFileCompressionStandardCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoFileFormatCameraCommand;
+import com.dronelink.core.kernel.command.camera.VideoModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoResolutionFrameRateCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoStandardCameraCommand;
 import com.dronelink.core.kernel.command.camera.WhiteBalanceCustomCameraCommand;
@@ -277,7 +278,7 @@ public class DJIDroneSession implements DroneSession {
 
     private double gimbalYawRelativeToAircraftHeadingCorrected(final GimbalState gimbalState) {
         final Aircraft drone = adapter.getDrone();
-        if (drone != null) {
+        if (drone != null && drone.getModel() != null) {
             switch (drone.getModel()) {
                 case PHANTOM_4:
                 case PHANTOM_4_PRO:
@@ -2161,6 +2162,16 @@ public class DJIDroneSession implements DroneSession {
                     });
                 }
             }, finished));
+            return null;
+        }
+
+        if (command instanceof VideoModeCameraCommand) {
+            Command.conditionallyExecute(state.value.getMode() != CameraMode.VIDEO, finished, new Command.ConditionalExecutor() {
+                @Override
+                public void execute() {
+                    camera.setMode(SettingsDefinitions.CameraMode.RECORD_VIDEO, createCompletionCallback(finished));
+                }
+            });
             return null;
         }
 
