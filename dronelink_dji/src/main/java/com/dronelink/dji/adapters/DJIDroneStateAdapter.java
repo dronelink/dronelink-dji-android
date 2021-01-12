@@ -40,7 +40,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<VisionDetectionState> visionDetectionState;
     public DatedValue<Integer> downlinkSignalQuality;
     public DatedValue<Integer> uplinkSignalQuality;
-    public DatedValue<Double> lowBatteryWarningThreshold;
+    public DatedValue<Integer> lowBatteryWarningThreshold;
     public DatedValue<List<Message>> diagnosticsInformationMessages;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
@@ -203,7 +203,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         if (lowBatteryWarningThreshold == null) {
             return null;
         }
-        return (lowBatteryWarningThreshold.value / 100);
+        return ((double)lowBatteryWarningThreshold.value / 100);
     }
 
     @Override

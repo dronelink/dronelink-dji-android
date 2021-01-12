@@ -15,6 +15,7 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
@@ -713,17 +714,18 @@ public class DJIDroneSession implements DroneSession {
                 stateSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
-                        if (newValue != null && newValue instanceof Double)
-                            state.lowBatteryWarningThreshold = new DatedValue<>((Double) newValue);
-                        else if (oldValue != null && oldValue instanceof Double)
-                            state.lowBatteryWarningThreshold = new DatedValue<>((Double) oldValue);
+                        if (newValue != null && newValue instanceof Integer)
+                            state.lowBatteryWarningThreshold = new DatedValue<>((Integer) newValue);
+                        else if (oldValue != null && oldValue instanceof Integer)
+                            state.lowBatteryWarningThreshold = new DatedValue<>((Integer) oldValue);
                         else
                             state.lowBatteryWarningThreshold = null;
                     }
                 });
             }
         };
-        DJISDKManager.getInstance().getKeyManager().addListener(FlightControllerKey.create(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), lowBatteryWarningThresholdListener);
+
+        DJISDKManager.getInstance().getKeyManager().addListener(FlightControllerKey.createFlightAssistantKey(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), lowBatteryWarningThresholdListener);
         keyListeners.add(lowBatteryWarningThresholdListener);
     }
 
