@@ -317,13 +317,13 @@ public class DJIDroneSession implements DroneSession {
     private void initRemoteController(final Aircraft drone, final int attempt) {
         final RemoteController remoteController = drone.getRemoteController();
         if (remoteController == null) {
-            if (attempt < 3) {
+            if (attempt < 5) {
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         initRemoteController(drone, attempt + 1);
                     }
-                }, 1000);
+                }, (attempt + 1) * 1000);
             }
             return;
         }
