@@ -7,6 +7,11 @@
 package com.dronelink.dji;
 
 
+import android.content.Context;
+import android.location.Location;
+
+import com.dronelink.core.DatedValue;
+import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraColor;
@@ -36,6 +41,8 @@ import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import dji.common.airlink.ChannelSelectionMode;
@@ -43,10 +50,18 @@ import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
+import dji.common.flightcontroller.FlightControllerState;
+import dji.common.flightcontroller.FlightMode;
+import dji.common.flightcontroller.GoHomeExecutionState;
+import dji.common.flightcontroller.LocationCoordinate3D;
+import dji.common.flightcontroller.flyzone.FlyZoneState;
 import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
+import dji.common.realname.AppActivationState;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
+import dji.internal.diagnostics.DiagnosticsBaseHandler;
+import dji.sdk.base.DJIDiagnostics;
 import dji.sdk.gimbal.Gimbal;
 
 public class DronelinkDJI {
@@ -151,6 +166,11 @@ public class DronelinkDJI {
         return SettingsDefinitions.Aperture.UNKNOWN;
     }
 
+    public static CameraAperture getCameraAperture(final SettingsDefinitions.Aperture value) {
+        //FIXME
+        return CameraAperture.UNKNOWN;
+    }
+
     public static SettingsDefinitions.CameraColor getCameraColor(final CameraColor value) {
         switch (value) {
             case NONE: return SettingsDefinitions.CameraColor.NONE;
@@ -230,6 +250,77 @@ public class DronelinkDJI {
         return SettingsDefinitions.ExposureCompensation.UNKNOWN;
     }
 
+    public static CameraExposureCompensation getCameraExposureCompensation(final SettingsDefinitions.ExposureCompensation value) {
+        switch (value) {
+            case N_5_0:
+                return CameraExposureCompensation.N_5_0;
+            case N_4_7:
+                return CameraExposureCompensation.N_4_7;
+            case N_4_3:
+                return CameraExposureCompensation.N_4_3;
+            case N_4_0:
+                return CameraExposureCompensation.N_4_0;
+            case N_3_7:
+                return CameraExposureCompensation.N_3_7;
+            case N_3_3:
+                return CameraExposureCompensation.N_3_3;
+            case N_3_0:
+                return CameraExposureCompensation.N_3_0;
+            case N_2_7:
+                return CameraExposureCompensation.N_2_7;
+            case N_2_3:
+                return CameraExposureCompensation.N_2_3;
+            case N_2_0:
+                return CameraExposureCompensation.N_2_0;
+            case N_1_7:
+                return CameraExposureCompensation.N_1_7;
+            case N_1_3:
+                return CameraExposureCompensation.N_1_3;
+            case N_1_0:
+                return CameraExposureCompensation.N_1_0;
+            case N_0_7:
+                return CameraExposureCompensation.N_0_7;
+            case N_0_3:
+                return CameraExposureCompensation.N_0_3;
+            case N_0_0:
+                return CameraExposureCompensation.N_0_0;
+            case P_0_3:
+                return CameraExposureCompensation.P_0_3;
+            case P_0_7:
+                return CameraExposureCompensation.P_0_7;
+            case P_1_0:
+                return CameraExposureCompensation.P_1_0;
+            case P_1_3:
+                return CameraExposureCompensation.P_1_3;
+            case P_1_7:
+                return CameraExposureCompensation.P_1_7;
+            case P_2_0:
+                return CameraExposureCompensation.P_2_0;
+            case P_2_3:
+                return CameraExposureCompensation.P_2_3;
+            case P_2_7:
+                return CameraExposureCompensation.P_2_7;
+            case P_3_0:
+                return CameraExposureCompensation.P_3_0;
+            case P_3_3:
+                return CameraExposureCompensation.P_3_3;
+            case P_3_7:
+                return CameraExposureCompensation.P_3_7;
+            case P_4_0:
+                return CameraExposureCompensation.P_4_0;
+            case P_4_3:
+                return CameraExposureCompensation.P_4_3;
+            case P_4_7:
+                return CameraExposureCompensation.P_4_7;
+            case P_5_0:
+                return CameraExposureCompensation.P_5_0;
+            case FIXED:
+            case UNKNOWN:
+                return CameraExposureCompensation.UNKNOWN;
+        }
+        return CameraExposureCompensation.UNKNOWN;
+    }
+
     public static SettingsDefinitions.ExposureMode getCameraExposureMode(final CameraExposureMode value) {
         switch (value) {
             case PROGRAM: return SettingsDefinitions.ExposureMode.PROGRAM;
@@ -278,6 +369,11 @@ public class DronelinkDJI {
         return SettingsDefinitions.ISO.UNKNOWN;
     }
 
+    public static CameraISO getCameraISO(final int value) {
+        //FIXME
+        return CameraISO.UNKNOWN;
+    }
+
     public static SettingsDefinitions.MeteringMode getCameraMeteringMode(final CameraMeteringMode value) {
         switch (value) {
             case CENTER: return SettingsDefinitions.MeteringMode.CENTER;
@@ -300,6 +396,17 @@ public class DronelinkDJI {
         return SettingsDefinitions.CameraMode.UNKNOWN;
     }
 
+    public static CameraMode getCameraMode(final SettingsDefinitions.CameraMode value) {
+        switch (value) {
+            case SHOOT_PHOTO: return CameraMode.PHOTO;
+            case RECORD_VIDEO: return CameraMode.VIDEO;
+            case PLAYBACK: return CameraMode.PLAYBACK;
+            case MEDIA_DOWNLOAD: return CameraMode.DOWNLOAD;
+            case BROADCAST: return CameraMode.BROADCAST;
+            case UNKNOWN: return CameraMode.UNKNOWN;
+        }
+        return CameraMode.UNKNOWN;
+    }
     public static SettingsDefinitions.FlatCameraMode getCameraModeFlat(final CameraMode value) {
         switch (value) {
             case PHOTO: return SettingsDefinitions.FlatCameraMode.PHOTO_SINGLE;
@@ -326,7 +433,7 @@ public class DronelinkDJI {
             case EHDR: return SettingsDefinitions.FlatCameraMode.PHOTO_EHDR;
             case HYPER_LIGHT: return SettingsDefinitions.FlatCameraMode.PHOTO_HYPER_LIGHT;
             case HIGH_RESOLUTION: return SettingsDefinitions.FlatCameraMode.PHOTO_HIGH_RESOLUTION;
-            case SMART: return SettingsDefinitions.FlatCameraMode.PHOTO_SMART;
+            //FIXME case SMART: return SettingsDefinitions.FlatCameraMode.PHOTO_SMART;
             case INTERNAL_AI_SPOT_CHECKING: return SettingsDefinitions.FlatCameraMode.INTERNAL_AI_SPOT_CHECKING;
             case UNKNOWN: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
         }
@@ -383,6 +490,18 @@ public class DronelinkDJI {
             case UNKNOWN: return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
         }
         return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
+    }
+
+    public static CameraStorageLocation getStorageLocation(final SettingsDefinitions.StorageLocation value) {
+        switch (value) {
+            case SDCARD:
+                return CameraStorageLocation.SD_CARD;
+            case INTERNAL_STORAGE:
+                return CameraStorageLocation.INTERNAL;
+            case UNKNOWN:
+                return CameraStorageLocation.UNKNOWN;
+        }
+        return CameraStorageLocation.UNKNOWN;
     }
 
     public static SettingsDefinitions.ShutterSpeed getCameraShutterSpeed(final CameraShutterSpeed value) {
@@ -465,6 +584,11 @@ public class DronelinkDJI {
             case UNKNOWN: return SettingsDefinitions.ShutterSpeed.UNKNOWN;
         }
         return SettingsDefinitions.ShutterSpeed.UNKNOWN;
+    }
+
+    public static CameraShutterSpeed getCameraShutterSpeed(final SettingsDefinitions.ShutterSpeed value) {
+        //FIXME
+        return CameraShutterSpeed.UNKNOWN;
     }
 
     public static SettingsDefinitions.StorageLocation getCameraStorageLocation(final CameraStorageLocation value) {
@@ -618,5 +742,448 @@ public class DronelinkDJI {
             }
         }
         return false;
+    }
+
+    public static Message getMessage(final DJIDiagnostics diagnostics) {
+        Message.Level level = null;
+
+        final DiagnosticsBaseHandler.DJIDiagnosticsError error = DiagnosticsBaseHandler.DJIDiagnosticsError.find(diagnostics.getCode());
+        if (error != null) {
+            switch (error) {
+                case CAMERA_UPGRADE_ERROR:
+                case CAMERA_SENSOR_ERROR:
+                case CAMERA_OVER_HEAT:
+                case CAMERA_ENCRYPTION_ERROR:
+                case CAMERA_SD_CARD_ERROR:
+                case CAMERA_CHIP_OVER_HEAT:
+                case CAMERA_TemperaturesTooHighToStopRecord:
+                case GIMBAL_GYROSCOPE_ERROR:
+                case GIMBAL_PITCH_ERROR:
+                case GIMBAL_ROLL_ERROR:
+                case GIMBAL_YAW_ERROR:
+                case GIMBAL_CONNECT_TO_FC_ERROR:
+                case BATTERY_CELL_BROKEN:
+                case BATTERY_COMMUNICATION_FAIL:
+                case REMOTE_CONTROLLER_FPGA_ERROR:
+                case REMOTE_CONTROLLER_TRANSMITTER_ERROR:
+                case REMOTE_CONTROLLER_BATTERY_ERROR:
+                case REMOTE_CONTROLLER_GPS_ERROR:
+                case REMOTE_CONTROLLER_ENCRYPTION_ERROR:
+                case REMOTE_CONTROLLER_IDLE_TOO_LONG:
+                case REMOTE_CONTROLLER_RESET:
+                case REMOTE_CONTROLLER_OVER_HEAT:
+                case REMOTE_CONTROLLER_GO_HOME_FAIL:
+                case CENTRAL_BOARD_CONNECT_TO_BATTERY_ERROR:
+                case CENTRAL_BOARD_CONNECT_TO_GPS_ERROR:
+                case CENTRAL_BOARD_CONNECT_TO_FC_ERROR:
+                case VIDEO_DECODER_ENCRYPTION_ERROR:
+                case VIDEO_DECODER_CONNECT_TO_DESERIALIZER_ERROR:
+                case AIR_ENCODER_ERROR:
+                case AIR_ENCODER_UPGRADE:
+                case AIR_LINK_NO_SIGNAL:
+                case FLIGHT_CONTROLLER_IMU_DATA_ERROR:
+                case FLIGHT_CONTROLLER_IMU_ERROR:
+                case FLIGHT_CONTROLLER_IMU_INIT_FAILED:
+                case FLIGHT_CONTROLLER_BAROMETER_INIT_FAILED:
+                case FLIGHT_CONTROLLER_BAROMETER_ERROR:
+                case FLIGHT_CONTROLLER_ACCELEROMETER_INIT_FAILED:
+                case FLIGHT_CONTROLLER_GYROSCOPE_ERROR:
+                case FLIGHT_CONTROLLER_ATTITUDE_ERROR:
+                case FLIGHT_CONTROLLER_DATA_RECORD_ERROR:
+                case FLIGHT_CONTROLLER_TAKEOFF_FAILED:
+                case FLIGHT_CONTROLLER_SYSTEM_ERROR:
+                case FLIGHT_CONTROLLER_COMPASS_NEED_RESTART:
+                case FLIGHT_CONTROLLER_MOTOR_START_ERROR:
+                case FLIGHT_CONTROLLER_NO_PROPELLER:
+                case FLIGHT_CONTROLLER_MOTOR_STOP_REASON:
+                case FLIGHT_CONTROLLER_THREE_PROPELLER_EMERGENCY_LANDING:
+                case FLIGHT_CONTROLLER_LANDING_PROTECTION:
+                case FLIGHT_CONTROLLER_AIRCRAFT_PROPULSION_SYSTEM_ERROR:
+                case FLIGHT_CONTROLLER_KERNEL_BOARD_HIGH_TEMPERATURE:
+                case FLIGHT_CONTROLLER_MC_DATA_ERROR:
+                case FLIGHT_CONTROLLER_BATTERY_NOT_IN_POSITION:
+                case FLIGHT_CONTROLLER_ENABLE_NEAR_GROUND_ALERT:
+                case FLIGHT_CONTROLLER_MOTOR_BLOCKED:
+                case FLIGHT_CONTROLLER_NOT_ENOUGH_FORCE:
+                case FLIGHT_CONTROLLER_OVER_HEAT_GO_HOME:
+                case FLIGHT_CONTROLLER_COMPASS_INSTALL_ERROR:
+                case FLIGHT_CONTROLLER_GPS_ERROR:
+                case FLIGHT_CONTROLLER_MOTOR_STOP_FOR_ESC_SHORT_CIRCUIT:
+                case FLIGHT_CONTROLLER_ENV_STATE_TEMP_TOO_LOW:
+                case FLIGHT_CONTROLLER_ENV_STATE_TEMP_TOO_HIGH:
+                case FLIGHT_CONTROLLER_ONLY_SUPPORT_ATTI_MODE:
+                case FLIGHT_CONTROLLER_LOW_VOLTAGE_GOING_HOME:
+                case FLIGHT_CONTROLLER_SMART_LOW_POWER_GO_HOME:
+                case FLIGHT_CONTROLLER_LOW_VOLTAGE_LANDING:
+                case VISION_PROPELLER_GUARD:
+                case VISION_SENSOR_ERROR:
+                case VISION_SENSOR_CALIBRATION_ERROR:
+                case VISION_SENSOR_COMMUNICATION_ERROR:
+                case VISION_SYSTEM_ERROR:
+                case GIMBAL_LOCATE_ERROR:
+                case RTK_POSITIONING_ERROR:
+                case RTK_ORIENTEERING_ERROR:
+                    level = Message.Level.ERROR;
+                    break;
+
+                case BATTERY_DANGEROUS_WARNING_SERIOUS:
+                case FLIGHT_CONTROLLER_OUT_OF_CONTROL_GOING_HOME:
+                case FLIGHT_CONTROLLER_COMPASS_ABNORMAL:
+                case FLIGHT_CONTROLLER_STRONG_GALE_WARNING:
+                case FLIGHT_CONTROLLER_GPS_SIGNAL_BLOCKED_BY_GIMBAL:
+                    level = Message.Level.DANGER;
+                    break;
+
+                case BATTERY_DISCHARGE_OVER_CURRENT:
+                case BATTERY_DISCHARGE_OVER_HEAT:
+                case BATTERY_LOW_TEMPERATURE:
+                case BATTERY_ILLEGAL:
+                case BATTERY_DIFF_USAGE:
+                case BATTERY_OVER_LOAD:
+                case BATTERY_LOW_VOLTAGE:
+                case REMOTE_CONTROLLER_BATTERY_LOW:
+                case AIR_LINK_LOW_RC_SIGNAL:
+                case AIR_LINK_STRONG_RC_RADIO_SIGNAL_NOISE:
+                case AIR_LINK_LOW_RADIO_SIGNAL:
+                case AIR_LINK_STRONG_RADIO_SIGNAL_NOISE:
+                case AIR_LINK_WIFI_MAGNETIC_INTERFERENCE_HIGH:
+                case FLIGHT_CONTROLLER_USING_WRONG_PROPELLERS:
+                case FLIGHT_CONTROLLER_OUT_OF_FLIGHT_RADIUS_LIMIT:
+                case FLIGHT_CONTROLLER_HEIGHT_LIMIT_REASON_NO_GPS:
+                case FLIGHT_CONTROLLER_HEIGHT_LIMIT_REASON_COMPASS_INTERRUPT:
+                case FLIGHT_CONTROLLER_NO_REAL_NAME_HEIGHT_LIMIT:
+                case FLIGHT_CONTROLLER_WATER_SURFACE_WARNING:
+                case FLIGHT_CONTROLLER_PADDLE_HAS_ICE_ON_IT:
+                case FLIGHT_CONTROLLER_COVER_FLIGHT_ENABLE_LIMIT:
+                case VISION_WEAK_AMBIENT_LIGHT:
+                case FLIGHT_CONTROLLER_HEADING_CONTROL_ABNORMAL:
+                case FLIGHT_CONTROLLER_AIRCRAFT_VIBRATION_ABNORMAL:
+                case FLIGHT_CONTROLLER_TILT_CONTROL_ABNORMAL:
+                    level = Message.Level.WARNING;
+                    break;
+
+                case CAMERA_NO_SD_CARD:
+                case CAMERA_SD_CARD_NO_SPACE:
+                case CAMERA_SD_CARD_FULL:
+                case CAMERA_SD_CARD_READ_ONLY:
+                case CAMERA_SD_CARD_NOT_FORMATTED:
+                case BATTERY_NEED_STUDY:
+                case SINGLE_BATTERY_MODE:
+                case FAKE_BATTERY_MODE:
+                case BATTERY_CYCLE_TIME_OVER:
+                case BATTERY_SHORT_CUT:
+                case REMOTE_CONTROLLER_NEED_CALIBRATION:
+                case FLIGHT_CONTROLLER_IMU_NEED_CALIBRATION:
+                case FLIGHT_CONTROLLER_IMU_CALIBRATION_INCOMPLETE:
+                case FLIGHT_CONTROLLER_IMU_HEATING:
+                case FLIGHT_CONTROLLER_MC_READING_DATA:
+                case VISION_SYSTEM_NEED_CALIBRATION:
+                    level = Message.Level.INFO;
+                    break;
+
+                case a:
+                    break;
+            }
+        }
+
+        if (level == null) {
+            return null;
+        }
+
+        return new Message(diagnostics.getReason(), diagnostics.getSolution(), level);
+    }
+
+    public static Message getMessage(final Context context, final FlyZoneState flyZoneState) {
+        Message.Level level = null;
+
+        switch (flyZoneState) {
+            case CLEAR:
+            case UNKNOWN:
+                break;
+
+            case NEAR_RESTRICTED_ZONE:
+            case IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
+            case IN_WARNING_ZONE:
+            case SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
+            case PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
+            case IN_ENHANCE_WARNING_ZONE:
+            case SUSPECTED_IN_RESTRICTED_ZONE:
+            case NEAR_HEIGHT_LIMITED_ZONE:
+                level = Message.Level.WARNING;
+                break;
+
+            case IN_RESTRICTED_ZONE:
+            case PHONE_IN_RESTRICTED_ZONE:
+                level = Message.Level.DANGER;
+                break;
+
+            case IN_AUTHORIZED_ZONE:
+            case IN_AUTHORIZED_ZONE_WITH_LICENSE:
+            case SUSPECTED_IN_AUTHORIZED_ZONE:
+            case NEAR_AUTHORIZED_ZONE_WITH_LICENSE:
+            case NEAR_AUTHORIZED_ZONE:
+            case NEAR_MULTIPLE_TYPE_FLY_ZONE:
+            case OUTSIDE_SPECIAL_UNLOCK_ZONE:
+            case FLY_TOUCH_AUTHORIZE_HAS_LICENSE:
+                level = Message.Level.INFO;
+                break;
+        }
+
+        if (level == null) {
+            return null;
+        }
+
+        String details = "";
+        switch (flyZoneState) {
+            case CLEAR:
+                details = context.getString(R.string.FlyZoneState_value_CLEAR);
+                break;
+
+            case UNKNOWN:
+                details = context.getString(R.string.FlyZoneState_value_UNKNOWN);
+                break;
+
+            case NEAR_RESTRICTED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_NEAR_RESTRICTED_ZONE);
+                break;
+
+            case IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
+                details = context.getString(R.string.FlyZoneState_value_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
+                break;
+
+            case IN_WARNING_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_IN_WARNING_ZONE);
+                break;
+
+            case SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
+                details = context.getString(R.string.FlyZoneState_value_SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
+                break;
+
+            case PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
+                details = context.getString(R.string.FlyZoneState_value_PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
+                break;
+
+            case IN_ENHANCE_WARNING_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_IN_ENHANCE_WARNING_ZONE);
+                break;
+
+            case SUSPECTED_IN_RESTRICTED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_SUSPECTED_IN_RESTRICTED_ZONE);
+                break;
+
+            case NEAR_HEIGHT_LIMITED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_NEAR_HEIGHT_LIMITED_ZONE);
+                break;
+
+            case IN_RESTRICTED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_IN_RESTRICTED_ZONE);
+                break;
+
+            case PHONE_IN_RESTRICTED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_PHONE_IN_RESTRICTED_ZONE);
+                break;
+
+            case IN_AUTHORIZED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_IN_AUTHORIZED_ZONE);
+                break;
+
+            case IN_AUTHORIZED_ZONE_WITH_LICENSE:
+                details = context.getString(R.string.FlyZoneState_value_IN_AUTHORIZED_ZONE_WITH_LICENSE);
+                break;
+
+            case SUSPECTED_IN_AUTHORIZED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_SUSPECTED_IN_AUTHORIZED_ZONE);
+                break;
+
+            case NEAR_AUTHORIZED_ZONE_WITH_LICENSE:
+                details = context.getString(R.string.FlyZoneState_value_NEAR_AUTHORIZED_ZONE_WITH_LICENSE);
+                break;
+
+            case NEAR_AUTHORIZED_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_NEAR_AUTHORIZED_ZONE);
+                break;
+
+            case NEAR_MULTIPLE_TYPE_FLY_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_NEAR_MULTIPLE_TYPE_FLY_ZONE);
+                break;
+
+            case OUTSIDE_SPECIAL_UNLOCK_ZONE:
+                details = context.getString(R.string.FlyZoneState_value_OUTSIDE_SPECIAL_UNLOCK_ZONE);
+                break;
+
+            case FLY_TOUCH_AUTHORIZE_HAS_LICENSE:
+                details = context.getString(R.string.FlyZoneState_value_FLY_TOUCH_AUTHORIZE_HAS_LICENSE);
+                break;
+        }
+
+        return new Message(context.getString(R.string.FlyZoneState_title), details, level);
+    }
+
+    public static Message getMessage(final Context context, final AppActivationState appActivationState) {
+        switch (appActivationState) {
+            case ACTIVATED:
+            case UNKNOWN:
+                return null;
+
+            case NOT_SUPPORTED:
+                return new Message(context.getString(R.string.AppActivationState_title), context.getString(R.string.AppActivationState_value_NOT_SUPPORTED), Message.Level.ERROR);
+
+            case LOGIN_REQUIRED:
+                return new Message(context.getString(R.string.AppActivationState_title), context.getString(R.string.AppActivationState_value_LOGIN_REQUIRED), Message.Level.WARNING);
+        }
+
+        return null;
+    }
+
+    public static Message getMessage(final Context context, final GoHomeExecutionState goHomeExecutionState) {
+        String details = null;
+
+        switch (goHomeExecutionState) {
+            case NOT_EXECUTING:
+            case COMPLETED:
+            case UNKNOWN:
+                break;
+
+            case TURN_DIRECTION_TO_HOME_POINT:
+                details = context.getString(R.string.GoHomeExecutionState_value_TURN_DIRECTION_TO_HOME_POINT);
+                break;
+
+            case GO_UP_TO_HEIGHT:
+                details = context.getString(R.string.GoHomeExecutionState_value_GO_UP_TO_HEIGHT);
+                break;
+
+            case AUTO_FLY_TO_HOME_POINT:
+                details = context.getString(R.string.GoHomeExecutionState_value_AUTO_FLY_TO_HOME_POINT);
+                break;
+
+            case GO_DOWN_TO_GROUND:
+                details = context.getString(R.string.GoHomeExecutionState_value_GO_DOWN_TO_GROUND);
+                break;
+
+            case BRAKING:
+                details = context.getString(R.string.GoHomeExecutionState_value_BRAKING);
+                break;
+
+            case BYPASSING:
+                details = context.getString(R.string.GoHomeExecutionState_value_BYPASSING);
+                break;
+        }
+
+        if (details == null) {
+            return null;
+        }
+
+        return new Message(context.getString(R.string.GoHomeExecutionState_title), details, Message.Level.WARNING);
+    }
+
+    public static Location getLocation(final FlightControllerState flightControllerState) {
+        final LocationCoordinate3D aircraftLocation = flightControllerState.getAircraftLocation();
+        if (aircraftLocation == null || flightControllerState.getSatelliteCount() == 0 || Double.isNaN(aircraftLocation.getLatitude()) || Double.isNaN(aircraftLocation.getLongitude())) {
+            return null;
+        }
+
+        if (Math.abs(aircraftLocation.getLatitude()) < 0.000001 && Math.abs(aircraftLocation.getLongitude()) < 0.000001) {
+            return null;
+        }
+
+        final Location location = new Location("");
+        location.setLatitude(aircraftLocation.getLatitude());
+        location.setLongitude(aircraftLocation.getLongitude());
+        return location;
+    }
+
+    public static List<Message> getStatusMessages(final Context context, final FlightControllerState flightControllerState) {
+        final List<Message> messages = new ArrayList<>();
+
+        final Message message = getMessage(context, flightControllerState.getGoHomeExecutionState());
+        if (message != null) {
+            if (flightControllerState.getFlightMode() == FlightMode.CONFIRM_LANDING) {
+                messages.add(new Message(flightControllerState.getFlightModeString(), Message.Level.WARNING));
+            }
+            else {
+                messages.add(message);
+            }
+        }
+        else {
+            if (flightControllerState.isLowerThanSeriousBatteryWarningThreshold()) {
+                messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_isLowerThanSeriousBatteryWarningThreshold_title), Message.Level.DANGER));
+            }
+            else if (flightControllerState.isLowerThanBatteryWarningThreshold()) {
+                messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_isLowerThanBatteryWarningThreshold_title), Message.Level.WARNING));
+            }
+
+            if (flightControllerState.hasReachedMaxFlightRadius()) {
+                messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_hasReachedMaxFlightRadius_title), Message.Level.WARNING));
+            }
+
+            if (flightControllerState.hasReachedMaxFlightHeight()) {
+                messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_hasReachedMaxFlightHeight_title), Message.Level.WARNING));
+            }
+
+            switch (flightControllerState.getFlightMode()) {
+                case ASSISTED_TAKEOFF:
+                case AUTO_TAKEOFF:
+                case AUTO_LANDING:
+                case MOTORS_JUST_STARTED:
+                case CONFIRM_LANDING:
+                    messages.add(new Message(flightControllerState.getFlightModeString(), Message.Level.WARNING));
+                    break;
+
+                case GPS_WAYPOINT:
+                    messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_flightMode_gpsWaypoint_title), Message.Level.WARNING));
+                    break;
+
+                case MANUAL:
+                case ATTI:
+                case ATTI_COURSE_LOCK:
+                case ATTI_HOVER:
+                case HOVER:
+                case GPS_BLAKE:
+                case GPS_ATTI:
+                case GPS_COURSE_LOCK:
+                case GPS_HOME_LOCK:
+                case GPS_HOT_POINT:
+                case ATTI_LANDING:
+                case GO_HOME:
+                case CLICK_GO:
+                case JOYSTICK:
+                case GPS_ATTI_WRISTBAND:
+                case CINEMATIC:
+                case ATTI_LIMITED:
+                case DRAW:
+                case GPS_FOLLOW_ME:
+                case ACTIVE_TRACK:
+                case TAP_FLY:
+                case PANO:
+                case FARMING:
+                case FPV:
+                case GPS_SPORT:
+                case GPS_NOVICE:
+                case TERRAIN_FOLLOW:
+                case PALM_CONTROL:
+                case QUICK_SHOT:
+                case TRIPOD:
+                case TRACK_SPOTLIGHT:
+                case DETOUR:
+                case TIME_LAPSE:
+                case POI2:
+                case OMNI_MOVING:
+                case ADSB_AVOIDING:
+                case SMART_TRACK:
+                case MOTOR_STOP_LANDING:
+                case UNKNOWN:
+                    break;
+            }
+        }
+
+        if (getLocation(flightControllerState) == null) {
+            messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_locationUnavailable_title), Message.Level.WARNING));
+        }
+
+        if (!flightControllerState.isHomeLocationSet()) {
+            messages.add(new Message(context.getString(R.string.DJIDronelink_FlightControllerState_statusMessages_homeLocationNotSet_title), Message.Level.WARNING));
+        }
+
+        return messages;
     }
 }
