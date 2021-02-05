@@ -6,6 +6,8 @@
 //
 package com.dronelink.dji.adapters;
 
+import android.util.Log;
+
 import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
@@ -29,6 +31,7 @@ import dji.common.flightcontroller.virtualstick.FlightCoordinateSystem;
 import dji.common.flightcontroller.virtualstick.RollPitchControlMode;
 import dji.common.flightcontroller.virtualstick.VerticalControlMode;
 import dji.common.flightcontroller.virtualstick.YawControlMode;
+import dji.common.gimbal.GimbalState;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.camera.Camera;
 import dji.sdk.flightcontroller.FlightController;
@@ -41,6 +44,7 @@ public class DJIDroneAdapter implements DroneAdapter {
     private final SortedMap<Integer, RemoteControllerAdapter> remoteControllers = new TreeMap<>();
     private final SortedMap<Integer, CameraAdapter> cameras = new TreeMap<>();
     private final SortedMap<Integer, GimbalAdapter> gimbals = new TreeMap<>();
+    private long previousVelocityCommandMillis = 0;
 
     public DJIDroneAdapter(Aircraft drone) {
         this.drone = drone;
@@ -121,6 +125,11 @@ public class DJIDroneAdapter implements DroneAdapter {
             return;
         }
 
+        if (ignoreVelocityCommand()) {
+            return;
+        }
+
+        previousVelocityCommandMillis = System.currentTimeMillis();
         flightController.setVirtualStickAdvancedModeEnabled(true);
         flightController.setRollPitchControlMode(RollPitchControlMode.VELOCITY);
         flightController.setRollPitchCoordinateSystem(FlightCoordinateSystem.GROUND);
@@ -138,6 +147,24 @@ public class DJIDroneAdapter implements DroneAdapter {
                 (float)horizontal.getX(),
                 (float)Math.toDegrees(velocityCommand.heading == null ? velocityCommand.velocity.getRotational() : Convert.AngleDifferenceSigned(velocityCommand.heading, 0)),
                 (float)velocityCommand.velocity.getVertical()), null);
+    }
+
+    //kluge: if we send commands to any P4 model faster than 150ms, it results in sudden stopping and resuming every few seconds!
+    private boolean ignoreVelocityCommand() {
+        if (drone.getModel() != null) {
+            switch (drone.getModel()) {
+                case PHANTOM_4:
+                case PHANTOM_4_PRO:
+                case PHANTOM_4_PRO_V2:
+                case PHANTOM_4_ADVANCED:
+                case PHANTOM_4_RTK:
+                    return System.currentTimeMillis() - previousVelocityCommandMillis < 150;
+                default:
+                    break;
+            }
+        }
+
+        return false;
     }
 
     @Override

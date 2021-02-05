@@ -16,6 +16,7 @@ import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 
+import com.dronelink.core.CameraFile;
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
@@ -194,6 +195,11 @@ public class DJIDroneSession implements DroneSession {
 
     private ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
     private SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
+
+    private DatedValue<CameraFile> mostRecentCameraFile;
+    public DatedValue<CameraFile> getMostRecentCameraFile() {
+        return mostRecentCameraFile;
+    }
 
     private KeyListener airlinkListener;
 
@@ -591,7 +597,9 @@ public class DJIDroneSession implements DroneSession {
                         }
 
                         final DatedValue<DroneStateAdapter> state = getState();
-                        onCameraFileGenerated(new DJICameraFile(camera.getIndex(), mediaFile, state.value.getLocation(), state.value.getAltitude(), orientation));
+                        final DJICameraFile cameraFile = new DJICameraFile(camera.getIndex(), mediaFile, state.value.getLocation(), state.value.getAltitude(), orientation);
+                        mostRecentCameraFile = new DatedValue<CameraFile>(cameraFile);
+                        onCameraFileGenerated(cameraFile);
                     }
                 });
             }
@@ -897,10 +905,10 @@ public class DJIDroneSession implements DroneSession {
     private void onCommandFinished(final com.dronelink.core.kernel.command.Command command, final CommandError error) {
         final DJIDroneSession self = this;
         CommandError errorResolved = error;
-        if (error != null && error.code == DJIError.COMMAND_NOT_SUPPORTED_BY_HARDWARE.getErrorCode()) {
-            Log.i(TAG, String.format("Ignoring command failure: product not supported (%s)", command.id));
-            errorResolved = null;
-        }
+//        if (error != null && error.code == DJIError.COMMAND_NOT_SUPPORTED_BY_HARDWARE.getErrorCode()) {
+//            Log.i(TAG, String.format("Ignoring command failure: product not supported (%s)", command.id));
+//            errorResolved = null;
+//        }
 
         final CommandError errorResolvedFinal = errorResolved;
         listenerExecutor.execute(new Runnable() {
@@ -1133,7 +1141,7 @@ public class DJIDroneSession implements DroneSession {
         return new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(final DJIError djiError) {
-                finished.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                finished.execute(DronelinkDJI.createCommandError(djiError));
             }
         };
     }
@@ -1147,7 +1155,7 @@ public class DJIDroneSession implements DroneSession {
 
             @Override
             public void onFailure(final DJIError djiError) {
-                error.execute(new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                error.execute((DronelinkDJI.createCommandError(djiError)));
             }
         };
     }
@@ -1993,15 +2001,31 @@ public class DJIDroneSession implements DroneSession {
                     }
                     else {
                         Log.d(TAG, "Camera start capture photo");
+                        final Date started = new Date();
                         camera.startShootPhoto(new CommonCallbacks.CompletionCallback() {
+                            boolean resultReceived = false;
+
                             @Override
                             public void onResult(final DJIError djiError) {
+                                //seeing two calls to onResult when taking interval photos!
+                                if (resultReceived) {
+                                    Log.d(TAG, "Camera start capture received multiple results!");
+                                    return;
+                                }
+                                resultReceived = true;
+
+                                if (djiError != null) {
+                                    finished.execute(DronelinkDJI.createCommandError(djiError));
+                                    return;
+                                }
+
+                                //waiting since isBusy will still be false for a bit
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        finished.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                                        cameraCommandFinishStartShootPhoto((StartCaptureCameraCommand)command, started, finished);
                                     }
-                                }, 1000);
+                                }, 500);
                             }
                         });
                     }
@@ -2017,12 +2041,18 @@ public class DJIDroneSession implements DroneSession {
                         camera.startRecordVideo(new CommonCallbacks.CompletionCallback() {
                             @Override
                             public void onResult(final DJIError djiError) {
+                                if (djiError != null) {
+                                    finished.execute(DronelinkDJI.createCommandError(djiError));
+                                    return;
+                                }
+
+                                //waiting since isBusy will still be false for a bit
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        finished.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                                        cameraCommandFinishNotBusy(command, finished);
                                     }
-                                }, 1000);
+                                }, 500);
                             }
                         });
                     }
@@ -2057,10 +2087,15 @@ public class DJIDroneSession implements DroneSession {
                         camera.stopRecordVideo(new CommonCallbacks.CompletionCallback() {
                             @Override
                             public void onResult(final DJIError djiError) {
+                                if (djiError != null) {
+                                    finished.execute(DronelinkDJI.createCommandError(djiError));
+                                    return;
+                                }
+
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        finished.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                                        finished.execute(null);
                                     }
                                 }, 2000);
                             }
@@ -2243,6 +2278,62 @@ public class DJIDroneSession implements DroneSession {
         return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
     }
 
+    private void cameraCommandFinishStartShootPhoto(final StartCaptureCameraCommand cameraCommand, final Date started, final Command.Finisher finished) {
+        cameraCommandFinishStartShootPhoto(cameraCommand, started, 0, 20, finished);
+    }
+
+    private void cameraCommandFinishStartShootPhoto(final StartCaptureCameraCommand cameraCommand, final Date started, final int attempt, final int maxAttempts, final Command.Finisher finished) {
+        if (attempt >= maxAttempts) {
+            finished.execute(new CommandError(context.getString(R.string.DJIDroneSession_cameraCommand_start_shoot_photo_no_file)));
+            return;
+        }
+
+        final DatedValue<CameraFile> mostRecentCameraFile = this.mostRecentCameraFile;
+        if (mostRecentCameraFile != null) {
+            final long timeSinceMostRecentCameraFile = mostRecentCameraFile.date.getTime() - started.getTime();
+            if (timeSinceMostRecentCameraFile > 0) {
+                Log.d(TAG, "Camera start shoot photo found camera file (" + mostRecentCameraFile.value.getName() + ") after " + timeSinceMostRecentCameraFile + "ms (" + cameraCommand.id + ")");
+                cameraCommandFinishNotBusy(cameraCommand, finished);
+                return;
+            }
+        }
+
+        final long wait = 250;
+        Log.d(TAG, "Camera start shoot photo finished and waiting for camera file (" + ((attempt + 1) * wait) + "ms)... (" + cameraCommand.id + ")");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                cameraCommandFinishStartShootPhoto(cameraCommand, started, attempt + 1, maxAttempts, finished);
+            }
+        }, wait);
+    }
+
+    private void cameraCommandFinishNotBusy(final CameraCommand cameraCommand, final Command.Finisher finished) {
+        cameraCommandFinishNotBusy(cameraCommand, 0, 10, finished);
+    }
+
+    private void cameraCommandFinishNotBusy(final CameraCommand cameraCommand, final int attempt, final int maxAttempts, final Command.Finisher finished) {
+        final List<Camera> cameras = adapter.getDrone().getCameras();
+        final DatedValue<CameraStateAdapter> state = getCameraState(cameraCommand.channel);
+        if (cameraCommand.channel > cameras.size() || state == null || !(state.value instanceof DJICameraStateAdapter)) {
+            finished.execute(new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_unavailable_title)));
+            return;
+        }
+
+        if (attempt >= maxAttempts || ((DJICameraStateAdapter)state.value).isBusy()) {
+            finished.execute(null);
+            return;
+        }
+
+        Log.d(TAG, "Camera command finished and waiting for camera to not be busy (" + (attempt + 1) + ")... (" + cameraCommand.id + ")");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                cameraCommandFinishNotBusy(cameraCommand, attempt + 1, maxAttempts, finished);
+            }
+        }, 100);
+    }
+
     private CommandError executeGimbalCommand(final GimbalCommand command, final Command.Finisher finished) {
         final List<Gimbal> gimbals = adapter.getDrone().getGimbals();
         final DatedValue<GimbalStateAdapter> state = getGimbalState(command.channel);
@@ -2260,7 +2351,7 @@ public class DJIDroneSession implements DroneSession {
                         @Override
                         public void onResult(final DJIError djiError) {
                             if (djiError != null) {
-                                finished.execute(new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                                finished.execute(DronelinkDJI.createCommandError(djiError));
                                 return;
                             }
 
@@ -2317,11 +2408,11 @@ public class DJIDroneSession implements DroneSession {
                 return null;
             }
 
-            if (pitch != null) {
+            if (pitch != null && DronelinkDJI.isAdjustPitchSupported(gimbal)) {
                 rotation.pitch(pitch.floatValue());
             }
 
-            if (roll != null) {
+            if (roll != null && DronelinkDJI.isAdjustRollSupported(gimbal)) {
                 rotation.roll(roll.floatValue());
             }
 

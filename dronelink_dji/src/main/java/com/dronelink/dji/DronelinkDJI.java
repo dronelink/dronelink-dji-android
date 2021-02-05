@@ -7,6 +7,7 @@
 package com.dronelink.dji;
 
 
+import com.dronelink.core.command.CommandError;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraColor;
@@ -42,6 +43,8 @@ import dji.common.airlink.ChannelSelectionMode;
 import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
 import dji.common.camera.SettingsDefinitions;
+import dji.common.camera.SystemState;
+import dji.common.error.DJIError;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
@@ -52,6 +55,10 @@ import dji.sdk.gimbal.Gimbal;
 public class DronelinkDJI {
     public static final double GimbalRotationMinTime = 0.1;
     public static final double DroneMaxVelocity = 15.0;
+
+    public static CommandError createCommandError(final DJIError error) {
+        return error == null ? null : new CommandError(error.getDescription(), error.getErrorCode());
+    }
 
     public static ConnectionFailSafeBehavior getDroneConnectionFailSafeBehavior(final DroneConnectionFailSafeBehavior value) {
         switch (value) {
@@ -380,6 +387,9 @@ public class DronelinkDJI {
             case PANORAMA: return SettingsDefinitions.ShootPhotoMode.PANORAMA;
             case EHDR: return SettingsDefinitions.ShootPhotoMode.EHDR;
             case HYPER_LIGHT: return SettingsDefinitions.ShootPhotoMode.HYPER_LIGHT;
+            case HIGH_RESOLUTION: return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
+            case SMART: return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
+            case INTERNAL_AI_SPOT_CHECKING: return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
             case UNKNOWN: return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
         }
         return SettingsDefinitions.ShootPhotoMode.UNKNOWN;
@@ -581,6 +591,16 @@ public class DronelinkDJI {
             case UNKNOWN: return SettingsDefinitions.WhiteBalancePreset.UNKNOWN;
         }
         return SettingsDefinitions.WhiteBalancePreset.UNKNOWN;
+    }
+
+    public static boolean isBusy(final SystemState systemState) {
+        return systemState.isStoringPhoto()
+                || systemState.isShootingSinglePhoto()
+                || systemState.isShootingSinglePhotoInRAWFormat()
+                || systemState.isShootingIntervalPhoto()
+                || systemState.isShootingRAWBurstPhoto()
+                || systemState.isShootingShallowFocusPhoto()
+                || systemState.isShootingPanoramaPhoto();
     }
 
     public static GimbalMode getGimbalMode(final com.dronelink.core.kernel.core.enums.GimbalMode value) {

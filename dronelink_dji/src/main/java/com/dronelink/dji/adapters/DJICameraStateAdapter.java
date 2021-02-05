@@ -9,6 +9,7 @@ package com.dronelink.dji.adapters;
 import com.dronelink.core.adapters.CameraStateAdapter;
 import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraMode;
+import com.dronelink.dji.DronelinkDJI;
 
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.SettingsDefinitions;
@@ -26,6 +27,19 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
         this.lensInformation = lensInformation;
+    }
+
+    @Override
+    public boolean isBusy() {
+        if (DronelinkDJI.isBusy(state)) {
+            return true;
+        }
+
+        if (storageState != null) {
+            return storageState.isFormatting() || storageState.isInitializing();
+        }
+
+        return false;
     }
 
     @Override
