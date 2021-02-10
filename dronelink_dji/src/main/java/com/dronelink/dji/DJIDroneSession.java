@@ -2023,7 +2023,13 @@ public class DJIDroneSession implements DroneSession {
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        cameraCommandFinishStartShootPhoto((StartCaptureCameraCommand)command, started, finished);
+                                        final StartCaptureCameraCommand startCaptureCameraCommand = (StartCaptureCameraCommand)command;
+                                        if (startCaptureCameraCommand.verifyFileCreated) {
+                                            cameraCommandFinishStartShootPhotoVerifyFile(startCaptureCameraCommand, started, finished);
+                                        }
+                                        else {
+                                            cameraCommandFinishNotBusy(startCaptureCameraCommand, finished);
+                                        }
                                     }
                                 }, 500);
                             }
@@ -2278,7 +2284,7 @@ public class DJIDroneSession implements DroneSession {
         return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
     }
 
-    private void cameraCommandFinishStartShootPhoto(final StartCaptureCameraCommand cameraCommand, final Date started, final Command.Finisher finished) {
+    private void cameraCommandFinishStartShootPhotoVerifyFile(final StartCaptureCameraCommand cameraCommand, final Date started, final Command.Finisher finished) {
         cameraCommandFinishStartShootPhoto(cameraCommand, started, 0, 20, finished);
     }
 
@@ -2320,7 +2326,7 @@ public class DJIDroneSession implements DroneSession {
             return;
         }
 
-        if (attempt >= maxAttempts || ((DJICameraStateAdapter)state.value).isBusy()) {
+        if (attempt >= maxAttempts || !state.value.isBusy()) {
             finished.execute(null);
             return;
         }
