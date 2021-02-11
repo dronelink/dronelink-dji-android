@@ -22,18 +22,21 @@ import dji.common.camera.ExposureSettings;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
+import dji.common.camera.WhiteBalance;
 
 public class DJICameraStateAdapter implements CameraStateAdapter {
     public final SystemState state;
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
+    public final WhiteBalance whiteBalance;
     public final String lensInformation;
 
-    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation) {
+    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation, final WhiteBalance whiteBalance) {
         this.state = state;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
         this.lensInformation = lensInformation;
+        this.whiteBalance = whiteBalance;
     }
 
     @Override
@@ -152,8 +155,7 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public CameraWhiteBalancePreset getWhiteBalancePreset() {
-        //FIXME
-        return null;
+        return DronelinkDJI.getCameraWhiteBalancePreset(whiteBalance.getWhiteBalancePreset());
     }
 
     @Override
