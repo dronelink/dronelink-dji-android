@@ -255,13 +255,11 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
     @Override
     public Double getDownlinkSignalStrength() {
-        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return downlinkSignalQuality == null ? null : downlinkSignalQuality.value.doubleValue();
     }
 
     @Override
     public Double getUplinkSignalStrength() {
-        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return uplinkSignalQuality == null ? null : uplinkSignalQuality.value.doubleValue();
     }
 }

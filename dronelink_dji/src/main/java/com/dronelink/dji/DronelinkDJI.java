@@ -594,8 +594,8 @@ public class DronelinkDJI {
         return SettingsDefinitions.ISO.UNKNOWN;
     }
 
-    public static CameraISO getCameraISO(final int value) {
-        switch (SettingsDefinitions.ISO.find(value)) {
+    public static CameraISO getCameraISO(final SettingsDefinitions.ISO iso) {
+        switch (iso) {
             case AUTO:
                 return CameraISO.AUTO;
             case ISO_50:

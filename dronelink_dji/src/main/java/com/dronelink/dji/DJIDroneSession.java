@@ -116,6 +116,8 @@ import com.dronelink.dji.adapters.DJIDroneStateAdapter;
 import com.dronelink.dji.adapters.DJIGimbalAdapter;
 import com.dronelink.dji.adapters.DJIGimbalStateAdapter;
 import com.dronelink.dji.adapters.DJIRemoteControllerStateAdapter;
+import com.dronelink.dji.util.KeyedListener;
+import com.dronelink.dji.util.KeyedListenersUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -133,6 +135,7 @@ import dji.common.battery.BatteryState;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
+import dji.common.camera.SettingsDefinitions.ISO;
 import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
 import dji.common.camera.WhiteBalance;
@@ -150,6 +153,7 @@ import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
+import dji.keysdk.CameraKey;
 import dji.keysdk.FlightControllerKey;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
@@ -193,6 +197,7 @@ public class DJIDroneSession implements DroneSession {
     private SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
     private SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
     private SparseArray<DatedValue<WhiteBalance>> whiteBalanceState = new SparseArray<>();
+    private SparseArray<DatedValue<ISO>> isoValueState = new SparseArray<>();
     private SparseArray<DatedValue<ExposureSettings>> cameraExposureSettings = new SparseArray<>();
     private SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
 
@@ -570,17 +575,21 @@ public class DJIDroneSession implements DroneSession {
             }
         });
 
-        camera.getWhiteBalance(new CommonCallbacks.CompletionCallbackWith<WhiteBalance>() {
+        final CameraKey whiteBalanceKey = CameraKey.create(CameraKey.WHITE_BALANCE);
+        keyListeners.add(KeyedListenersUtil.addKeyedListener(whiteBalanceKey, new KeyedListener() {
             @Override
-            public void onSuccess(WhiteBalance whiteBalance) {
-                whiteBalanceState.put(camera.getIndex(), new DatedValue<>(whiteBalance));
+            public <T> void onNext(final T result) {
+                whiteBalanceState.put(camera.getIndex(), new DatedValue<>((WhiteBalance) result));
             }
+        }));
 
+        final CameraKey isoKey = CameraKey.create(CameraKey.ISO);
+        keyListeners.add(KeyedListenersUtil.addKeyedListener(isoKey, new KeyedListener() {
             @Override
-            public void onFailure(DJIError djiError) {
-
+            public <T> void onNext(final T result) {
+                isoValueState.put(camera.getIndex(), new DatedValue<>((ISO) result));
             }
-        });
+        }));
 
         camera.setExposureSettingsCallback(new ExposureSettings.Callback() {
             @Override
@@ -679,41 +688,12 @@ public class DJIDroneSession implements DroneSession {
     }
 
     private void initListeners() {
-        final KeyListener downlinkListener = new KeyListener() {
-            @Override
-            public void onValueChange(final Object oldValue, final Object newValue) {
-                stateSerialQueue.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (newValue != null && newValue instanceof Integer) {
-                            state.downlinkSignalQuality = new DatedValue<>((Integer) newValue);
-                        } else {
-                            state.downlinkSignalQuality = null;
-                        }
-                    }
-                });
-            }
-        };
-        DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.DOWNLINK_SIGNAL_QUALITY), downlinkListener);
-        keyListeners.add(downlinkListener);
-
-        final KeyListener uplinkListener = new KeyListener() {
-            @Override
-            public void onValueChange(final Object oldValue, final Object newValue) {
-                stateSerialQueue.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (newValue != null && newValue instanceof Integer) {
-                            state.uplinkSignalQuality = new DatedValue<>((Integer) newValue);
-                        } else {
-                            state.uplinkSignalQuality = null;
-                        }
-                    }
-                });
-            }
-        };
-        DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.UPLINK_SIGNAL_QUALITY), uplinkListener);
-        keyListeners.add(uplinkListener);
+        initDownlinkListener(AirLinkKey.createOcuSyncLinkKey(AirLinkKey.DOWNLINK_SIGNAL_QUALITY));
+        initDownlinkListener(AirLinkKey.createWiFiLinkKey(AirLinkKey.DOWNLINK_SIGNAL_QUALITY));
+        initDownlinkListener(AirLinkKey.createLightbridgeLinkKey(AirLinkKey.DOWNLINK_SIGNAL_QUALITY));
+        initUplinkListener(AirLinkKey.createOcuSyncLinkKey(AirLinkKey.UPLINK_SIGNAL_QUALITY));
+        initUplinkListener(AirLinkKey.createWiFiLinkKey(AirLinkKey.UPLINK_SIGNAL_QUALITY));
+        initUplinkListener(AirLinkKey.createLightbridgeLinkKey(AirLinkKey.UPLINK_SIGNAL_QUALITY));
 
         final KeyListener lowBatteryWarningThresholdListener = new KeyListener() {
             @Override
@@ -734,6 +714,42 @@ public class DJIDroneSession implements DroneSession {
 
         DJISDKManager.getInstance().getKeyManager().addListener(FlightControllerKey.createFlightAssistantKey(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), lowBatteryWarningThresholdListener);
         keyListeners.add(lowBatteryWarningThresholdListener);
+    }
+
+    private void initUplinkListener(AirLinkKey key) {
+        keyListeners.add(KeyedListenersUtil.addKeyedListener(key, new KeyedListener() {
+            @Override
+            public <T> void onNext(final T result) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result != null && result instanceof Integer) {
+                            state.uplinkSignalQuality = new DatedValue<>((Integer) result);
+                        } else {
+                            state.uplinkSignalQuality = null;
+                        }
+                    }
+                });
+            }
+        }));
+    }
+
+    private void initDownlinkListener(AirLinkKey key) {
+        keyListeners.add(KeyedListenersUtil.addKeyedListener(key, new KeyedListener() {
+            @Override
+            public <T> void onNext(final T result) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result != null && result instanceof Integer) {
+                            state.downlinkSignalQuality = new DatedValue<>((Integer) result);
+                        } else {
+                            state.downlinkSignalQuality = null;
+                        }
+                    }
+                });
+            }
+        }));
     }
 
     protected void componentConnected(final BaseComponent component) {
@@ -1110,7 +1126,8 @@ public class DJIDroneSession implements DroneSession {
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
                     final DatedValue<WhiteBalance> whiteBalance = whiteBalanceState.get(channel);
-                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, storageState == null ? null : storageState.value, exposureSettings == null ? null : exposureSettings.value, lensInformation == null ? null : lensInformation.value, whiteBalance == null ? null : whiteBalance.value);
+                    final DatedValue<ISO> isoValue = isoValueState.get(channel);
+                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, storageState == null ? null : storageState.value, exposureSettings == null ? null : exposureSettings.value, lensInformation == null ? null : lensInformation.value, whiteBalance == null ? null : whiteBalance.value, isoValue == null ? null : isoValue.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
                 }
             }).get();
@@ -1855,7 +1872,7 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof ISOCameraCommand) {
-            final SettingsDefinitions.ISO target = DronelinkDJI.getCameraISO(((ISOCameraCommand) command).iso);
+            final ISO target = DronelinkDJI.getCameraISO(((ISOCameraCommand) command).iso);
             Command.conditionallyExecute(djiState.exposureSettings.getISO() != target.value(), finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
