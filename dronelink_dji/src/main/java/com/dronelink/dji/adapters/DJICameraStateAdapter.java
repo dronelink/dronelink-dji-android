@@ -7,7 +7,6 @@
 package com.dronelink.dji.adapters;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
-import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraISO;
@@ -22,18 +21,23 @@ import dji.common.camera.ExposureSettings;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
+import dji.common.camera.WhiteBalance;
 
 public class DJICameraStateAdapter implements CameraStateAdapter {
     public final SystemState state;
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
+    public final WhiteBalance whiteBalance;
+    public final SettingsDefinitions.ISO iso;
     public final String lensInformation;
 
-    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation) {
+    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation, final WhiteBalance whiteBalance, final SettingsDefinitions.ISO iso) {
         this.state = state;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
         this.lensInformation = lensInformation;
+        this.whiteBalance = whiteBalance;
+        this.iso = iso;
     }
 
     @Override
@@ -74,7 +78,7 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
                 || state.isShootingRAWBurstPhoto()
                 || state.isShootingShallowFocusPhoto()
                 || state.isShootingPanoramaPhoto());
-                //|| state.isShootingHyperanalytic();
+        //|| state.isShootingHyperanalytic();
     }
 
     @Override
@@ -125,11 +129,20 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public CameraISO getISO() {
-        if (exposureSettings == null) {
+        if (iso == null) {
             return CameraISO.UNKNOWN;
         }
 
-        return DronelinkDJI.getCameraISO(exposureSettings.getISO());
+        return DronelinkDJI.getCameraISO(iso);
+    }
+
+    @Override
+    public Integer getISOSensitivity() {
+        if (exposureSettings == null) {
+            return null;
+        }
+
+        return exposureSettings.getISO();
     }
 
     @Override
@@ -152,8 +165,20 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public CameraWhiteBalancePreset getWhiteBalancePreset() {
-        //FIXME
-        return null;
+        if (whiteBalance == null) {
+            return CameraWhiteBalancePreset.UNKNOWN;
+        }
+
+        return DronelinkDJI.getCameraWhiteBalancePreset(whiteBalance.getWhiteBalancePreset());
+    }
+
+    @Override
+    public Integer getWhiteBalanceColorTemperature() {
+        if (whiteBalance == null) {
+            return null;
+        }
+
+        return whiteBalance.getColorTemperature();
     }
 
     @Override
