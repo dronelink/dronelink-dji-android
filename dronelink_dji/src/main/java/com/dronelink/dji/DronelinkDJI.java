@@ -522,6 +522,7 @@ public class DronelinkDJI {
             case _96: return SettingsDefinitions.VideoFrameRate.FRAME_RATE_96_FPS;
             case _100: return SettingsDefinitions.VideoFrameRate.FRAME_RATE_100_FPS;
             case _120: return SettingsDefinitions.VideoFrameRate.FRAME_RATE_120_FPS;
+            case _240: return SettingsDefinitions.VideoFrameRate.FRAME_RATE_240_FPS;
             case _8_DOT_7: return SettingsDefinitions.VideoFrameRate.FRAME_RATE_8_DOT_7_FPS;
             case UNKNOWN: return SettingsDefinitions.VideoFrameRate.UNKNOWN;
         }

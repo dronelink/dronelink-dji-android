@@ -48,6 +48,7 @@ import com.dronelink.core.kernel.command.camera.ExposureModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.FileIndexModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.FocusCameraCommand;
 import com.dronelink.core.kernel.command.camera.FocusModeCameraCommand;
+import com.dronelink.core.kernel.command.camera.FocusRingCameraCommand;
 import com.dronelink.core.kernel.command.camera.ISOCameraCommand;
 import com.dronelink.core.kernel.command.camera.MechanicalShutterCameraCommand;
 import com.dronelink.core.kernel.command.camera.MeteringModeCameraCommand;
@@ -150,6 +151,7 @@ import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
+import dji.keysdk.CameraKey;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
@@ -664,7 +666,7 @@ public class DJIDroneSession implements DroneSession {
         });
     }
 
-    protected void componentConnected(final BaseComponent component) {
+    public void componentConnected(final BaseComponent component) {
         if (component instanceof FlightController) {
             initFlightController((FlightController)component);
         }
@@ -676,7 +678,7 @@ public class DJIDroneSession implements DroneSession {
         }
     }
 
-    protected void componentDisconnected(final BaseComponent component) {
+    public void componentDisconnected(final BaseComponent component) {
         if (component instanceof FlightController) {
             Log.i(TAG, "Flight controller disconnected");
             stateSerialQueue.execute(new Runnable() {
@@ -1787,6 +1789,16 @@ public class DJIDroneSession implements DroneSession {
                             camera.setFocusMode(target, createCompletionCallback(finished));
                         }
                     });
+                }
+            }, finished));
+            return null;
+        }
+
+        if (command instanceof FocusRingCameraCommand) {
+            camera.getFocusRingValueUpperBound(createCompletionCallbackWith(new Command.FinisherWith<Integer>() {
+                @Override
+                public void execute(final Integer current) {
+                    camera.setFocusRingValue((int)(((FocusRingCameraCommand)command).focusRingPercent * (double)current), createCompletionCallback(finished));
                 }
             }, finished));
             return null;
