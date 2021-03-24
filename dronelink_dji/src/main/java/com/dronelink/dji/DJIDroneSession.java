@@ -32,6 +32,7 @@ import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.GimbalStateAdapter;
 import com.dronelink.core.adapters.RemoteControllerStateAdapter;
 import com.dronelink.core.command.Command;
+import com.dronelink.core.command.CommandConfig;
 import com.dronelink.core.command.CommandError;
 import com.dronelink.core.command.CommandQueue;
 import com.dronelink.core.command.MultiChannelCommandQueue;
@@ -151,7 +152,6 @@ import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
-import dji.keysdk.CameraKey;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
@@ -183,20 +183,21 @@ public class DJIDroneSession implements DroneSession {
     private final MultiChannelCommandQueue cameraCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue gimbalCommands = new MultiChannelCommandQueue();
 
-    private ExecutorService stateSerialQueue = Executors.newSingleThreadExecutor();
+    private final ExecutorService stateSerialQueue = Executors.newSingleThreadExecutor();
     private final DJIDroneStateAdapter state = new DJIDroneStateAdapter();
 
-    private ExecutorService remoteControllerSerialQueue = Executors.newSingleThreadExecutor();
+    private final ExecutorService remoteControllerSerialQueue = Executors.newSingleThreadExecutor();
+    private Date remoteControllerInitialized;
     private DatedValue<HardwareState> remoteControllerState;
 
-    private ExecutorService cameraSerialQueue = Executors.newSingleThreadExecutor();
-    private SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
-    private SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
-    private SparseArray<DatedValue<ExposureSettings>> cameraExposureSettings = new SparseArray<>();
-    private SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
+    private final ExecutorService cameraSerialQueue = Executors.newSingleThreadExecutor();
+    private final SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
+    private final SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
+    private final SparseArray<DatedValue<ExposureSettings>> cameraExposureSettings = new SparseArray<>();
+    private final SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
 
-    private ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
-    private SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
+    private final ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
+    private final SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
 
     private DatedValue<CameraFile> mostRecentCameraFile;
     public DatedValue<CameraFile> getMostRecentCameraFile() {
@@ -229,6 +230,13 @@ public class DJIDroneSession implements DroneSession {
 
                             if (!state.isFlying()) {
                                 state.lastKnownGroundLocation = location;
+                            }
+                        }
+
+                        if (remoteControllerInitialized == null) {
+                            final RemoteController remoteController = adapter.getDrone().getRemoteController();
+                            if (remoteController != null) {
+                                initRemoteController(remoteController);
                             }
                         }
 
@@ -305,8 +313,6 @@ public class DJIDroneSession implements DroneSession {
             initFlightController(adapter.getDrone().getFlightController());
         }
 
-        initRemoteController(drone, 0);
-
         final List<Camera> cameras = drone.getCameras();
         if (cameras != null) {
             for (final Camera camera : cameras) {
@@ -320,22 +326,15 @@ public class DJIDroneSession implements DroneSession {
                 initGimbal(gimbal);
             }
         }
+
+        final RemoteController remoteController = drone.getRemoteController();
+        if (remoteController != null) {
+            initRemoteController(remoteController);
+        }
     }
 
-    private void initRemoteController(final Aircraft drone, final int attempt) {
-        final RemoteController remoteController = drone.getRemoteController();
-        if (remoteController == null) {
-            if (attempt < 5) {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        initRemoteController(drone, attempt + 1);
-                    }
-                }, (attempt + 1) * 1000);
-            }
-            return;
-        }
-
+    private void initRemoteController(final RemoteController remoteController) {
+        remoteControllerInitialized = new Date();
         remoteController.setHardwareStateCallback(new HardwareState.HardwareStateCallback() {
             @Override
             public void onUpdate(@NonNull final HardwareState hardwareState) {
@@ -676,6 +675,9 @@ public class DJIDroneSession implements DroneSession {
         else if (component instanceof Gimbal) {
             initGimbal((Gimbal)component);
         }
+        else if (component instanceof RemoteController) {
+            initRemoteController((RemoteController)component);
+        }
     }
 
     public void componentDisconnected(final BaseComponent component) {
@@ -906,18 +908,11 @@ public class DJIDroneSession implements DroneSession {
 
     private void onCommandFinished(final com.dronelink.core.kernel.command.Command command, final CommandError error) {
         final DJIDroneSession self = this;
-        CommandError errorResolved = error;
-//        if (error != null && error.code == DJIError.COMMAND_NOT_SUPPORTED_BY_HARDWARE.getErrorCode()) {
-//            Log.i(TAG, String.format("Ignoring command failure: product not supported (%s)", command.id));
-//            errorResolved = null;
-//        }
-
-        final CommandError errorResolvedFinal = errorResolved;
         listenerExecutor.execute(new Runnable() {
             @Override
             public void run() {
                 for (final Listener listener : listeners) {
-                    listener.onCommandFinished(self, command, errorResolvedFinal);
+                    listener.onCommandFinished(self, command, error);
                 }
             }
         });
@@ -931,69 +926,76 @@ public class DJIDroneSession implements DroneSession {
 
     @Override
     public void addCommand(final com.dronelink.core.kernel.command.Command command) throws Dronelink.UnregisteredException, CommandTypeUnhandledException {
+        Command.Executor executor = null;
+
         if (command instanceof DroneCommand) {
-            droneCommands.addCommand(
-                    new Command(
-                            command.id,
-                            command.type,
-                            new Command.Executor() {
-                                @Override
-                                public CommandError execute(final Command.Finisher finished) {
-                                    onCommandExecuted(command);
-                                    return executeDroneCommand((DroneCommand)command, finished);
-                                }
-                            },
-                            new Command.Finisher() {
-                                @Override
-                                public void execute(final CommandError error) {
-                                    onCommandFinished(command, error);
-                                }
-                            },
-                            command.getConfig()));
-            return;
+            executor = new Command.Executor() {
+                @Override
+                public CommandError execute(final Command.Finisher finished) {
+                    onCommandExecuted(command);
+                    return executeDroneCommand((DroneCommand)command, finished);
+                }
+            };
+        }
+        else if (command instanceof CameraCommand) {
+            executor = new Command.Executor() {
+                @Override
+                public CommandError execute(final Command.Finisher finished) {
+                    onCommandExecuted(command);
+                    return executeCameraCommand((CameraCommand)command, finished);
+                }
+            };
+        }
+        else if (command instanceof GimbalCommand) {
+            executor = new Command.Executor() {
+                @Override
+                public CommandError execute(final Command.Finisher finished) {
+                    onCommandExecuted(command);
+                    return executeGimbalCommand((GimbalCommand)command, finished);
+                }
+            };
         }
 
-        if (command instanceof CameraCommand) {
-            droneCommands.addCommand(
-                    new Command(
-                            command.id,
-                            command.type,
-                            new Command.Executor() {
-                                @Override
-                                public CommandError execute(final Command.Finisher finished) {
-                                    onCommandExecuted(command);
-                                    return executeCameraCommand((CameraCommand)command, finished);
-                                }
-                            },
-                            new Command.Finisher() {
-                                @Override
-                                public void execute(final CommandError error) {
-                                    onCommandFinished(command, error);
-                                }
-                            },
-                            command.getConfig()));
-            return;
-        }
+        if (executor != null) {
+            final Command c = new Command(
+                command.id,
+                command.type,
+                executor,
+                new Command.Finisher() {
+                    @Override
+                    public void execute(final CommandError error) {
+                        onCommandFinished(command, error);
+                    }
+                },
+                command.getConfig());
 
-        if (command instanceof GimbalCommand) {
-            droneCommands.addCommand(
-                    new Command(
-                            command.id,
-                            command.type,
-                            new Command.Executor() {
-                                @Override
-                                public CommandError execute(final Command.Finisher finished) {
-                                    onCommandExecuted(command);
-                                    return executeGimbalCommand((GimbalCommand)command, finished);
-                                }
-                            },
-                            new Command.Finisher() {
-                                @Override
-                                public void execute(final CommandError error) {
-                                    onCommandFinished(command, error);
-                                }
-                            },
-                            command.getConfig()));
+            if (c.config.retriesEnabled == null) {
+                //disable retries when the DJI SDK reports that the product does not support the feature
+                c.config.retriesEnabled = new CommandConfig.RetriesEnabled() {
+                    @Override
+                    public boolean execute(final CommandError error) {
+                        if (error != null && error.code == DJIError.COMMAND_NOT_SUPPORTED_BY_HARDWARE.getErrorCode()) {
+                            return false;
+                        }
+                        return true;
+                    }
+                };
+
+                //adding a 0.5 second delay after all camera commands (except start and stop capture)
+                if (c.config.finishDelayMillis == null && command instanceof CameraCommand && !(command instanceof StartCaptureCameraCommand) && !(command instanceof StopCaptureCameraCommand)) {
+                    c.config.finishDelayMillis = 500.0;
+                }
+            }
+
+            if (command instanceof DroneCommand) {
+                droneCommands.addCommand(c);
+            }
+            else if (command instanceof CameraCommand) {
+                cameraCommands.addCommand(((CameraCommand)command).channel, c);
+            }
+            else if (command instanceof GimbalCommand) {
+                gimbalCommands.addCommand(((GimbalCommand)command).channel, c);
+            }
             return;
         }
 
@@ -1619,12 +1621,11 @@ public class DJIDroneSession implements DroneSession {
     }
 
     private CommandError executeCameraCommand(final CameraCommand command, final Command.Finisher finished) {
-        final List<Camera> cameras = adapter.getDrone().getCameras();
+        final Camera camera = DronelinkDJI.getCamera(adapter.getDrone(), command.channel);
         final DatedValue<CameraStateAdapter> state = getCameraState(command.channel);
-        if (command.channel > cameras.size() || state == null || !(state.value instanceof DJICameraStateAdapter)) {
+        if (camera == null || state == null || !(state.value instanceof DJICameraStateAdapter)) {
             return new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_unavailable_title));
         }
-        final Camera camera = cameras.get(command.channel);
         final DJICameraStateAdapter djiState = (DJICameraStateAdapter)state.value;
 
         if (command instanceof AEBCountCameraCommand) {
@@ -2091,7 +2092,17 @@ public class DJIDroneSession implements DroneSession {
                 case PHOTO:
                     if (state.value.isCapturingPhotoInterval()) {
                         Log.d(TAG, "Camera stop capture interval photo");
-                        camera.stopShootPhoto(createCompletionCallback(finished));
+                        camera.stopShootPhoto(new CommonCallbacks.CompletionCallback() {
+                            @Override
+                            public void onResult(final DJIError djiError) {
+                                if (djiError != null) {
+                                    finished.execute(DronelinkDJI.createCommandError(djiError));
+                                    return;
+                                }
+
+                                cameraCommandFinishStopCapture(command, finished);
+                            }
+                        });
                     }
                     else {
                         Log.d(TAG, "Camera stop capture skipped, not shooting interval photos");
@@ -2110,12 +2121,7 @@ public class DJIDroneSession implements DroneSession {
                                     return;
                                 }
 
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        finished.execute(null);
-                                    }
-                                }, 2000);
+                                cameraCommandFinishStopCapture(command, finished);
                             }
                         });
                     }
@@ -2296,6 +2302,37 @@ public class DJIDroneSession implements DroneSession {
         return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
     }
 
+    private void cameraCommandFinishStopCapture(final CameraCommand cameraCommand, final Command.Finisher finished) {
+        cameraCommandFinishStopCapture(cameraCommand, 0, 20, finished);
+    }
+
+    private void cameraCommandFinishStopCapture(final CameraCommand cameraCommand, final int attempt, final int maxAttempts, final Command.Finisher finished) {
+        if (attempt >= maxAttempts) {
+            finished.execute(new CommandError(context.getString(R.string.DJIDroneSession_cameraCommand_stop_capture_error)));
+            return;
+        }
+
+        final DatedValue<CameraStateAdapter> state = getCameraState(cameraCommand.channel);
+        if (state == null || !(state.value instanceof DJICameraStateAdapter)) {
+            finished.execute(new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_unavailable_title)));
+            return;
+        }
+
+        if (!state.value.isCapturing()) {
+            finished.execute(null);
+            return;
+        }
+
+        final long wait = 250;
+        Log.d(TAG, "Camera command finished and waiting for camera to stop capturing (" + ((attempt + 1) * wait) + "ms)... (" + cameraCommand.id + ")");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                cameraCommandFinishNotBusy(cameraCommand, attempt + 1, maxAttempts, finished);
+            }
+        }, wait);
+    }
+
     private void cameraCommandFinishStartShootPhotoVerifyFile(final StartCaptureCameraCommand cameraCommand, final Date started, final Command.Finisher finished) {
         cameraCommandFinishStartShootPhoto(cameraCommand, started, 0, 20, finished);
     }
@@ -2331,9 +2368,8 @@ public class DJIDroneSession implements DroneSession {
     }
 
     private void cameraCommandFinishNotBusy(final CameraCommand cameraCommand, final int attempt, final int maxAttempts, final Command.Finisher finished) {
-        final List<Camera> cameras = adapter.getDrone().getCameras();
         final DatedValue<CameraStateAdapter> state = getCameraState(cameraCommand.channel);
-        if (cameraCommand.channel > cameras.size() || state == null || !(state.value instanceof DJICameraStateAdapter)) {
+        if (state == null || !(state.value instanceof DJICameraStateAdapter)) {
             finished.execute(new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_unavailable_title)));
             return;
         }
@@ -2353,12 +2389,11 @@ public class DJIDroneSession implements DroneSession {
     }
 
     private CommandError executeGimbalCommand(final GimbalCommand command, final Command.Finisher finished) {
-        final List<Gimbal> gimbals = adapter.getDrone().getGimbals();
+        final Gimbal gimbal = DronelinkDJI.getGimbal(adapter.getDrone(), command.channel);
         final DatedValue<GimbalStateAdapter> state = getGimbalState(command.channel);
-        if (command.channel > gimbals.size() || state == null) {
+        if (gimbal == null || state == null) {
             return new CommandError(context.getString(R.string.MissionDisengageReason_drone_gimbal_unavailable_title));
         }
-        final Gimbal gimbal = gimbals.get(command.channel);
 
         if (command instanceof ModeGimbalCommand) {
             final GimbalMode target = ((ModeGimbalCommand) command).mode;
@@ -2418,6 +2453,18 @@ public class DJIDroneSession implements DroneSession {
 
                 rotation.mode(RotationMode.RELATIVE_ANGLE);
                 gimbal.rotate(rotation.build(), createCompletionCallback(finished));
+
+                gimbal.rotate(rotation.build(), new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(final DJIError djiError) {
+                        if (djiError != null) {
+                            finished.execute(DronelinkDJI.createCommandError(djiError));
+                            return;
+                        }
+
+                        gimbalCommandFinishOrientationVerify((OrientationGimbalCommand)command, finished);
+                    }
+                });
                 return null;
             }
 
@@ -2435,7 +2482,17 @@ public class DJIDroneSession implements DroneSession {
             }
 
             rotation.mode(RotationMode.ABSOLUTE_ANGLE);
-            gimbal.rotate(rotation.build(), createCompletionCallback(finished));
+            gimbal.rotate(rotation.build(), new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(final DJIError djiError) {
+                    if (djiError != null) {
+                        finished.execute(DronelinkDJI.createCommandError(djiError));
+                        return;
+                    }
+
+                    gimbalCommandFinishOrientationVerify((OrientationGimbalCommand)command, finished);
+                }
+            });
             return null;
         }
 
@@ -2457,5 +2514,51 @@ public class DJIDroneSession implements DroneSession {
         }
 
         return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
+    }
+
+    private void gimbalCommandFinishOrientationVerify(final OrientationGimbalCommand gimbalCommand, final Command.Finisher finished) {
+        gimbalCommandFinishOrientationVerify(gimbalCommand, 0, 20, Convert.DegreesToRadians(2.0), finished);
+    }
+
+    private void gimbalCommandFinishOrientationVerify(final OrientationGimbalCommand gimbalCommand, final int attempt, final int maxAttempts, final double threshold, final Command.Finisher finished) {
+        final Gimbal gimbal = DronelinkDJI.getGimbal(adapter.getDrone(), gimbalCommand.channel);
+        final DatedValue<GimbalStateAdapter> state = getGimbalState(gimbalCommand.channel);
+        if (gimbal == null || state == null) {
+            finished.execute(new CommandError(context.getString(R.string.MissionDisengageReason_drone_gimbal_unavailable_title)));
+            return ;
+        }
+
+        if (attempt >= maxAttempts) {
+            finished.execute(new CommandError(context.getString(R.string.DJIDroneSession_gimbalCommand_orientation_not_achieved)));
+            return;
+        }
+
+        boolean verified = true;
+
+        if (gimbalCommand.orientation.getPitch() != null && DronelinkDJI.isAdjustPitchSupported(gimbal)) {
+            verified = verified && Math.abs(Convert.AngleDifferenceSigned(gimbalCommand.orientation.getPitch(), state.value.getOrientation().getPitch())) <= threshold;
+        }
+
+        if (gimbalCommand.orientation.getRoll() != null && DronelinkDJI.isAdjustRollSupported(gimbal)) {
+            verified = verified && Math.abs(Convert.AngleDifferenceSigned(gimbalCommand.orientation.getRoll(), state.value.getOrientation().getRoll())) <= threshold;
+        }
+
+        if (gimbalCommand.orientation.getYaw() != null && (state.value.getMode() == GimbalMode.FREE || DronelinkDJI.isAdjustYaw360Supported(gimbal))) {
+            verified = verified && Math.abs(Convert.AngleDifferenceSigned(gimbalCommand.orientation.getYaw(), state.value.getOrientation().getYaw())) <= threshold;
+        }
+
+        if (verified) {
+            finished.execute(null);
+            return;
+        }
+
+        final long wait = 100;
+        Log.d(TAG, "Gimbal command finished and waiting for orientation (" + ((attempt + 1) * wait) + "ms)... (" + gimbalCommand.id + ")");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                gimbalCommandFinishOrientationVerify(gimbalCommand, attempt + 1, maxAttempts, threshold, finished);
+            }
+        }, wait);
     }
 }

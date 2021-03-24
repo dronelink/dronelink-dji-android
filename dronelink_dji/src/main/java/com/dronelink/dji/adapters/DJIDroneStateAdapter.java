@@ -22,6 +22,7 @@ import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
+import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
 import dji.common.model.LocationCoordinate2D;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {

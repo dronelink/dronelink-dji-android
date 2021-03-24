@@ -97,8 +97,8 @@ public class DJIDroneAdapter implements DroneAdapter {
     @Override
     public CameraAdapter getCamera(int channel) {
         final CameraAdapter cameraAdapter = cameras.get(channel);
-        if (cameraAdapter == null && channel < drone.getCameras().size()) {
-            final Camera camera = drone.getCameras().get(channel);
+        if (cameraAdapter == null) {
+            final Camera camera = DronelinkDJI.getCamera(drone, channel);
             if (camera != null) {
                 return cameras.put(channel, new DJICameraAdapter(camera));
             }
@@ -109,8 +109,8 @@ public class DJIDroneAdapter implements DroneAdapter {
     @Override
     public GimbalAdapter getGimbal(int channel) {
         final GimbalAdapter gimbalAdapter = gimbals.get(channel);
-        if (gimbalAdapter == null && channel < drone.getGimbals().size()) {
-            final Gimbal gimbal = drone.getGimbals().get(channel);
+        if (gimbalAdapter == null) {
+            final Gimbal gimbal = DronelinkDJI.getGimbal(drone, channel);
             if (gimbal != null) {
                 return gimbals.put(channel, new DJIGimbalAdapter(gimbal));
             }

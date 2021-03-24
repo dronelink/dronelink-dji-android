@@ -239,14 +239,12 @@ public class DJIControlSession implements DroneControlSession {
     public void deactivate() {
         droneSession.sendResetVelocityCommand(new CommonCallbacks.CompletionCallback() {
             @Override
-            public void onResult(DJIError djiError) {
-                final FlightController flightController = droneSession.getAdapter().getDrone().getFlightController();
-                if (flightController != null) {
-                    flightController.setVirtualStickModeEnabled(false, null);
-                }
-            }
+            public void onResult(final DJIError djiError) {}
         });
-
+        final FlightController flightController = droneSession.getAdapter().getDrone().getFlightController();
+        if (flightController != null) {
+            flightController.setVirtualStickModeEnabled(false, null);
+        }
         state = State.DEACTIVATED;
     }
 }

@@ -15,5 +15,7 @@
     <string name="MissionDisengageReason_drone_camera_unavailable_title">Camera Unavailable</string>
     <string name="MissionDisengageReason_drone_camera_mode_invalid_title">Camera Mode Invalid</string>
     <string name="MissionDisengageReason_drone_gimbal_unavailable_title">Gimbal Unavailable</string>
+    <string name="DJIDroneSession_cameraCommand_stop_capture_error">Camera still capturing</string>
     <string name="DJIDroneSession_cameraCommand_start_shoot_photo_no_file">Media File Not Created</string>
+    <string name="DJIDroneSession_gimbalCommand_orientation_not_achieved">Gimbal Not Rotated</string>
 </resources>

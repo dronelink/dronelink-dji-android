@@ -37,6 +37,7 @@ import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
 
+import java.util.List;
 import java.util.Map;
 
 import dji.common.airlink.ChannelSelectionMode;
@@ -50,7 +51,9 @@ import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
+import dji.sdk.camera.Camera;
 import dji.sdk.gimbal.Gimbal;
+import dji.sdk.products.Aircraft;
 
 public class DronelinkDJI {
     public static final double GimbalRotationMinTime = 0.1;
@@ -106,6 +109,20 @@ public class DronelinkDJI {
             case UNKNOWN: return OcuSyncFrequencyBand.UNKNOWN;
         }
         return OcuSyncFrequencyBand.UNKNOWN;
+    }
+
+    public static Camera getCamera(final Aircraft drone, final int channel) {
+        final List<Camera> cameras = drone.getCameras();
+        if (cameras == null) {
+            return null;
+        }
+
+        for (final Camera camera : cameras) {
+            if (camera.getIndex() == channel) {
+                return camera;
+            }
+        }
+        return null;
     }
 
     public static SettingsDefinitions.PhotoAEBCount getCameraAEBCount(final CameraAEBCount value) {
@@ -602,6 +619,20 @@ public class DronelinkDJI {
                 || systemState.isShootingRAWBurstPhoto()
                 || systemState.isShootingShallowFocusPhoto()
                 || systemState.isShootingPanoramaPhoto();
+    }
+
+    public static Gimbal getGimbal(final Aircraft drone, final int channel) {
+        final List<Gimbal> gimbals = drone.getGimbals();
+        if (gimbals == null) {
+            return null;
+        }
+
+        for (final Gimbal gimbal : gimbals) {
+            if (gimbal.getIndex() == channel) {
+                return gimbal;
+            }
+        }
+        return null;
     }
 
     public static GimbalMode getGimbalMode(final com.dronelink.core.kernel.core.enums.GimbalMode value) {
