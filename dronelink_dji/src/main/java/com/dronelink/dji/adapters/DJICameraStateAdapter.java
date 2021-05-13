@@ -21,12 +21,16 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
     public final String lensInformation;
+    public final Double focusRingValue;
+    public final Double focusRingMax;
 
-    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation) {
+    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
         this.state = state;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
         this.lensInformation = lensInformation;
+        this.focusRingValue = focusRingValue;
+        this.focusRingMax = focusRingMax;
     }
 
     @Override
@@ -160,5 +164,15 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public String getLensDetails() {
         return lensInformation;
+    }
+
+    @Override
+    public Double getFocusRingValue() {
+        return focusRingValue;
+    }
+
+    @Override
+    public Double getFocusRingMax() {
+        return focusRingMax;
     }
 }

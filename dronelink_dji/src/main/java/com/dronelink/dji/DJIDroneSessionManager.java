@@ -52,6 +52,19 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     }
 
     @Override
+    public void closeSession() {
+        if (session != null) {
+            final DroneSession previousSession = session;
+            previousSession.close();
+            session = null;
+
+            for (final Listener listener : listeners) {
+                listener.onClosed(previousSession);
+            }
+        }
+    }
+
+    @Override
     public DroneSession getSession() {
         return session;
     }
@@ -79,15 +92,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
                         @Override
                         public void onProductDisconnect() {
-                            if (session != null) {
-                                final DroneSession previousSession = session;
-                                previousSession.close();
-                                session = null;
-
-                                for (final Listener listener : listeners) {
-                                    listener.onClosed(previousSession);
-                                }
-                            }
+                            closeSession();
                         }
 
                         @Override

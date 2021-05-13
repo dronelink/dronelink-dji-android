@@ -152,6 +152,8 @@ import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
+import dji.keysdk.CameraKey;
+import dji.keysdk.callback.GetCallback;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
 import dji.sdk.airlink.LightbridgeLink;
@@ -199,12 +201,17 @@ public class DJIDroneSession implements DroneSession {
     private final ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
     private final SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
 
+    private DatedValue<Double> focusRingValue;
+    private DatedValue<Double> focusRingMax;
+
     private DatedValue<CameraFile> mostRecentCameraFile;
     public DatedValue<CameraFile> getMostRecentCameraFile() {
         return mostRecentCameraFile;
     }
 
     private KeyListener airlinkListener;
+    private KeyListener focusRingValueListener;
+    private KeyListener focusRingMaxListener;
 
     public DJIDroneSession(final Context context, final Aircraft drone) {
         this.context = context;
@@ -280,6 +287,8 @@ public class DJIDroneSession implements DroneSession {
                     }
 
                     DJISDKManager.getInstance().getKeyManager().removeListener(airlinkListener);
+                    DJISDKManager.getInstance().getKeyManager().removeListener(focusRingValueListener);
+                    DJISDKManager.getInstance().getKeyManager().removeListener(focusRingMaxListener);
                     Log.i(TAG, "Drone session closed");
                 }
                 catch (final InterruptedException e) {}
@@ -536,6 +545,64 @@ public class DJIDroneSession implements DroneSession {
             }
         };
         DJISDKManager.getInstance().getKeyManager().addListener(AirLinkKey.create(AirLinkKey.DOWNLINK_SIGNAL_QUALITY), airlinkListener);
+
+        focusRingValueListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                cameraSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Integer) {
+                            focusRingValue = new DatedValue<>(((Integer) newValue).doubleValue());
+                        }
+                        else {
+                            focusRingValue = null;
+                        }
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(CameraKey.create(CameraKey.FOCUS_RING_VALUE), focusRingValueListener);
+        DJISDKManager.getInstance().getKeyManager().getValue(CameraKey.create(CameraKey.FOCUS_RING_VALUE), new GetCallback() {
+            @Override
+            public void onSuccess(@NonNull final Object newValue) {
+                if (newValue != null && newValue instanceof Integer) {
+                    focusRingValue = new DatedValue<>(((Integer) newValue).doubleValue());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull final DJIError djiError) {}
+        });
+
+        focusRingMaxListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                cameraSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Integer) {
+                            focusRingMax = new DatedValue<>(((Integer) newValue).doubleValue());
+                        }
+                        else {
+                            focusRingMax = null;
+                        }
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(CameraKey.create(CameraKey.FOCUS_RING_VALUE_UPPER_BOUND), focusRingMaxListener);
+        DJISDKManager.getInstance().getKeyManager().getValue(CameraKey.create(CameraKey.FOCUS_RING_VALUE_UPPER_BOUND), new GetCallback() {
+            @Override
+            public void onSuccess(@NonNull final Object newValue) {
+                if (newValue != null && newValue instanceof Integer) {
+                    focusRingMax = new DatedValue<>(((Integer) newValue).doubleValue());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull final DJIError djiError) {}
+        });
     }
 
     private void initCamera(final Camera camera) {
@@ -981,9 +1048,30 @@ public class DJIDroneSession implements DroneSession {
                     }
                 };
 
-                //adding a 0.5 second delay after all camera commands (except start and stop capture)
+                //adding a 1.5 second delay after all camera commands for certain drone models (except start and stop capture)
                 if (c.config.finishDelayMillis == null && command instanceof CameraCommand && !(command instanceof StartCaptureCameraCommand) && !(command instanceof StopCaptureCameraCommand)) {
-                    c.config.finishDelayMillis = 500.0;
+                    final Aircraft drone = adapter.getDrone();
+                    if (drone != null && drone.getModel() != null) {
+                        switch (drone.getModel()) {
+                            case INSPIRE_1:
+                            case INSPIRE_1_PRO:
+                            case INSPIRE_1_RAW:
+                            case PHANTOM_4:
+                            case PHANTOM_4_PRO:
+                            case PHANTOM_4_PRO_V2:
+                            case PHANTOM_4_ADVANCED:
+                            case PHANTOM_4_RTK:
+                            case PHANTOM_3_PROFESSIONAL:
+                            case PHANTOM_3_ADVANCED:
+                            case PHANTOM_3_STANDARD:
+                            case Phantom_3_4K:
+                                c.config.finishDelayMillis = 1500.0;
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
 
@@ -1048,7 +1136,13 @@ public class DJIDroneSession implements DroneSession {
                     final DatedValue<StorageState> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
-                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(systemState.value, storageState == null ? null : storageState.value, exposureSettings == null ? null : exposureSettings.value, lensInformation == null ? null : lensInformation.value);
+                    final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(
+                            systemState.value,
+                            storageState == null ? null : storageState.value,
+                            exposureSettings == null ? null : exposureSettings.value,
+                            lensInformation == null ? null : lensInformation.value,
+                            focusRingValue == null ? null : focusRingValue.value,
+                            focusRingMax == null ? null : focusRingMax.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
                 }
             }).get();
@@ -1775,7 +1869,23 @@ public class DJIDroneSession implements DroneSession {
 
         if (command instanceof FocusCameraCommand) {
             final FocusCameraCommand focusCameraCommand = (FocusCameraCommand)command;
-            camera.setFocusTarget(new PointF((float)focusCameraCommand.focusTarget.x, (float)focusCameraCommand.focusTarget.y), createCompletionCallback(finished));
+            camera.setFocusTarget(new PointF((float)focusCameraCommand.focusTarget.x, (float)focusCameraCommand.focusTarget.y), new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(final DJIError djiError) {
+                    if (djiError != null) {
+                        finished.execute(DronelinkDJI.createCommandError(djiError));
+                        return;
+                    }
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            cameraCommandFinishFocusTargetVerifyRing(focusCameraCommand, finished);
+                        }
+                    }, 500);
+                }
+            });
+
             return null;
         }
 
@@ -1796,12 +1906,8 @@ public class DJIDroneSession implements DroneSession {
         }
 
         if (command instanceof FocusRingCameraCommand) {
-            camera.getFocusRingValueUpperBound(createCompletionCallbackWith(new Command.FinisherWith<Integer>() {
-                @Override
-                public void execute(final Integer current) {
-                    camera.setFocusRingValue((int)(((FocusRingCameraCommand)command).focusRingPercent * (double)current), createCompletionCallback(finished));
-                }
-            }, finished));
+            final Double focusRingMax = state.value.getFocusRingMax();
+            camera.setFocusRingValue((int)(((FocusRingCameraCommand)command).focusRingPercent * (focusRingMax == null ? 0 : focusRingMax)), createCompletionCallback(finished));
             return null;
         }
 
@@ -1815,7 +1921,6 @@ public class DJIDroneSession implements DroneSession {
             });
             return null;
         }
-
 
         if (command instanceof MechanicalShutterCameraCommand) {
             camera.getMechanicalShutterEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
@@ -2384,6 +2489,56 @@ public class DJIDroneSession implements DroneSession {
             @Override
             public void run() {
                 cameraCommandFinishNotBusy(cameraCommand, attempt + 1, maxAttempts, finished);
+            }
+        }, 100);
+    }
+
+    private void cameraCommandFinishFocusTargetVerifyRing(final FocusCameraCommand cameraCommand, final Command.Finisher finished) {
+        cameraCommandFinishFocusTargetVerifyRing(cameraCommand, 0, 10, finished);
+    }
+
+    private void cameraCommandFinishFocusTargetVerifyRing(final FocusCameraCommand cameraCommand, final int attempt, final int maxAttempts, final Command.Finisher finished) {
+        if (cameraCommand.focusRingPercentLimits == null) {
+            finished.execute(null);
+            return;
+        }
+
+        final DatedValue<CameraStateAdapter> state = getCameraState(cameraCommand.channel);
+        if (state == null || !(state.value instanceof DJICameraStateAdapter)) {
+            finished.execute(new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_unavailable_title)));
+            return;
+        }
+
+        if (attempt >= maxAttempts) {
+            finished.execute(new CommandError(context.getString(R.string.DJIDroneSession_cameraCommand_focus_target_error)));
+            return;
+        }
+
+        if (!state.value.isBusy()) {
+            final Double focusRingValue = state.value.getFocusRingValue();
+            final Double focusRingMax = state.value.getFocusRingMax();
+            if (focusRingValue != null && focusRingMax != null && focusRingMax > 0) {
+                final double focusRingPercent = focusRingValue / focusRingMax;
+                if (focusRingPercent < cameraCommand.focusRingPercentLimits.min || focusRingPercent > cameraCommand.focusRingPercentLimits.max) {
+                    finished.execute(new CommandError(
+                            context.getString(R.string.DJIDroneSession_cameraCommand_focus_target_ring_invalid) + " " +
+                                    Dronelink.getInstance().format("percent", cameraCommand.focusRingPercentLimits.min, "") + " < " +
+                                    Dronelink.getInstance().format("percent", focusRingPercent, "") + " < " +
+                                    Dronelink.getInstance().format("percent", cameraCommand.focusRingPercentLimits.max, "")
+                            ));
+                    return;
+                }
+            }
+
+            finished.execute(null);
+            return;
+        }
+
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                cameraCommandFinishFocusTargetVerifyRing(cameraCommand, attempt + 1, maxAttempts, finished);
             }
         }, 100);
     }
