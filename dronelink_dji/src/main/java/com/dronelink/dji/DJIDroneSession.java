@@ -153,6 +153,7 @@ import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
 import dji.keysdk.CameraKey;
+import dji.keysdk.FlightControllerKey;
 import dji.keysdk.callback.GetCallback;
 import dji.keysdk.callback.KeyListener;
 import dji.sdk.airlink.AirLink;
@@ -212,6 +213,7 @@ public class DJIDroneSession implements DroneSession {
     private KeyListener airlinkListener;
     private KeyListener focusRingValueListener;
     private KeyListener focusRingMaxListener;
+    private KeyListener lowBatteryWarningThresholdListener;
 
     public DJIDroneSession(final Context context, final Aircraft drone) {
         this.context = context;
@@ -289,6 +291,7 @@ public class DJIDroneSession implements DroneSession {
                     DJISDKManager.getInstance().getKeyManager().removeListener(airlinkListener);
                     DJISDKManager.getInstance().getKeyManager().removeListener(focusRingValueListener);
                     DJISDKManager.getInstance().getKeyManager().removeListener(focusRingMaxListener);
+                    DJISDKManager.getInstance().getKeyManager().removeListener(lowBatteryWarningThresholdListener);
                     Log.i(TAG, "Drone session closed");
                 }
                 catch (final InterruptedException e) {}
@@ -597,6 +600,36 @@ public class DJIDroneSession implements DroneSession {
             public void onSuccess(@NonNull final Object newValue) {
                 if (newValue != null && newValue instanceof Integer) {
                     focusRingMax = new DatedValue<>(((Integer) newValue).doubleValue());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull final DJIError djiError) {}
+        });
+
+
+        lowBatteryWarningThresholdListener = new KeyListener() {
+            @Override
+            public void onValueChange(final Object oldValue, final Object newValue) {
+                stateSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (newValue != null && newValue instanceof Integer)
+                            state.lowBatteryWarningThreshold = new DatedValue<>((Integer) newValue);
+                        else if (oldValue != null && oldValue instanceof Integer)
+                            state.lowBatteryWarningThreshold = new DatedValue<>((Integer) oldValue);
+                        else
+                            state.lowBatteryWarningThreshold = null;
+                    }
+                });
+            }
+        };
+        DJISDKManager.getInstance().getKeyManager().addListener(FlightControllerKey.create(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), lowBatteryWarningThresholdListener);
+        DJISDKManager.getInstance().getKeyManager().getValue(FlightControllerKey.create(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), new GetCallback() {
+            @Override
+            public void onSuccess(@NonNull final Object newValue) {
+                if (newValue != null && newValue instanceof Integer) {
+                    state.lowBatteryWarningThreshold = new DatedValue<>((Integer) newValue);
                 }
             }
 
@@ -1048,28 +1081,34 @@ public class DJIDroneSession implements DroneSession {
                     }
                 };
 
-                //adding a 1.5 second delay after all camera commands for certain drone models (except start and stop capture)
-                if (c.config.finishDelayMillis == null && command instanceof CameraCommand && !(command instanceof StartCaptureCameraCommand) && !(command instanceof StopCaptureCameraCommand)) {
-                    final Aircraft drone = adapter.getDrone();
-                    if (drone != null && drone.getModel() != null) {
-                        switch (drone.getModel()) {
-                            case INSPIRE_1:
-                            case INSPIRE_1_PRO:
-                            case INSPIRE_1_RAW:
-                            case PHANTOM_4:
-                            case PHANTOM_4_PRO:
-                            case PHANTOM_4_PRO_V2:
-                            case PHANTOM_4_ADVANCED:
-                            case PHANTOM_4_RTK:
-                            case PHANTOM_3_PROFESSIONAL:
-                            case PHANTOM_3_ADVANCED:
-                            case PHANTOM_3_STANDARD:
-                            case Phantom_3_4K:
-                                c.config.finishDelayMillis = 1500.0;
-                                break;
+                if (c.config.finishDelayMillis == null && command instanceof CameraCommand) {
+                    //adding a 1.5 second delay after camera mode commands
+                    if (command instanceof ModeCameraCommand) {
+                        c.config.finishDelayMillis = 1500.0;
+                    }
+                    //adding a 1.5 second delay after all other camera commands for certain drone models (except start and stop capture)
+                    else if (!(command instanceof StartCaptureCameraCommand) && !(command instanceof StopCaptureCameraCommand)) {
+                        final Aircraft drone = adapter.getDrone();
+                        if (drone != null && drone.getModel() != null) {
+                            switch (drone.getModel()) {
+                                case INSPIRE_1:
+                                case INSPIRE_1_PRO:
+                                case INSPIRE_1_RAW:
+                                case PHANTOM_4:
+                                case PHANTOM_4_PRO:
+                                case PHANTOM_4_PRO_V2:
+                                case PHANTOM_4_ADVANCED:
+                                case PHANTOM_4_RTK:
+                                case PHANTOM_3_PROFESSIONAL:
+                                case PHANTOM_3_ADVANCED:
+                                case PHANTOM_3_STANDARD:
+                                case Phantom_3_4K:
+                                    c.config.finishDelayMillis = 1500.0;
+                                    break;
 
-                            default:
-                                break;
+                                default:
+                                    break;
+                            }
                         }
                     }
                 }

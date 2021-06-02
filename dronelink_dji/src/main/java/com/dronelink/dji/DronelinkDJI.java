@@ -350,7 +350,7 @@ public class DronelinkDJI {
             case EHDR: return SettingsDefinitions.FlatCameraMode.PHOTO_EHDR;
             case HYPER_LIGHT: return SettingsDefinitions.FlatCameraMode.PHOTO_HYPER_LIGHT;
             case HIGH_RESOLUTION: return SettingsDefinitions.FlatCameraMode.PHOTO_HIGH_RESOLUTION;
-            case SMART: return SettingsDefinitions.FlatCameraMode.UNKNOWN; //SettingsDefinitions.FlatCameraMode.PHOTO_SMART;
+            case SMART: return SettingsDefinitions.FlatCameraMode.PHOTO_SMART;
             case INTERNAL_AI_SPOT_CHECKING: return SettingsDefinitions.FlatCameraMode.INTERNAL_AI_SPOT_CHECKING;
             case UNKNOWN: return SettingsDefinitions.FlatCameraMode.UNKNOWN;
         }
