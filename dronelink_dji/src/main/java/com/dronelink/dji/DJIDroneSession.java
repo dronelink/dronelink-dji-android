@@ -48,6 +48,7 @@ import com.dronelink.core.kernel.command.camera.ExposureCompensationStepCameraCo
 import com.dronelink.core.kernel.command.camera.ExposureModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.FileIndexModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.FocusCameraCommand;
+import com.dronelink.core.kernel.command.camera.FocusDistanceCameraCommand;
 import com.dronelink.core.kernel.command.camera.FocusModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.FocusRingCameraCommand;
 import com.dronelink.core.kernel.command.camera.ISOCameraCommand;
@@ -107,6 +108,7 @@ import com.dronelink.core.kernel.command.gimbal.GimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.ModeGimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.OrientationGimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.YawSimultaneousFollowGimbalCommand;
+import com.dronelink.core.kernel.core.CameraFocusCalibration;
 import com.dronelink.core.kernel.core.GeoCoordinate;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
@@ -133,6 +135,7 @@ import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
 import dji.common.battery.BatteryState;
 import dji.common.camera.ExposureSettings;
+import dji.common.camera.FocusState;
 import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.StorageState;
@@ -195,6 +198,7 @@ public class DJIDroneSession implements DroneSession {
 
     private final ExecutorService cameraSerialQueue = Executors.newSingleThreadExecutor();
     private final SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
+    private final SparseArray<DatedValue<FocusState>> cameraFocusStates = new SparseArray<>();
     private final SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
     private final SparseArray<DatedValue<ExposureSettings>> cameraExposureSettings = new SparseArray<>();
     private final SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
@@ -400,30 +404,7 @@ public class DJIDroneSession implements DroneSession {
             }
         });
 
-        flightController.getSerialNumber(new CommonCallbacks.CompletionCallbackWith<String>() {
-            @Override
-            public void onSuccess(final String s) {
-                state.serialNumber = s;
-                if (state.serialNumber != null) {
-                    Log.i(TAG, "Serial number: " + s);
-                }
-
-                //doing this a second time because sometimes it isn't ready by the above line
-                if (state.firmwarePackageVersion == null) {
-                    state.firmwarePackageVersion = drone.getFirmwarePackageVersion();
-                    if (state.firmwarePackageVersion == null) {
-                        state.firmwarePackageVersion = "";
-                    } else {
-                        Log.i(TAG, "Firmware package version: " + state.firmwarePackageVersion);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(final DJIError djiError) {
-
-            }
-        });
+        initSerialNumber(flightController, 0);
 
         flightController.setMultipleFlightModeEnabled(true, new CommonCallbacks.CompletionCallback() {
             @Override
@@ -638,6 +619,36 @@ public class DJIDroneSession implements DroneSession {
         });
     }
 
+    private void initSerialNumber(final FlightController flightController, final int attempt) {
+        if (attempt < 3) {
+            flightController.getSerialNumber(new CommonCallbacks.CompletionCallbackWith<String>() {
+                @Override
+                public void onSuccess(final String s) {
+                    state.serialNumber = s;
+                    if (state.serialNumber != null) {
+                        Log.i(TAG, "Serial number: " + s);
+                    }
+
+                    //doing this a second time because sometimes it isn't ready by the above line
+                    if (state.firmwarePackageVersion == null) {
+                        state.firmwarePackageVersion = adapter.getDrone().getFirmwarePackageVersion();
+                        if (state.firmwarePackageVersion == null) {
+                            state.firmwarePackageVersion = "";
+                        } else {
+                            Log.i(TAG, "Firmware package version: " + state.firmwarePackageVersion);
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(final DJIError djiError) {
+                    Log.e(TAG, "Serial number failed: " + (djiError == null ? "??" : djiError.getDescription()));
+                    initSerialNumber(flightController, attempt + 1);
+                }
+            });
+        }
+    }
+
     private void initCamera(final Camera camera) {
         Log.i(TAG, String.format("Camera[%d] connected", camera.getIndex()));
         camera.setSystemStateCallback(new SystemState.Callback() {
@@ -647,6 +658,18 @@ public class DJIDroneSession implements DroneSession {
                     @Override
                     public void run() {
                         cameraStates.put(camera.getIndex(), new DatedValue<>(systemState));
+                    }
+                });
+            }
+        });
+
+        camera.setFocusStateCallback(new FocusState.Callback() {
+            @Override
+            public void onUpdate(final FocusState focusState) {
+                cameraSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        cameraFocusStates.put(camera.getIndex(), new DatedValue<>(focusState));
                     }
                 });
             }
@@ -797,6 +820,7 @@ public class DJIDroneSession implements DroneSession {
                 @Override
                 public void run() {
                     cameraStates.put(camera.getIndex(), null);
+                    cameraFocusStates.put(camera.getIndex(), null);
                     cameraStorageStates.put(camera.getIndex(), null);
                     cameraExposureSettings.put(camera.getIndex(), null);
                     cameraLensInformation.put(camera.getIndex(), null);
@@ -1086,31 +1110,6 @@ public class DJIDroneSession implements DroneSession {
                     if (command instanceof ModeCameraCommand) {
                         c.config.finishDelayMillis = 1500.0;
                     }
-                    //adding a 1.5 second delay after all other camera commands for certain drone models (except start and stop capture)
-                    else if (!(command instanceof StartCaptureCameraCommand) && !(command instanceof StopCaptureCameraCommand)) {
-                        final Aircraft drone = adapter.getDrone();
-                        if (drone != null && drone.getModel() != null) {
-                            switch (drone.getModel()) {
-                                case INSPIRE_1:
-                                case INSPIRE_1_PRO:
-                                case INSPIRE_1_RAW:
-                                case PHANTOM_4:
-                                case PHANTOM_4_PRO:
-                                case PHANTOM_4_PRO_V2:
-                                case PHANTOM_4_ADVANCED:
-                                case PHANTOM_4_RTK:
-                                case PHANTOM_3_PROFESSIONAL:
-                                case PHANTOM_3_ADVANCED:
-                                case PHANTOM_3_STANDARD:
-                                case Phantom_3_4K:
-                                    c.config.finishDelayMillis = 1500.0;
-                                    break;
-
-                                default:
-                                    break;
-                            }
-                        }
-                    }
                 }
             }
 
@@ -1172,11 +1171,13 @@ public class DJIDroneSession implements DroneSession {
                         return null;
                     }
 
+                    final DatedValue<FocusState> focusState = cameraFocusStates.get(channel);
                     final DatedValue<StorageState> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
                     final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(
                             systemState.value,
+                            focusState == null ? null : focusState.value,
                             storageState == null ? null : storageState.value,
                             exposureSettings == null ? null : exposureSettings.value,
                             lensInformation == null ? null : lensInformation.value,
@@ -1925,6 +1926,16 @@ public class DJIDroneSession implements DroneSession {
                 }
             });
 
+            return null;
+        }
+
+        if (command instanceof FocusDistanceCameraCommand) {
+            final FocusDistanceCameraCommand focusDistanceCameraCommand = (FocusDistanceCameraCommand)command;
+            final CameraFocusCalibration cameraFocusCalibration = Dronelink.getInstance().getCameraFocusCalibration(focusDistanceCameraCommand.focusCalibration.withDroneSerialNumber(getSerialNumber()));
+            if (cameraFocusCalibration == null) {
+                return new CommandError(context.getString(R.string.DJIDroneSession_cameraCommand_focus_distance_error));
+            }
+            camera.setFocusRingValue(cameraFocusCalibration.ringValue.intValue(), createCompletionCallback(finished));
             return null;
         }
 

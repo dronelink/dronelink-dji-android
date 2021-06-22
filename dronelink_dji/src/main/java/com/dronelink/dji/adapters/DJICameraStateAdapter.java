@@ -12,20 +12,23 @@ import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.dji.DronelinkDJI;
 
 import dji.common.camera.ExposureSettings;
+import dji.common.camera.FocusState;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
 
 public class DJICameraStateAdapter implements CameraStateAdapter {
     public final SystemState state;
+    public final FocusState focusState;
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
     public final String lensInformation;
     public final Double focusRingValue;
     public final Double focusRingMax;
 
-    public DJICameraStateAdapter(final SystemState state, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
+    public DJICameraStateAdapter(final SystemState state, final FocusState focusState, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
         this.state = state;
+        this.focusState = focusState;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
         this.lensInformation = lensInformation;
@@ -37,6 +40,10 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     public boolean isBusy() {
         if (DronelinkDJI.isBusy(state)) {
             return true;
+        }
+
+        if (focusState != null) {
+            return focusState.getFocusStatus() == SettingsDefinitions.FocusStatus.FOCUSING;
         }
 
         if (storageState != null) {

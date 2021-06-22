@@ -155,6 +155,21 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         return location.getAltitude();
     }
 
+
+    @Override
+    public Double getUltrasonicAltitude() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        if (flightControllerState == null) {
+            return null;
+        }
+
+        if (flightControllerState.value.isUltrasonicBeingUsed()) {
+            return (double)flightControllerState.value.getUltrasonicHeightInMeters();
+        }
+
+        return null;
+    }
+
     @Override
     public Double getBatteryPercent() {
         final DatedValue<BatteryState> batteryState = this.batteryState;
