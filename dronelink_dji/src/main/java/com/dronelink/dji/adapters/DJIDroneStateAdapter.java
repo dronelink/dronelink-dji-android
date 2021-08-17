@@ -38,6 +38,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public String firmwarePackageVersion;
     public boolean initialized = false;
     public boolean located = false;
+    public boolean initVirtualStickDisabled = false;
     public Location lastKnownGroundLocation;
 
     public DatedValue<DroneStateAdapter> toDatedValue() {

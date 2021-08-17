@@ -144,6 +144,7 @@ import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightControllerState;
+import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.LandingGearState;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.flightcontroller.VisionSensorPosition;
@@ -243,6 +244,34 @@ public class DJIDroneSession implements DroneSession {
 
                             if (!state.isFlying()) {
                                 state.lastKnownGroundLocation = location;
+                            }
+                        }
+
+                        if (!state.initVirtualStickDisabled) {
+                            final FlightController flightController = drone.getFlightController();
+                            final DatedValue<FlightControllerState> flightControllerState = state.flightControllerState;
+                            if (flightController != null && flightControllerState != null && flightControllerState.value != null) {
+                                state.initVirtualStickDisabled = true;
+                                if (flightControllerState.value.getFlightMode() != FlightMode.GPS_WAYPOINT) {
+                                    flightController.getVirtualStickModeEnabled(new CommonCallbacks.CompletionCallbackWith<Boolean>() {
+                                        @Override
+                                        public void onSuccess(final Boolean enabled) {
+                                            if (enabled) {
+                                                flightController.setVirtualStickModeEnabled(false, new CommonCallbacks.CompletionCallback() {
+                                                    @Override
+                                                    public void onResult(final DJIError djiError) {
+                                                        if (djiError == null) {
+                                                            Log.i(TAG, "Flight controller virtual stick deactivated");
+                                                        }
+                                                    }
+                                                });
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(final DJIError djiError) {}
+                                    });
+                                }
                             }
                         }
 
@@ -406,31 +435,42 @@ public class DJIDroneSession implements DroneSession {
 
         initSerialNumber(flightController, 0);
 
-        flightController.setMultipleFlightModeEnabled(true, new CommonCallbacks.CompletionCallback() {
+        flightController.getMultipleFlightModeEnabled(new CommonCallbacks.CompletionCallbackWith<Boolean>() {
             @Override
-            public void onResult(final DJIError djiError) {
-                if (djiError == null) {
-                    Log.i(TAG, "Flight controller multiple flight mode enabled");
+            public void onSuccess(final Boolean enabled) {
+                if (!enabled) {
+                    flightController.setMultipleFlightModeEnabled(true, new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(final DJIError djiError) {
+                            if (djiError == null) {
+                                Log.i(TAG, "Flight controller multiple flight mode enabled");
+                            }
+                        }
+                    });
                 }
             }
+
+            @Override
+            public void onFailure(final DJIError djiError) {}
         });
 
-        flightController.setNoviceModeEnabled(false, new CommonCallbacks.CompletionCallback() {
+        flightController.getNoviceModeEnabled(new CommonCallbacks.CompletionCallbackWith<Boolean>() {
             @Override
-            public void onResult(final DJIError djiError) {
-                if (djiError == null) {
-                    Log.i(TAG, "Flight controller novice mode disabled");
+            public void onSuccess(final Boolean enabled) {
+                if (enabled) {
+                    flightController.setNoviceModeEnabled(false, new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(final DJIError djiError) {
+                            if (djiError == null) {
+                                Log.i(TAG, "Flight controller novice mode disabled");
+                            }
+                        }
+                    });
                 }
             }
-        });
 
-        flightController.setVirtualStickModeEnabled(false, new CommonCallbacks.CompletionCallback() {
             @Override
-            public void onResult(final DJIError djiError) {
-                if (djiError == null) {
-                    Log.i(TAG, "Flight controller virtual stick deactivated");
-                }
-            }
+            public void onFailure(final DJIError djiError) {}
         });
 
         flightController.setStateCallback(new FlightControllerState.Callback() {
@@ -443,20 +483,23 @@ public class DJIDroneSession implements DroneSession {
                 stateSerialQueue.execute(new Runnable() {
                     @Override
                     public void run() {
-                        //automatically adjust the drone altitude offset if:
-                        //1) altitude continuity is enabled
-                        //2) the drone is going from flying to not flying
-                        //3) the altitude reference is ground level
-                        //4) the current drone altitude offset is not zero
-                        //5) the last flight altitude is available
-                        //6) the absolute value of last non-zero flying altitude is more than 1m
-                        if (Dronelink.getInstance().droneOffsets.droneAltitudeContinuity &&
-                                isFlyingPrevious &&
-                                !flightControllerStateUpdated.isFlying() &&
-                                (Dronelink.getInstance().droneOffsets.droneAltitudeReference == null || Dronelink.getInstance().droneOffsets.droneAltitudeReference == 0) &&
-                                lastNonZeroFlyingAltitude != null && Math.abs(lastNonZeroFlyingAltitude) > 1) {
-                            //adjust by the last non-zero flying altitude
-                            Dronelink.getInstance().droneOffsets.droneAltitude -= lastNonZeroFlyingAltitude;
+                        if (isFlyingPrevious && !flightControllerStateUpdated.isFlying()) {
+                            if (Dronelink.getInstance().droneOffsets.droneAltitudeContinuity) {
+                                //automatically adjust the drone altitude offset if:
+                                //1) altitude continuity is enabled
+                                //2) the drone is going from flying to not flying
+                                //3) the altitude reference is ground level
+                                //4) the current drone altitude offset is not zero
+                                //5) the last flight altitude is available
+                                //6) the absolute value of last non-zero flying altitude is more than 1m
+                                if ((Dronelink.getInstance().droneOffsets.droneAltitudeReference == null || Dronelink.getInstance().droneOffsets.droneAltitudeReference == 0) &&
+                                        lastNonZeroFlyingAltitude != null && Math.abs(lastNonZeroFlyingAltitude) > 1) {
+                                    //adjust by the last non-zero flying altitude
+                                    Dronelink.getInstance().droneOffsets.droneAltitude -= lastNonZeroFlyingAltitude;
+                                }
+                            } else {
+                                Dronelink.getInstance().droneOffsets.droneAltitude = 0;
+                            }
                         }
 
                         state.flightControllerState = new DatedValue<>(flightControllerStateUpdated);
@@ -778,13 +821,24 @@ public class DJIDroneSession implements DroneSession {
                 });
             }
         });
-        gimbal.setPitchRangeExtensionEnabled(true, new CommonCallbacks.CompletionCallback() {
+
+        gimbal.getPitchRangeExtensionEnabled(new CommonCallbacks.CompletionCallbackWith<Boolean>() {
             @Override
-            public void onResult(final DJIError djiError) {
-                if (djiError == null) {
-                    Log.i(TAG, String.format("Gimbal[%d] pitch range extension enabled", gimbal.getIndex()));
+            public void onSuccess(final Boolean enabled) {
+                if (!enabled) {
+                    gimbal.setPitchRangeExtensionEnabled(true, new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(final DJIError djiError) {
+                            if (djiError == null) {
+                                Log.i(TAG, String.format("Gimbal[%d] pitch range extension enabled", gimbal.getIndex()));
+                            }
+                        }
+                    });
                 }
             }
+
+            @Override
+            public void onFailure(final DJIError djiError) {}
         });
     }
 
@@ -1105,9 +1159,9 @@ public class DJIDroneSession implements DroneSession {
                     }
                 };
 
-                if (c.config.finishDelayMillis == null && command instanceof CameraCommand) {
-                    //adding a 1.5 second delay after camera mode commands
-                    if (command instanceof ModeCameraCommand) {
+                if (c.config.finishDelayMillis == null) {
+                    //adding a 1.5 second delay after camera and gimbal mode commands
+                    if (command instanceof ModeCameraCommand || command instanceof ModeGimbalCommand) {
                         c.config.finishDelayMillis = 1500.0;
                     }
                 }

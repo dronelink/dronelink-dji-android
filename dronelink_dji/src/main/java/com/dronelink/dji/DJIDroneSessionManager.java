@@ -21,6 +21,7 @@ import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
@@ -115,10 +116,19 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                                 newComponent.setComponentListener(new BaseComponent.ComponentListener() {
                                     @Override
                                     public void onConnectivityChange(boolean isConnected) {
-                                        if (session != null) {
+                                        if (session == null) {
+                                            if (isConnected && component instanceof FlightController) {
+                                                onProductConnect(DJISDKManager.getInstance().getProduct());
+                                            }
+                                        }
+                                        else {
                                             if (isConnected) {
                                                 session.componentConnected(component);
                                             } else {
+                                                if (component instanceof FlightController) {
+                                                    onProductDisconnect();
+                                                    return;
+                                                }
                                                 session.componentDisconnected(component);
                                             }
                                         }
