@@ -202,6 +202,7 @@ public class DJIDroneSession implements DroneSession {
     private final SparseArray<DatedValue<FocusState>> cameraFocusStates = new SparseArray<>();
     private final SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
     private final SparseArray<DatedValue<ExposureSettings>> cameraExposureSettings = new SparseArray<>();
+    private final SparseArray<DatedValue<SettingsDefinitions.ExposureCompensation>> cameraExposureCompensation = new SparseArray<>();
     private final SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
 
     private final ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
@@ -739,6 +740,25 @@ public class DJIDroneSession implements DroneSession {
                     @Override
                     public void run() {
                         cameraExposureSettings.put(camera.getIndex(), new DatedValue<>(exposureSettings));
+
+                        //KLUGE: the phantom 4 appears to be lying to us about the ev!
+                        final String cameraName = camera.getDisplayName();
+                        if (cameraName != null && (cameraName.toLowerCase().contains("phantom 4") || cameraName.toLowerCase().contains("p4"))) {
+                            camera.getExposureCompensation(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureCompensation>() {
+                                @Override
+                                public void onSuccess(final SettingsDefinitions.ExposureCompensation exposureCompensation) {
+                                    cameraSerialQueue.execute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            cameraExposureCompensation.put(camera.getIndex(), new DatedValue<>(exposureCompensation));
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onFailure(final DJIError djiError) {}
+                            });
+                        }
                     }
                 });
             }
@@ -877,6 +897,7 @@ public class DJIDroneSession implements DroneSession {
                     cameraFocusStates.put(camera.getIndex(), null);
                     cameraStorageStates.put(camera.getIndex(), null);
                     cameraExposureSettings.put(camera.getIndex(), null);
+                    cameraExposureCompensation.put(camera.getIndex(), null);
                     cameraLensInformation.put(camera.getIndex(), null);
                 }
             });
@@ -1228,12 +1249,14 @@ public class DJIDroneSession implements DroneSession {
                     final DatedValue<FocusState> focusState = cameraFocusStates.get(channel);
                     final DatedValue<StorageState> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel);
+                    final DatedValue<SettingsDefinitions.ExposureCompensation> exposureCompensation = cameraExposureCompensation.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
                     final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(
                             systemState.value,
                             focusState == null ? null : focusState.value,
                             storageState == null ? null : storageState.value,
                             exposureSettings == null ? null : exposureSettings.value,
+                            exposureCompensation == null ? null : exposureCompensation.value,
                             lensInformation == null ? null : lensInformation.value,
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value);
@@ -1283,7 +1306,12 @@ public class DJIDroneSession implements DroneSession {
     }
 
     protected void sendResetGimbalCommands() {
-        for (final Gimbal gimbal : adapter.getDrone().getGimbals()) {
+        final List<Gimbal> gimbals = adapter.getDrone().getGimbals();
+        if (gimbals == null) {
+            return;
+        }
+
+        for (final Gimbal gimbal : gimbals) {
             final Rotation.Builder rotation = new Rotation.Builder();
             rotation.mode(RotationMode.ABSOLUTE_ANGLE);
             rotation.time(DronelinkDJI.GimbalRotationMinTime);
@@ -1316,7 +1344,12 @@ public class DJIDroneSession implements DroneSession {
     }
 
     protected void sendResetCameraCommands() {
-        for (final Camera camera : adapter.getDrone().getCameras()) {
+        final List<Camera> cameras = adapter.getDrone().getCameras();
+        if (cameras == null) {
+            return;
+        }
+
+        for (final Camera camera : cameras) {
             final DatedValue<CameraStateAdapter> state = getCameraState(camera.getIndex());
             if (state != null) {
                 if (state.value.isCapturingVideo()) {

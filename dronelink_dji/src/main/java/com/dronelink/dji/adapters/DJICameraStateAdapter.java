@@ -22,15 +22,17 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     public final FocusState focusState;
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
+    public final SettingsDefinitions.ExposureCompensation exposureCompensation;
     public final String lensInformation;
     public final Double focusRingValue;
     public final Double focusRingMax;
 
-    public DJICameraStateAdapter(final SystemState state, final FocusState focusState, final StorageState storageState, final ExposureSettings exposureSettings, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
+    public DJICameraStateAdapter(final SystemState state, final FocusState focusState, final StorageState storageState, final ExposureSettings exposureSettings, final SettingsDefinitions.ExposureCompensation exposureCompensation, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
         this.state = state;
         this.focusState = focusState;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
+        this.exposureCompensation = exposureCompensation;
         this.lensInformation = lensInformation;
         this.focusRingValue = focusRingValue;
         this.focusRingMax = focusRingMax;
@@ -98,7 +100,10 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public CameraExposureCompensation getExposureCompensation() {
-        switch (exposureSettings == null ? SettingsDefinitions.ExposureCompensation.UNKNOWN : exposureSettings.getExposureCompensation()) {
+        final SettingsDefinitions.ExposureCompensation exposureCompensation = this.exposureCompensation == null
+                ? exposureSettings == null ? SettingsDefinitions.ExposureCompensation.UNKNOWN : exposureSettings.getExposureCompensation()
+                : this.exposureCompensation;
+        switch (exposureCompensation) {
             case N_5_0:
                 return CameraExposureCompensation.N_5_0;
             case N_4_7:

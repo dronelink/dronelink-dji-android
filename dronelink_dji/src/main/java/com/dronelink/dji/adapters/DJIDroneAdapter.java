@@ -40,7 +40,7 @@ import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 
 public class DJIDroneAdapter implements DroneAdapter {
-    private final Aircraft drone;
+    public final Aircraft drone;
     private final SortedMap<Integer, RemoteControllerAdapter> remoteControllers = new TreeMap<>();
     private final SortedMap<Integer, CameraAdapter> cameras = new TreeMap<>();
     private final SortedMap<Integer, GimbalAdapter> gimbals = new TreeMap<>();

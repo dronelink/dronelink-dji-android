@@ -54,8 +54,8 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
     @Override
     public void closeSession() {
-        if (session != null) {
-            final DroneSession previousSession = session;
+        final DroneSession previousSession = session;
+        if (previousSession != null) {
             previousSession.close();
             session = null;
 
@@ -99,7 +99,15 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                         @Override
                         public void onProductConnect(final BaseProduct baseProduct) {
                             if (baseProduct instanceof Aircraft) {
-                                session = new DJIDroneSession(context, (Aircraft) baseProduct);
+                                final Aircraft drone = (Aircraft) baseProduct;
+                                if (session != null) {
+                                    if (session.getAdapter().drone == drone) {
+                                        return;
+                                    }
+                                    closeSession();
+                                }
+
+                                session = new DJIDroneSession(context, drone);
                                 for (final Listener listener : listeners) {
                                     listener.onOpened(session);
                                 }
@@ -112,25 +120,21 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                         @Override
                         public void onComponentChange(final BaseProduct.ComponentKey componentKey, final BaseComponent oldComponent, final BaseComponent newComponent) {
                             if (newComponent != null) {
-                                final BaseComponent component = newComponent;
+                                if (newComponent.isConnected()) {
+                                    componentConnected(newComponent);
+                                }
+                                else {
+                                    componentDisconnected(newComponent);
+                                }
+
                                 newComponent.setComponentListener(new BaseComponent.ComponentListener() {
                                     @Override
                                     public void onConnectivityChange(boolean isConnected) {
-                                        if (session == null) {
-                                            if (isConnected && component instanceof FlightController) {
-                                                onProductConnect(DJISDKManager.getInstance().getProduct());
-                                            }
+                                        if (isConnected) {
+                                            componentConnected(newComponent);
                                         }
                                         else {
-                                            if (isConnected) {
-                                                session.componentConnected(component);
-                                            } else {
-                                                if (component instanceof FlightController) {
-                                                    onProductDisconnect();
-                                                    return;
-                                                }
-                                                session.componentDisconnected(component);
-                                            }
+                                            componentDisconnected(newComponent);
                                         }
                                     }
                                 });
@@ -138,8 +142,30 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                         }
 
                         @Override
-                        public void onDatabaseDownloadProgress(long current, long total) {
+                        public void onDatabaseDownloadProgress(long current, long total) {}
 
+                        public void componentConnected(final BaseComponent component) {
+                            final DJIDroneSession sessionLocal = session;
+                            if (component instanceof FlightController && sessionLocal == null) {
+                                onProductConnect(DJISDKManager.getInstance().getProduct());
+                                return;
+                            }
+
+                            if (sessionLocal != null) {
+                                sessionLocal.componentConnected(component);
+                            }
+                        }
+
+                        public void componentDisconnected(final BaseComponent component) {
+                            if (component instanceof FlightController) {
+                                onProductDisconnect();
+                                return;
+                            }
+
+                            final DJIDroneSession sessionLocal = session;
+                            if (sessionLocal != null) {
+                                sessionLocal.componentDisconnected(component);
+                            }
                         }
                     });
                 }
