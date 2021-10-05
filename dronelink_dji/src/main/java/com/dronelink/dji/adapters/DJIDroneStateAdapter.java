@@ -12,6 +12,7 @@ import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.kernel.core.Orientation3;
+import com.dronelink.dji.DronelinkDJI;
 
 import java.util.Date;
 import java.util.UUID;
@@ -67,10 +68,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return null;
         }
 
-        final Location location = new Location("");
-        location.setLatitude(aircraftLocation.getLatitude());
-        location.setLongitude(aircraftLocation.getLongitude());
-        return location;
+        return DronelinkDJI.getLocation(aircraftLocation);
     }
 
     @Override
@@ -85,10 +83,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return null;
         }
 
-        final Location location = new Location("");
-        location.setLatitude(homeLocation.getLatitude());
-        location.setLongitude(homeLocation.getLongitude());
-        return location;
+        return DronelinkDJI.getLocation(homeLocation);
     }
 
     @Override

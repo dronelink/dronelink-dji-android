@@ -7,7 +7,14 @@
 package com.dronelink.dji;
 
 
+import android.location.Location;
+
+import com.dronelink.core.Convert;
 import com.dronelink.core.command.CommandError;
+import com.dronelink.core.kernel.component.DJIWaypointMissionComponent;
+import com.dronelink.core.kernel.component.DJIWaypointMissionComponentWaypoint;
+import com.dronelink.core.kernel.component.DJIWaypointMissionComponentWaypointAction;
+import com.dronelink.core.kernel.core.GeoCoordinate;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraColor;
@@ -31,6 +38,12 @@ import com.dronelink.core.kernel.core.enums.CameraVideoMode;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraVideoStandard;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
+import com.dronelink.core.kernel.core.enums.DJIWaypointActionType;
+import com.dronelink.core.kernel.core.enums.DJIWaypointMissionFinishedAction;
+import com.dronelink.core.kernel.core.enums.DJIWaypointMissionFlightPathMode;
+import com.dronelink.core.kernel.core.enums.DJIWaypointMissionGotoWaypointMode;
+import com.dronelink.core.kernel.core.enums.DJIWaypointMissionHeadingMode;
+import com.dronelink.core.kernel.core.enums.DJIWaypointTurnMode;
 import com.dronelink.core.kernel.core.enums.DroneConnectionFailSafeBehavior;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
@@ -47,13 +60,27 @@ import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.SystemState;
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
+import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
+import dji.common.mission.waypoint.Waypoint;
+import dji.common.mission.waypoint.WaypointAction;
+import dji.common.mission.waypoint.WaypointActionType;
+import dji.common.mission.waypoint.WaypointMission;
+import dji.common.mission.waypoint.WaypointMissionFinishedAction;
+import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
+import dji.common.mission.waypoint.WaypointMissionGotoWaypointMode;
+import dji.common.mission.waypoint.WaypointMissionHeadingMode;
+import dji.common.mission.waypoint.WaypointMissionState;
+import dji.common.mission.waypoint.WaypointTurnMode;
+import dji.common.model.LocationCoordinate2D;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
 import dji.sdk.camera.Camera;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.products.Aircraft;
+import dji.sdk.sdkmanager.DJISDKManager;
+import dji.waypointv2.common.waypointv1.GotoWaypointMode;
 
 public class DronelinkDJI {
     public static final double GimbalRotationMinTime = 0.1;
@@ -670,5 +697,168 @@ public class DronelinkDJI {
             }
         }
         return false;
+    }
+
+    public static boolean isWaypointOperatorCurrentState(final WaypointMissionState[] states) {
+        return isWaypointMissionState(DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator().getCurrentState(), states);
+    }
+
+    public static boolean isWaypointMissionState(final WaypointMissionState currentState, final WaypointMissionState[] states) {
+        for (final WaypointMissionState state : states) {
+            if (state.equals(currentState)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static WaypointMission getWaypointMission(final DJIWaypointMissionComponent value) {
+        final WaypointMission.Builder djiMission = new WaypointMission.Builder();
+        djiMission.setMissionID(value.id.hashCode() % 65535);
+        djiMission.autoFlightSpeed((float)value.autoFlightSpeed);
+        djiMission.gotoFirstWaypointMode(getWaypointMissionGotoWaypointMode(value.gotoFirstWaypointMode));
+        djiMission.setExitMissionOnRCSignalLostEnabled(value.exitMissionOnRCSignalLost);
+        djiMission.repeatTimes(value.repeatTimes);
+        djiMission.maxFlightSpeed((float)value.maxFlightSpeed);
+        if (value.pointOfInterest != null) {
+            djiMission.setPointOfInterest(getCoordinate(value.pointOfInterest));
+        }
+        djiMission.setGimbalPitchRotationEnabled(value.rotateGimbalPitch);
+        djiMission.headingMode(getWaypointMissionHeadingMode(value.headingMode));
+        djiMission.flightPathMode(getWaypointMissionFlightPathMode(value.flightPathMode));
+        djiMission.finishedAction(getWaypointMissionFinishedAction(value.finishedAction));
+        for (DJIWaypointMissionComponentWaypoint waypoint : value.waypoints) {
+            final Waypoint djiWaypoint = getWaypoint(waypoint);
+            if (!(djiMission.getWaypointCount() > 0 && djiMission.getWaypointCount() < value.waypoints.length - 1)) {
+                djiWaypoint.cornerRadiusInMeters = 0.2f;
+            }
+            djiMission.addWaypoint(djiWaypoint);
+        }
+        return djiMission.build();
+    }
+
+    public static Waypoint getWaypoint(final DJIWaypointMissionComponentWaypoint value) {
+        final Waypoint djiWaypoint = new Waypoint();
+        djiWaypoint.coordinate = getCoordinate(value.coordinate);
+        djiWaypoint.altitude = (float)value.altitude;
+        djiWaypoint.heading = (int)Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(value.heading, 0));
+        djiWaypoint.cornerRadiusInMeters = (float)value.cornerRadius;
+        djiWaypoint.turnMode = getWaypointTurnMode(value.turnMode);
+        djiWaypoint.gimbalPitch = Math.max(-90, (float)Convert.RadiansToDegrees(value.gimbalPitch));
+        djiWaypoint.speed = (float)value.speed;
+        djiWaypoint.shootPhotoTimeInterval = (float)value.shootPhotoTimeInterval;
+        djiWaypoint.shootPhotoDistanceInterval = (float)value.shootPhotoDistanceInterval;
+        djiWaypoint.actionRepeatTimes = value.actionRepeatTimes;
+        djiWaypoint.actionTimeoutInSeconds = (int)value.actionTimeout;
+        for (final DJIWaypointMissionComponentWaypointAction action : value.actions) {
+            djiWaypoint.addAction(getWaypointAction(action));
+        }
+        return djiWaypoint;
+    }
+
+    public static WaypointAction getWaypointAction(final DJIWaypointMissionComponentWaypointAction value) {
+        double param = value.param;
+        switch (value.type) {
+            case STAY:
+            case SHOOT_PHOTO:
+            case START_RECORD:
+            case STOP_RECORD:
+                break;
+
+            case ROTATE_AIRCRAFT:
+                param = Convert.RadiansToDegrees(Convert.AngleDifferenceSigned(param, 0));
+                break;
+
+            case ROTATE_GIMBAL_PITCH:
+                param = Math.max(-90, Convert.RadiansToDegrees(param));
+                break;
+        }
+        return new WaypointAction(getWaypointActionType(value.type), (int)param);
+    }
+
+    public static WaypointMissionGotoWaypointMode getWaypointMissionGotoWaypointMode(final DJIWaypointMissionGotoWaypointMode value) {
+        switch (value) {
+            case POINT_TO_POINT: return WaypointMissionGotoWaypointMode.POINT_TO_POINT;
+            case SAFELY:
+            default: return WaypointMissionGotoWaypointMode.SAFELY;
+        }
+    }
+
+    public static WaypointMissionHeadingMode getWaypointMissionHeadingMode(final DJIWaypointMissionHeadingMode value) {
+        switch (value) {
+            case AUTO: return WaypointMissionHeadingMode.AUTO;
+            case USING_INITIAL_DIRECTION: return WaypointMissionHeadingMode.USING_INITIAL_DIRECTION;
+            case CONTROLLED_BY_REMOTE_CONTROLLER: return WaypointMissionHeadingMode.CONTROL_BY_REMOTE_CONTROLLER;
+            case TOWARD_POINT_OF_INTEREST: return WaypointMissionHeadingMode.TOWARD_POINT_OF_INTEREST;
+            case USING_WAYPOINT_HEADING:
+            default: return WaypointMissionHeadingMode.USING_WAYPOINT_HEADING;
+        }
+    }
+
+    public static WaypointMissionFlightPathMode getWaypointMissionFlightPathMode(final DJIWaypointMissionFlightPathMode value) {
+        switch (value) {
+            case CURVED: return WaypointMissionFlightPathMode.CURVED;
+            case NORMAL:
+            default: return WaypointMissionFlightPathMode.NORMAL;
+        }
+    }
+
+    public static WaypointMissionFinishedAction getWaypointMissionFinishedAction(final DJIWaypointMissionFinishedAction value) {
+        switch (value) {
+            case NO_ACTION: return WaypointMissionFinishedAction.NO_ACTION;
+            case AUTO_LAND: return WaypointMissionFinishedAction.AUTO_LAND;
+            case GO_FIRST_WAYPOINT: return WaypointMissionFinishedAction.GO_FIRST_WAYPOINT;
+            case CONTINUE_UNTIL_STOP: return WaypointMissionFinishedAction.CONTINUE_UNTIL_END;
+            case GO_HOME:
+            default: return WaypointMissionFinishedAction.GO_HOME;
+        }
+    }
+
+    public static WaypointTurnMode getWaypointTurnMode(final DJIWaypointTurnMode value) {
+        switch (value) {
+            case COUNTER_CLOCKWISE: return WaypointTurnMode.COUNTER_CLOCKWISE;
+            case CLOCKWISE:
+            default: return WaypointTurnMode.CLOCKWISE;
+        }
+    }
+
+    public static WaypointActionType getWaypointActionType(final DJIWaypointActionType value) {
+        switch (value) {
+            case SHOOT_PHOTO: return WaypointActionType.START_TAKE_PHOTO;
+            case START_RECORD: return WaypointActionType.START_RECORD;
+            case STOP_RECORD: return WaypointActionType.STOP_RECORD;
+            case ROTATE_AIRCRAFT: return WaypointActionType.ROTATE_AIRCRAFT;
+            case ROTATE_GIMBAL_PITCH: return WaypointActionType.GIMBAL_PITCH;
+            case STAY:
+            default: return WaypointActionType.STAY;
+        }
+    }
+
+    public static double getDistance(final Waypoint from, final Waypoint to) {
+        final double x = getLocation(from.coordinate).distanceTo(getLocation(to.coordinate));
+        final double y = Math.abs(from.altitude - to.altitude);
+        return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    }
+
+    public static LocationCoordinate2D getCoordinate(final GeoCoordinate value) {
+        return new LocationCoordinate2D(value.latitude, value.longitude);
+    }
+
+    public static LocationCoordinate2D getCoordinate(final Location value) {
+        return new LocationCoordinate2D(value.getLatitude(), value.getLongitude());
+    }
+
+    public static Location getLocation(final LocationCoordinate2D value) {
+        final Location location = new Location("");
+        location.setLatitude(value.getLatitude());
+        location.setLongitude(value.getLongitude());
+        return location;
+    }
+
+    public static Location getLocation(final LocationCoordinate3D value) {
+        final Location location = new Location("");
+        location.setLatitude(value.getLatitude());
+        location.setLongitude(value.getLongitude());
+        return location;
     }
 }

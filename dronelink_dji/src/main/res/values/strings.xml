@@ -1,8 +1,14 @@
 <resources>
+    <string name="MissionDisengageReason_user_disengaged_title">Mission Paused</string>
+    <string name="MissionDisengageReason_drone_disconnected_title">Drone Disconnected</string>
     <string name="MissionDisengageReason_drone_control_unavailable_title">Drone Control Unavailable</string>
     <string name="MissionDisengageReason_drone_control_override_title">Control Override</string>
     <string name="MissionDisengageReason_take_off_failed_title">Unable to Take Off</string>
     <string name="MissionDisengageReason_take_control_failed_title">Unable to Take Control</string>
+    <string name="MissionDisengageReason_execution_state_invalid_title">Execution State Invalid</string>
+    <string name="MissionDisengageReason_load_mission_failed_title">Unable to Load Mission</string>
+    <string name="MissionDisengageReason_upload_mission_failed_title">Unable to Upload Mission</string>
+    <string name="MissionDisengageReason_start_mission_failed_title">Unable to Start Mission</string>
     <string name="MissionDisengageReason_telemetry_delayed_title">Telemetry Delayed</string>
     <string name="MissionDisengageReason_drone_max_altitude_title">Max Altitude Reached</string>
     <string name="MissionDisengageReason_drone_max_altitude_details">Increase the max altitude setting to continue.</string>
@@ -15,6 +21,11 @@
     <string name="MissionDisengageReason_drone_camera_unavailable_title">Camera Unavailable</string>
     <string name="MissionDisengageReason_drone_camera_mode_invalid_title">Camera Mode Invalid</string>
     <string name="MissionDisengageReason_drone_gimbal_unavailable_title">Gimbal Unavailable</string>
+    <string name="DJIWaypointMissionSession_statusMessage_uploading_title">Uploading waypoints | %1$d of %2$d</string>
+    <string name="DJIWaypointMissionSession_statusMessage_component_title">Component %1$d of %2$d</string>
+    <string name="DJIWaypointMissionSession_statusMessage_waypoint_0_title">Approaching waypoint %1$d of %2$d</string>
+    <string name="DJIWaypointMissionSession_statusMessage_waypoint_n_title">Flying to waypoint %1$d of %2$d | %3$s</string>
+    <string name="DJIWaypointMissionSession.statusMessage_reengaging_title">Resuming at %1$s to waypoint %2$d…</string>
     <string name="DJIDroneSession_cameraCommand_stop_capture_error">Camera still capturing</string>
     <string name="DJIDroneSession_cameraCommand_start_shoot_photo_no_file">Media File Not Created</string>
     <string name="DJIDroneSession_cameraCommand_focus_distance_error">Uncalibrated Focus Distance</string>

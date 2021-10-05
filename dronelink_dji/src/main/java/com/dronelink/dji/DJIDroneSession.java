@@ -21,7 +21,9 @@ import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
 import com.dronelink.core.DroneSession;
+import com.dronelink.core.DroneSessionManager;
 import com.dronelink.core.Dronelink;
+import com.dronelink.core.Executor;
 import com.dronelink.core.MissionExecutor;
 import com.dronelink.core.ModeExecutor;
 import com.dronelink.core.Version;
@@ -114,6 +116,7 @@ import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.Orientation3Optional;
 import com.dronelink.core.kernel.core.enums.CameraMode;
+import com.dronelink.core.kernel.core.enums.ExecutionEngine;
 import com.dronelink.core.kernel.core.enums.GimbalMode;
 import com.dronelink.dji.adapters.DJICameraStateAdapter;
 import com.dronelink.dji.adapters.DJIDroneAdapter;
@@ -121,6 +124,8 @@ import com.dronelink.dji.adapters.DJIDroneStateAdapter;
 import com.dronelink.dji.adapters.DJIGimbalAdapter;
 import com.dronelink.dji.adapters.DJIGimbalStateAdapter;
 import com.dronelink.dji.adapters.DJIRemoteControllerStateAdapter;
+
+import org.json.JSONException;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -179,10 +184,14 @@ public class DJIDroneSession implements DroneSession {
     private static final String TAG = DJIDroneSession.class.getCanonicalName();
 
     private final Context context;
+    private final DroneSessionManager manager;
     private final DJIDroneAdapter adapter;
 
     private final Date opened = new Date();
     private boolean closed = false;
+    public boolean isClosed() {
+        return closed;
+    }
 
     private final List<Listener> listeners = new LinkedList<>();
     private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
@@ -221,8 +230,9 @@ public class DJIDroneSession implements DroneSession {
     private KeyListener focusRingMaxListener;
     private KeyListener lowBatteryWarningThresholdListener;
 
-    public DJIDroneSession(final Context context, final Aircraft drone) {
+    public DJIDroneSession(final Context context, final DJIDroneSessionManager manager, final Aircraft drone) {
         this.context = context;
+        this.manager = manager;
         this.adapter = new DJIDroneAdapter(drone);
         initDrone();
 
@@ -920,6 +930,11 @@ public class DJIDroneSession implements DroneSession {
     }
 
     @Override
+    public DroneSessionManager getManager() {
+        return manager;
+    }
+
+    @Override
     public DroneAdapter getDrone() {
         return adapter;
     }
@@ -1000,11 +1015,15 @@ public class DJIDroneSession implements DroneSession {
 
     @Override
     public boolean isTelemetryDelayed() {
-        return System.currentTimeMillis() - getState().date.getTime() > 1000;
+        return System.currentTimeMillis() - getState().date.getTime() > 2000;
     }
 
     @Override
     public Message getDisengageReason() {
+        if (closed) {
+            return new Message(context.getString(R.string.MissionDisengageReason_drone_disconnected_title));
+        }
+
         if (adapter.getDrone().getFlightController() == null) {
             return new Message(context.getString(R.string.MissionDisengageReason_drone_control_unavailable_title));
         }
@@ -1211,8 +1230,25 @@ public class DJIDroneSession implements DroneSession {
     }
 
     @Override
-    public DroneControlSession createControlSession(final Context context) {
-        return new DJIControlSession(context, this);
+    public DroneControlSession createControlSession(final Context context, final ExecutionEngine executionEngine, final Executor executor) {
+        switch (executionEngine) {
+            case DRONELINK_KERNEL:
+                return new DJIVirtualStickSession(context, this);
+
+            case DJI:
+                if (executor instanceof MissionExecutor) {
+                    try {
+                        return new DJIWaypointMissionSession(context, this, (MissionExecutor)executor);
+                    } catch (final JSONException e) {
+                        return null;
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
+        return null;
     }
 
     @Override
@@ -1425,7 +1461,7 @@ public class DJIDroneSession implements DroneSession {
 
         if (command instanceof HomeLocationDroneCommand) {
             final GeoCoordinate coordinate = ((HomeLocationDroneCommand) command).coordinate;
-            flightController.setHomeLocation(new LocationCoordinate2D(coordinate.latitude, coordinate.longitude), createCompletionCallback(finished));
+            flightController.setHomeLocation(DronelinkDJI.getCoordinate(coordinate), createCompletionCallback(finished));
             return null;
         }
 

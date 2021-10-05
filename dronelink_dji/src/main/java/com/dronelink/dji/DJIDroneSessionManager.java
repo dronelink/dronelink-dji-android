@@ -72,6 +72,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
     public void register(final Context context) {
         if (isRegistrationInProgress.compareAndSet(false, true)) {
+            final DJIDroneSessionManager self = this;
             AsyncTask.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -107,7 +108,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                                     closeSession();
                                 }
 
-                                session = new DJIDroneSession(context, drone);
+                                session = new DJIDroneSession(context, self, drone);
                                 for (final Listener listener : listeners) {
                                     listener.onOpened(session);
                                 }
@@ -138,6 +139,11 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                                         }
                                     }
                                 });
+                            }
+                            else if (oldComponent != null) {
+                                if (!oldComponent.isConnected()) {
+                                    componentDisconnected(newComponent);
+                                }
                             }
                         }
 
