@@ -32,6 +32,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<VisionDetectionState> visionDetectionState;
     public DatedValue<Integer> airLinkSignalQuality;
     public DatedValue<Integer> lowBatteryWarningThreshold;
+    public DatedValue<Integer> remoteControllerGimbalChannel;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
     public String name;

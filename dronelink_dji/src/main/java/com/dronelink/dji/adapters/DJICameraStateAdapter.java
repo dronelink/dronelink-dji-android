@@ -11,6 +11,7 @@ import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.dji.DronelinkDJI;
 
+import dji.common.camera.CameraVideoStreamSource;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.FocusState;
 import dji.common.camera.SettingsDefinitions;
@@ -19,20 +20,24 @@ import dji.common.camera.SystemState;
 
 public class DJICameraStateAdapter implements CameraStateAdapter {
     public final SystemState state;
+    public final CameraVideoStreamSource videoStreamSource;
     public final FocusState focusState;
     public final StorageState storageState;
     public final ExposureSettings exposureSettings;
     public final SettingsDefinitions.ExposureCompensation exposureCompensation;
+    public final int lensIndex;
     public final String lensInformation;
     public final Double focusRingValue;
     public final Double focusRingMax;
 
-    public DJICameraStateAdapter(final SystemState state, final FocusState focusState, final StorageState storageState, final ExposureSettings exposureSettings, final SettingsDefinitions.ExposureCompensation exposureCompensation, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
+    public DJICameraStateAdapter(final SystemState state, final CameraVideoStreamSource videoStreamSource, final FocusState focusState, final StorageState storageState, final ExposureSettings exposureSettings, final SettingsDefinitions.ExposureCompensation exposureCompensation, final int lensIndex, final String lensInformation, final Double focusRingValue, final Double focusRingMax) {
         this.state = state;
+        this.videoStreamSource = videoStreamSource;
         this.focusState = focusState;
         this.storageState = storageState;
         this.exposureSettings = exposureSettings;
         this.exposureCompensation = exposureCompensation;
+        this.lensIndex = lensIndex;
         this.lensInformation = lensInformation;
         this.focusRingValue = focusRingValue;
         this.focusRingMax = focusRingMax;
@@ -83,6 +88,11 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
             return storageState.isInserted();
         }
         return true;
+    }
+
+    @Override
+    public com.dronelink.core.kernel.core.enums.CameraVideoStreamSource getVideoStreamSource() {
+        return videoStreamSource == null ? com.dronelink.core.kernel.core.enums.CameraVideoStreamSource.UNKNOWN : DronelinkDJI.getCameraVideoStreamSource(videoStreamSource);
     }
 
     @Override
@@ -171,6 +181,11 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
                 return CameraExposureCompensation.UNKNOWN;
         }
         return CameraExposureCompensation.UNKNOWN;
+    }
+
+    @Override
+    public int getLensIndex() {
+        return lensIndex;
     }
 
     @Override

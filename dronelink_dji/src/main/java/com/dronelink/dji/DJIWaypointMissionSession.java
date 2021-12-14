@@ -219,6 +219,12 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                 updateExternalExecutionState(new HashMap<String, String>() {{
                     put("revertDisengagment", "true");
                 }});
+
+                if (loadedMission.getWaypointCount() < currentDJIWaypointMission.getWaypointCount()) {
+                    resumeWaypointIndex = currentDJIWaypointMission.getWaypointCount() - loadedMission.getWaypointCount();
+                    resumeWaypointProgress = executionState.waypointProgress;
+                }
+
                 state = State.ACTIVATED;
                 startProgressListeners();
                 return;

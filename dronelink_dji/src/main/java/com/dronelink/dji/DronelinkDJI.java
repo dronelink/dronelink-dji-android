@@ -11,6 +11,8 @@ import android.location.Location;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.command.CommandError;
+import com.dronelink.core.kernel.command.camera.DisplayModeCameraCommand;
+import com.dronelink.core.kernel.command.drone.OcuSyncVideoFeedSourcesDroneCommand;
 import com.dronelink.core.kernel.component.DJIWaypointMissionComponent;
 import com.dronelink.core.kernel.component.DJIWaypointMissionComponentWaypoint;
 import com.dronelink.core.kernel.component.DJIWaypointMissionComponentWaypointAction;
@@ -18,6 +20,7 @@ import com.dronelink.core.kernel.core.GeoCoordinate;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraColor;
+import com.dronelink.core.kernel.core.enums.CameraDisplayMode;
 import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraExposureMode;
 import com.dronelink.core.kernel.core.enums.CameraFileIndexMode;
@@ -37,6 +40,7 @@ import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
 import com.dronelink.core.kernel.core.enums.CameraVideoMode;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraVideoStandard;
+import com.dronelink.core.kernel.core.enums.CameraVideoStreamSource;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.core.kernel.core.enums.DJIWaypointActionType;
 import com.dronelink.core.kernel.core.enums.DJIWaypointMissionFinishedAction;
@@ -49,6 +53,7 @@ import com.dronelink.core.kernel.core.enums.DroneLightbridgeChannelSelectionMode
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
+import com.dronelink.core.kernel.core.enums.VideoFeedSource;
 
 import java.util.List;
 import java.util.Map;
@@ -56,6 +61,7 @@ import java.util.Map;
 import dji.common.airlink.ChannelSelectionMode;
 import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
+import dji.common.airlink.PhysicalSource;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.SystemState;
 import dji.common.error.DJIError;
@@ -77,10 +83,12 @@ import dji.common.model.LocationCoordinate2D;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
 import dji.sdk.camera.Camera;
+import dji.sdk.camera.Lens;
+import dji.sdk.camera.VideoFeeder;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.products.Aircraft;
+import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKManager;
-import dji.waypointv2.common.waypointv1.GotoWaypointMode;
 
 public class DronelinkDJI {
     public static final double GimbalRotationMinTime = 0.1;
@@ -138,6 +146,79 @@ public class DronelinkDJI {
         return OcuSyncFrequencyBand.UNKNOWN;
     }
 
+    public static PhysicalSource getOcuSyncFeedSource(final OcuSyncVideoFeedSourcesDroneCommand command, final int channel) {
+        final VideoFeedSource source = command.ocuSyncVideoFeedSources.get(channel);
+        if (source != null) {
+            return getVideoFeedPhysicalSource(source);
+        }
+
+        return PhysicalSource.UNKNOWN;
+    }
+
+
+    public static boolean isMultipleVideoFeedsEnabled(final Aircraft drone) {
+        //TODO is there a better way to do this?
+        switch (drone.getModel()) {
+            case MATRICE_210:
+            case MATRICE_210_V2:
+            case MATRICE_210_RTK:
+            case MATRICE_200:
+            case MATRICE_200_V2:
+            case MATRICE_300_RTK:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    public static VideoFeeder.VideoFeed getVideoFeed(final int channel) {
+        switch (channel) {
+            case 0: return VideoFeeder.getInstance().getPrimaryVideoFeed();
+            case 1: return VideoFeeder.getInstance().getSecondaryVideoFeed();
+            default: return null;
+        }
+    }
+
+    public static Integer getChannel(final VideoFeeder.VideoFeed videoFeed) {
+        if (VideoFeeder.getInstance().getPrimaryVideoFeed() == videoFeed) {
+            return 0;
+        }
+
+        if (VideoFeeder.getInstance().getSecondaryVideoFeed() == videoFeed) {
+            return 1;
+        }
+
+        return null;
+    }
+
+    public static RemoteController getRemoteController(final Aircraft drone, final int channel) {
+        return drone.getRemoteController();
+    }
+
+    public static Integer getCameraChannel(final PhysicalSource source) {
+        switch (source) {
+            case MAIN_CAM:
+            case LEFT_CAM:
+                return 0;
+
+            case RIGHT_CAM:
+                return 1;
+
+            case TOP_CAM:
+                return 2;
+
+            case FPV_CAM:
+            case EXT:
+            case LB:
+            case HDMI:
+            case AV:
+            case UNKNOWN:
+            default:
+                return null;
+        }
+    }
+
     public static Camera getCamera(final Aircraft drone, final int channel) {
         final List<Camera> cameras = drone.getCameras();
         if (cameras == null) {
@@ -150,6 +231,15 @@ public class DronelinkDJI {
             }
         }
         return null;
+    }
+
+    public static Lens getLens(final Camera camera, final int index) {
+        final List<Lens> lenses = camera.getLenses();
+        if (lenses == null || lenses.size() <= index) {
+            return null;
+        }
+
+        return lenses.get(index);
     }
 
     public static SettingsDefinitions.PhotoAEBCount getCameraAEBCount(final CameraAEBCount value) {
@@ -241,6 +331,17 @@ public class DronelinkDJI {
             case UNKNOWN: return SettingsDefinitions.CameraColor.UNKNOWN;
         }
         return SettingsDefinitions.CameraColor.UNKNOWN;
+    }
+
+    public static SettingsDefinitions.DisplayMode getCameraDisplayMode(final CameraDisplayMode value) {
+        switch (value) {
+            case VISUAL: return SettingsDefinitions.DisplayMode.VISUAL_ONLY;
+            case THERMAL: return SettingsDefinitions.DisplayMode.THERMAL_ONLY;
+            case PIP: return SettingsDefinitions.DisplayMode.PIP;
+            case MSX: return SettingsDefinitions.DisplayMode.MSX;
+            case UNKNOWN: return SettingsDefinitions.DisplayMode.OTHER;
+        }
+        return SettingsDefinitions.DisplayMode.OTHER;
     }
 
     public static SettingsDefinitions.ExposureCompensation getCameraExposureCompensation(final CameraExposureCompensation value) {
@@ -623,6 +724,36 @@ public class DronelinkDJI {
         return SettingsDefinitions.VideoStandard.UNKNOWN;
     }
 
+    public static CameraVideoStreamSource getCameraVideoStreamSource(final dji.common.camera.CameraVideoStreamSource value) {
+        switch (value) {
+            case ZOOM: return CameraVideoStreamSource.ZOOM;
+            case WIDE: return CameraVideoStreamSource.WIDE;
+            case INFRARED_THERMAL: return CameraVideoStreamSource.THERMAL;
+            case UNKNOWN: return CameraVideoStreamSource.UNKNOWN;
+        }
+        return CameraVideoStreamSource.UNKNOWN;
+    }
+
+    public static dji.common.camera.CameraVideoStreamSource getCameraVideoStreamSource(final CameraVideoStreamSource value) {
+        switch (value) {
+            case ZOOM: return dji.common.camera.CameraVideoStreamSource.ZOOM;
+            case WIDE: return dji.common.camera.CameraVideoStreamSource.WIDE;
+            case THERMAL: return dji.common.camera.CameraVideoStreamSource.INFRARED_THERMAL;
+            case UNKNOWN: return dji.common.camera.CameraVideoStreamSource.UNKNOWN;
+        }
+        return dji.common.camera.CameraVideoStreamSource.UNKNOWN;
+    }
+
+    public static SettingsDefinitions.LensType getCameraVideoStreamSourceLensType(final CameraVideoStreamSource value) {
+        switch (value) {
+            case ZOOM: return SettingsDefinitions.LensType.ZOOM;
+            case WIDE: return SettingsDefinitions.LensType.WIDE;
+            case THERMAL: return SettingsDefinitions.LensType.INFRARED_THERMAL;
+            case UNKNOWN: return SettingsDefinitions.LensType.UNKNOWN;
+        }
+        return SettingsDefinitions.LensType.UNKNOWN;
+    }
+
     public static SettingsDefinitions.WhiteBalancePreset getCameraWhiteBalancePreset(final CameraWhiteBalancePreset value) {
         switch (value) {
             case AUTO: return SettingsDefinitions.WhiteBalancePreset.AUTO;
@@ -860,5 +991,21 @@ public class DronelinkDJI {
         location.setLatitude(value.getLatitude());
         location.setLongitude(value.getLongitude());
         return location;
+    }
+
+    public static PhysicalSource getVideoFeedPhysicalSource(final VideoFeedSource value) {
+        switch (value) {
+            case MAIN_CAMERA: return PhysicalSource.MAIN_CAM;
+            case FPV_CAMERA: return PhysicalSource.FPV_CAM;
+            case LB: return PhysicalSource.LB;
+            case EXT: return PhysicalSource.EXT;
+            case HDMI: return PhysicalSource.HDMI;
+            case AV: return PhysicalSource.AV;
+            case LEFT_CAMERA: return PhysicalSource.LEFT_CAM;
+            case RIGHT_CAMERA: return PhysicalSource.RIGHT_CAM;
+            case TOP_CAMERA: return PhysicalSource.TOP_CAM;
+            case UNKNOWN: return PhysicalSource.UNKNOWN;
+        }
+        return PhysicalSource.UNKNOWN;
     }
 }

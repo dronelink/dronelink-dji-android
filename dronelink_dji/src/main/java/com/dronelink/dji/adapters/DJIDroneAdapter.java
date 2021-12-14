@@ -6,8 +6,6 @@
 //
 package com.dronelink.dji.adapters;
 
-import android.util.Log;
-
 import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
@@ -31,9 +29,9 @@ import dji.common.flightcontroller.virtualstick.FlightCoordinateSystem;
 import dji.common.flightcontroller.virtualstick.RollPitchControlMode;
 import dji.common.flightcontroller.virtualstick.VerticalControlMode;
 import dji.common.flightcontroller.virtualstick.YawControlMode;
-import dji.common.gimbal.GimbalState;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.camera.Camera;
+import dji.sdk.camera.VideoFeeder;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.products.Aircraft;
@@ -83,7 +81,7 @@ public class DJIDroneAdapter implements DroneAdapter {
     }
 
     @Override
-    public RemoteControllerAdapter getRemoteController(int channel) {
+    public RemoteControllerAdapter getRemoteController(final int channel) {
         final RemoteControllerAdapter remoteControllerAdapter = remoteControllers.get(channel);
         if (remoteControllerAdapter == null && channel < 1) {
             final RemoteController remoteController = drone.getRemoteController();
@@ -95,7 +93,30 @@ public class DJIDroneAdapter implements DroneAdapter {
     }
 
     @Override
-    public CameraAdapter getCamera(int channel) {
+    public Integer getCameraChannel(final Integer videoFeedChannel) {
+        if (!DronelinkDJI.isMultipleVideoFeedsEnabled(drone)) {
+            return 0;
+        }
+
+        if (videoFeedChannel != null) {
+            final VideoFeeder.VideoFeed videoFeed = DronelinkDJI.getVideoFeed(videoFeedChannel);
+            if (videoFeed != null) {
+                return DronelinkDJI.getCameraChannel(videoFeed.getVideoSource());
+            }
+        }
+
+        for (int channel = 0; channel < 3; channel++) {
+            final VideoFeeder.VideoFeed videoFeed = DronelinkDJI.getVideoFeed(channel);
+            if (videoFeed != null) {
+                return DronelinkDJI.getCameraChannel(videoFeed.getVideoSource());
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public CameraAdapter getCamera(final int channel) {
         final CameraAdapter cameraAdapter = cameras.get(channel);
         if (cameraAdapter == null) {
             final Camera camera = DronelinkDJI.getCamera(drone, channel);
@@ -107,7 +128,7 @@ public class DJIDroneAdapter implements DroneAdapter {
     }
 
     @Override
-    public GimbalAdapter getGimbal(int channel) {
+    public GimbalAdapter getGimbal(final int channel) {
         final GimbalAdapter gimbalAdapter = gimbals.get(channel);
         if (gimbalAdapter == null) {
             final Gimbal gimbal = DronelinkDJI.getGimbal(drone, channel);
