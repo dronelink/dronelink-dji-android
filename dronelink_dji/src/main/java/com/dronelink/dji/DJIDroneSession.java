@@ -324,50 +324,53 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         final ModeExecutor modeExecutor = Dronelink.getInstance().getModeExecutor();
                         final boolean missionExecutorEngaged = (missionExecutor != null && missionExecutor.isEngaged());
                         if (missionExecutorEngaged || (modeExecutor != null && modeExecutor.isEngaged())) {
-                            gimbalSerialQueue.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
-                                    for (final GimbalAdapter gimbalAdapter : adapter.getGimbals()) {
-                                        if (gimbalAdapter instanceof DJIGimbalAdapter) {
-                                            final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter)gimbalAdapter;
-                                            Rotation.Builder rotationBuilder = djiGimbalAdapter.getPendingSpeedRotation();
-                                            djiGimbalAdapter.setPendingSpeedRotationBuilder(null);
-                                            if (DronelinkDJI.isAdjustYawSupported(djiGimbalAdapter.gimbal) && !DronelinkDJI.isAdjustYaw360Supported(djiGimbalAdapter.gimbal)) {
-                                                final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
-                                                if (gimbalState != null && gimbalState.value.getMode() == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
-                                                    if (rotationBuilder == null) {
-                                                        rotationBuilder = new Rotation.Builder();
-                                                        rotationBuilder.mode(RotationMode.SPEED);
-                                                    }
-
-                                                    rotationBuilder.yaw((float)Math.min(Math.max(-Convert.RadiansToDegrees(gimbalYawRelativeToAircraftHeadingCorrected(gimbalState.value)) * 0.25, -25.0), 25.0));
-                                                }
-                                            }
-                                            
-                                            if (missionExecutorEngaged && DronelinkDJI.isAdjustPitchSupported(djiGimbalAdapter.gimbal)) {
-                                                final DatedValue<Integer> remoteControllerGimbalChannel = state.remoteControllerGimbalChannel;
-                                                final int channel = remoteControllerGimbalChannel == null || remoteControllerGimbalChannel.value == null ? 0 : remoteControllerGimbalChannel.value;
-                                                if (channel == gimbalAdapter.getIndex()) {
-                                                    final DatedValue<RemoteControllerStateAdapter> remoteControllerState = getRemoteControllerState(channel);
-                                                    if (remoteControllerState != null && remoteControllerState.value != null && remoteControllerState.value.getLeftWheel().value != 0) {
+                            //FIXME: ignoring on Mavic Air 2S due to gimbal attitude bug, ignore when they fix!
+                            if (!getModel().equals("DJI Air 2S")) {
+                                gimbalSerialQueue.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
+                                        for (final GimbalAdapter gimbalAdapter : adapter.getGimbals()) {
+                                            if (gimbalAdapter instanceof DJIGimbalAdapter) {
+                                                final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter) gimbalAdapter;
+                                                Rotation.Builder rotationBuilder = djiGimbalAdapter.getPendingSpeedRotation();
+                                                djiGimbalAdapter.setPendingSpeedRotationBuilder(null);
+                                                if (DronelinkDJI.isAdjustYawSupported(djiGimbalAdapter.gimbal) && !DronelinkDJI.isAdjustYaw360Supported(djiGimbalAdapter.gimbal)) {
+                                                    final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
+                                                    if (gimbalState != null && gimbalState.value.getMode() == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
                                                         if (rotationBuilder == null) {
                                                             rotationBuilder = new Rotation.Builder();
                                                             rotationBuilder.mode(RotationMode.SPEED);
                                                         }
 
-                                                        rotationBuilder.pitch((int)(remoteControllerState.value.getLeftWheel().value * 10));
+                                                        rotationBuilder.yaw((float) Math.min(Math.max(-Convert.RadiansToDegrees(gimbalYawRelativeToAircraftHeadingCorrected(gimbalState.value)) * 0.25, -25.0), 25.0));
                                                     }
                                                 }
-                                            }
 
-                                            if (rotationBuilder != null) {
-                                                djiGimbalAdapter.gimbal.rotate(rotationBuilder.build(), null);
+                                                if (missionExecutorEngaged && DronelinkDJI.isAdjustPitchSupported(djiGimbalAdapter.gimbal)) {
+                                                    final DatedValue<Integer> remoteControllerGimbalChannel = state.remoteControllerGimbalChannel;
+                                                    final int channel = remoteControllerGimbalChannel == null || remoteControllerGimbalChannel.value == null ? 0 : remoteControllerGimbalChannel.value;
+                                                    if (channel == gimbalAdapter.getIndex()) {
+                                                        final DatedValue<RemoteControllerStateAdapter> remoteControllerState = getRemoteControllerState(channel);
+                                                        if (remoteControllerState != null && remoteControllerState.value != null && remoteControllerState.value.getLeftWheel().value != 0) {
+                                                            if (rotationBuilder == null) {
+                                                                rotationBuilder = new Rotation.Builder();
+                                                                rotationBuilder.mode(RotationMode.SPEED);
+                                                            }
+
+                                                            rotationBuilder.pitch((int) (remoteControllerState.value.getLeftWheel().value * 10));
+                                                        }
+                                                    }
+                                                }
+
+                                                if (rotationBuilder != null) {
+                                                    djiGimbalAdapter.gimbal.rotate(rotationBuilder.build(), null);
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                         sleep(100);
                     }
@@ -1363,8 +1366,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
         if (executor != null) {
             final Command c = new Command(
-                command.id,
-                command.type,
+                command,
                 executor,
                 new Command.Finisher() {
                     @Override
@@ -3086,6 +3088,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     }
 
     private CommandError executeGimbalCommand(final GimbalCommand command, final Command.Finisher finished) {
+        //FIXME: alternate path for the Air 2S since DJI has a bug with reporting gimbal state, remove this when they fix the bug!
+        if (getModel().equals("DJI Air 2S")) {
+            return executeGimbalCommandAir2S(command, finished);
+        }
+
         final Gimbal gimbal = DronelinkDJI.getGimbal(adapter.getDrone(), command.channel);
         final DatedValue<GimbalStateAdapter> state = getGimbalState(command.channel);
         if (gimbal == null || state == null) {
@@ -3203,6 +3210,87 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 //                        @Override
 //                        public void execute() {
                             gimbal.setYawSimultaneousFollowEnabled(target, createCompletionCallback(finished));
+//                        }
+//                    });
+//                }
+//            }, finished));
+            return null;
+        }
+
+        return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
+    }
+
+    private CommandError executeGimbalCommandAir2S(final GimbalCommand command, final Command.Finisher finished) {
+        final Gimbal gimbal = DronelinkDJI.getGimbal(adapter.getDrone(), command.channel);
+        if (gimbal == null) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_drone_gimbal_unavailable_title));
+        }
+
+        if (command instanceof ModeGimbalCommand) {
+            final GimbalMode target = ((ModeGimbalCommand) command).mode;
+            gimbal.setMode(DronelinkDJI.getGimbalMode(target), new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(final DJIError djiError) {
+                    finished.execute(null);
+                }
+            });
+            return null;
+        }
+
+        if (command instanceof OrientationGimbalCommand) {
+            final Orientation3Optional orientation = ((OrientationGimbalCommand) command).orientation;
+            if (orientation.getPitch() == null && orientation.getRoll() == null && orientation.getYaw() == null) {
+                finished.execute(null);
+                return null;
+            }
+
+            final Rotation.Builder rotation = new Rotation.Builder();
+            rotation.time(DronelinkDJI.GimbalRotationMinTime);
+
+            Double pitch = orientation.getPitch() == null ? null : Convert.RadiansToDegrees(orientation.getPitch());
+            if (pitch != null && Math.abs(pitch + 90) < 0.1) {
+                pitch = -89.9;
+            }
+
+            Double roll = orientation.getRoll() == null ? null : Convert.RadiansToDegrees(orientation.getRoll());
+            if (pitch == null && roll == null) {
+                finished.execute(null);
+                return null;
+            }
+
+            if (pitch != null && DronelinkDJI.isAdjustPitchSupported(gimbal)) {
+                rotation.pitch(pitch.floatValue());
+            }
+
+            if (roll != null && DronelinkDJI.isAdjustRollSupported(gimbal)) {
+                rotation.roll(roll.floatValue());
+            }
+
+            rotation.mode(RotationMode.ABSOLUTE_ANGLE);
+            gimbal.rotate(rotation.build(), new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(final DJIError djiError) {
+                    if (djiError != null) {
+                        finished.execute(DronelinkDJI.createCommandError(djiError));
+                        return;
+                    }
+
+                    finished.execute(null);
+                }
+            });
+            return null;
+        }
+
+        if (command instanceof YawSimultaneousFollowGimbalCommand) {
+// TODO getYawSimultaneousFollowEnabled always returns false right now, DJI bug?
+//            gimbal.getYawSimultaneousFollowEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
+//                @Override
+//                public void execute(final Boolean current) {
+            final Boolean target = ((YawSimultaneousFollowGimbalCommand) command).enabled;
+//                    Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
+//                        @Override
+//                        public void execute() {
+            gimbal.setYawSimultaneousFollowEnabled(target, createCompletionCallback(finished));
 //                        }
 //                    });
 //                }
