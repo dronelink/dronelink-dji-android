@@ -36,6 +36,10 @@ public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAda
         return state == null ? null : new RemoteControllerButton(state.getPauseButton().isPresent(), state.getPauseButton().isClicked());
     }
 
+    public RemoteControllerButton getReturnHomeButton() {
+        return state == null ? null : new RemoteControllerButton(state.getGoHomeButton().isPresent(), state.getGoHomeButton().isClicked());
+    }
+
     public RemoteControllerButton getC1Button() {
         return state == null ? null : new RemoteControllerButton(state.getC1Button().isPresent(), state.getC1Button().isClicked());
     }
