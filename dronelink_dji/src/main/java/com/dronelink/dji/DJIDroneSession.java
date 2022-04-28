@@ -329,19 +329,29 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                                 public void run() {
                                     //work-around for this issue: https://support.dronelink.com/hc/en-us/community/posts/360034749773-Seeming-to-have-a-Heading-error-
                                     for (final GimbalAdapter gimbalAdapter : adapter.getGimbals()) {
+                                        //don't issue competing speed rotations, OrientationGimbalCommand always takes precedent
+                                        final CommandQueue queue = gimbalCommands.get(gimbalAdapter.getIndex());
+                                        if (queue != null) {
+                                            final Command currentCommand = queue.getCurrentCommand();
+                                            if (currentCommand != null && currentCommand.kernelCommand instanceof OrientationGimbalCommand) {
+                                                return;
+                                            }
+                                        }
+
                                         if (gimbalAdapter instanceof DJIGimbalAdapter) {
                                             final DJIGimbalAdapter djiGimbalAdapter = (DJIGimbalAdapter) gimbalAdapter;
                                             Rotation.Builder rotationBuilder = djiGimbalAdapter.getPendingSpeedRotation();
                                             djiGimbalAdapter.setPendingSpeedRotationBuilder(null);
-                                            if (DronelinkDJI.isAdjustYawSupported(djiGimbalAdapter.gimbal) && !DronelinkDJI.isAdjustYaw360Supported(djiGimbalAdapter.gimbal)) {
-                                                final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
-                                                if (gimbalState != null && gimbalState.value.getMode() == dji.common.gimbal.GimbalMode.YAW_FOLLOW) {
+                                            final DatedValue<GimbalState> gimbalState = gimbalStates.get(djiGimbalAdapter.getIndex());
+                                            if (gimbalState != null) {
+                                                Double gimbalYawRelativeToAircraftHeadingCorrected = gimbalYawRelativeToAircraftHeadingCorrected(gimbalState.value);
+                                                if (gimbalYawRelativeToAircraftHeadingCorrected != null) {
                                                     if (rotationBuilder == null) {
                                                         rotationBuilder = new Rotation.Builder();
                                                         rotationBuilder.mode(RotationMode.SPEED);
                                                     }
 
-                                                    rotationBuilder.yaw((float) Math.min(Math.max(-Convert.RadiansToDegrees(gimbalYawRelativeToAircraftHeadingCorrected(gimbalState.value)) * 0.25, -25.0), 25.0));
+                                                    rotationBuilder.yaw((float) Math.min(Math.max(-Convert.RadiansToDegrees(gimbalYawRelativeToAircraftHeadingCorrected) * 0.25, -25.0), 25.0));
                                                 }
                                             }
 
@@ -384,7 +394,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         }.start();
     }
 
-    private double gimbalYawRelativeToAircraftHeadingCorrected(final GimbalState gimbalState) {
+    private Double gimbalYawRelativeToAircraftHeadingCorrected(final GimbalState gimbalState) {
         final Aircraft drone = adapter.getDrone();
         if (drone != null && drone.getModel() != null) {
             switch (drone.getModel()) {
@@ -394,12 +404,13 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 case PHANTOM_4_ADVANCED:
                 case PHANTOM_4_RTK:
                     return Convert.AngleDifferenceSigned(Convert.DegreesToRadians(gimbalState.getAttitudeInDegrees().getYaw()), state.getOrientation().getYaw());
+
                 default:
                     break;
             }
         }
 
-        return Convert.DegreesToRadians(gimbalState.getYawRelativeToAircraftHeading());
+        return null;
     }
 
     private void initDrone() {
@@ -1420,12 +1431,25 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     }
 
     @Override
-    public DroneControlSession createControlSession(final Context context, final ExecutionEngine executionEngine, final Executor executor) throws UnsupportedExecutionEngineException {
+    public DroneControlSession createControlSession(final Context context, final ExecutionEngine executionEngine, final Executor executor) throws UnsupportedExecutionEngineException, UnsupportedDroneDJIExecutionEngineException {
         switch (executionEngine) {
             case DRONELINK_KERNEL:
                 return new DJIVirtualStickSession(context, this);
 
             case DJI:
+                switch (adapter.drone.getModel()) {
+                    case MAVIC_MINI:
+                    case DJI_MINI_2:
+                    case DJI_MINI_SE:
+                    case MAVIC_AIR_2:
+                    case DJI_AIR_2S:
+                    case MATRICE_300_RTK:
+                        throw new UnsupportedDroneDJIExecutionEngineException();
+
+                    default:
+                        break;
+                }
+
                 if (executor instanceof MissionExecutor) {
                     try {
                         return new DJIWaypointMissionSession(context, this, (MissionExecutor)executor);
