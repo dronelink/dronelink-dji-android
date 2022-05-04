@@ -8,17 +8,26 @@ package com.dronelink.dji;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
+import com.dronelink.core.adapters.DroneStateAdapter;
+import com.dronelink.core.kernel.core.Message;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
+import dji.common.flightcontroller.flyzone.FlyZoneState;
+import dji.common.realname.AppActivationState;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.flightcontroller.FlightController;
@@ -30,12 +39,65 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     private static final String TAG = DJIDroneSessionManager.class.getCanonicalName();
 
     private final Context context;
+    private DatedValue<FlyZoneState> flyZoneState;
+    private DatedValue<AppActivationState> appActivationState;
     private DJIDroneSession session;
     private AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
     private final List<Listener> listeners = new LinkedList<>();
 
     public DJIDroneSessionManager(final Context context) {
         this.context = context;
+
+        initFlyZoneManagerCallback(0);
+        initAppActivationManagerStateListener(0);
+    }
+
+    private void initFlyZoneManagerCallback(final int attempt) {
+        if (attempt < 5) {
+            if (DJISDKManager.getInstance().getFlyZoneManager() == null) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initFlyZoneManagerCallback(attempt + 1);
+                    }
+                }, attempt * 1000);
+                return;
+            }
+
+            DJISDKManager.getInstance().getFlyZoneManager().setFlyZoneStateCallback(new FlyZoneState.Callback() {
+                @Override
+                public void onUpdate(@NonNull final FlyZoneState state) {
+                    flyZoneState = new DatedValue<>(state);
+                }
+            });
+        }
+        else {
+            Log.e(TAG, "Unable to initialize DJI FlyZoneManager callback");
+        }
+    }
+
+    private void initAppActivationManagerStateListener(final int attempt) {
+        if (attempt < 5) {
+            if (DJISDKManager.getInstance().getAppActivationManager() == null) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initAppActivationManagerStateListener(attempt + 1);
+                    }
+                }, attempt * 1000);
+                return;
+            }
+
+            DJISDKManager.getInstance().getAppActivationManager().addAppActivationStateListener(new AppActivationState.AppActivationStateListener() {
+                @Override
+                public void onUpdate(final AppActivationState state) {
+                    appActivationState = new DatedValue<>(state);
+                }
+            });
+        }
+        else {
+            Log.e(TAG, "Unable to initialize DJI AppActivationManagerState listener");
+        }
     }
 
     @Override
@@ -68,6 +130,29 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     @Override
     public DroneSession getSession() {
         return session;
+    }
+
+    @Override
+    public List<Message> getStatusMessages() {
+        final List<Message> messages = new ArrayList<>();
+
+        final DatedValue<FlyZoneState> flyZoneState = this.flyZoneState;
+        if (flyZoneState != null && flyZoneState.value != null) {
+            final Message message = DronelinkDJI.getMessage(context, flyZoneState.value);
+            if (message != null) {
+                messages.add(message);
+            }
+        }
+
+        final DatedValue<AppActivationState> appActivationState = this.appActivationState;
+        if (appActivationState != null && appActivationState.value != null) {
+            final Message message = DronelinkDJI.getMessage(context, appActivationState.value);
+            if (message != null) {
+                messages.add(message);
+            }
+        }
+
+        return messages;
     }
 
     public void register(final Context context) {

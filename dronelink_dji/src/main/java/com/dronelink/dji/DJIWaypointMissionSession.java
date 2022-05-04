@@ -108,12 +108,12 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     case GO_HOME:
                     case AUTO_LANDING:
                         if (!terminalFlightModeAllowed) {
-                            return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), state.value.getFlightModeString());
+                            return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
                         }
                         break;
 
                     default:
-                        return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), state.value.getFlightModeString());
+                        return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
                 }
             }
 
@@ -123,7 +123,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     WaypointMissionState.NOT_SUPPORTED,
                     WaypointMissionState.EXECUTION_PAUSED
             })) {
-                return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title));
+                return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
             }
             else if (DronelinkDJI.isWaypointOperatorCurrentState(new WaypointMissionState[] {WaypointMissionState.DISCONNECTED})) {
                 return new Message(context.getString(R.string.MissionDisengageReason_drone_disconnected_title));
