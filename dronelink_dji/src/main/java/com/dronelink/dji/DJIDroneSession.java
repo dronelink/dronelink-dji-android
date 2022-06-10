@@ -418,6 +418,14 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 case PHANTOM_4_RTK:
                     return Convert.AngleDifferenceSigned(Convert.DegreesToRadians(gimbalState.getAttitudeInDegrees().getYaw()), state.getOrientation().getYaw());
 
+                case MAVIC_PRO:
+                case MAVIC_2:
+                case MAVIC_2_PRO:
+                case MAVIC_2_ZOOM:
+                case MAVIC_2_ENTERPRISE:
+                case MAVIC_2_ENTERPRISE_ADVANCED:
+                    return Convert.DegreesToRadians(gimbalState.getYawRelativeToAircraftHeading());
+
                 default:
                     break;
             }
