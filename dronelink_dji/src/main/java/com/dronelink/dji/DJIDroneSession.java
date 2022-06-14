@@ -181,6 +181,7 @@ import dji.keysdk.AirLinkKey;
 import dji.keysdk.CameraKey;
 import dji.keysdk.DJIKey;
 import dji.keysdk.FlightControllerKey;
+import dji.keysdk.KeyManager;
 import dji.keysdk.RemoteControllerKey;
 import dji.keysdk.callback.GetCallback;
 import dji.keysdk.callback.KeyListener;
@@ -397,8 +398,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         sleep(100);
                     }
 
-                    for (final KeyListener listener : djiKeyListeners) {
-                        DJISDKManager.getInstance().getKeyManager().removeListener(listener);
+                    final KeyManager manager = DJISDKManager.getInstance().getKeyManager();
+                    if (manager != null) {
+                        for (final KeyListener listener : djiKeyListeners) {
+                            manager.removeListener(listener);
+                        }
                     }
                     Log.i(TAG, "Drone session closed");
                 }
@@ -1082,8 +1086,13 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
     private void startListeningForChanges(final DJIKey key, final KeyListener listener) {
         djiKeyListeners.add(listener);
-        DJISDKManager.getInstance().getKeyManager().addListener(key, listener);
-        DJISDKManager.getInstance().getKeyManager().getValue(key, new GetCallback() {
+        final KeyManager manager = DJISDKManager.getInstance().getKeyManager();
+        if (manager == null) {
+            return;
+        }
+
+        manager.addListener(key, listener);
+        manager.getValue(key, new GetCallback() {
             @Override
             public void onSuccess(@NonNull final Object newValue) {
                 listener.onValueChange(null, newValue);
@@ -1316,9 +1325,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     }
 
     private void onInitialized() {
-        for (final Listener listener : listeners) {
-            listener.onInitialized(this);
-        }
+        final DJIDroneSession self = this;
+        listenerExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (final Listener listener : listeners) {
+                    listener.onInitialized(self);
+                }
+            }
+        });
     }
 
     private void onLocated() {
@@ -1370,9 +1385,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     }
 
     private void onCameraFileGenerated(final DJICameraFile file) {
-        for (final Listener listener : listeners) {
-            listener.onCameraFileGenerated(this, file);
-        }
+        final DJIDroneSession self = this;
+        listenerExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                for (final Listener listener : listeners) {
+                    listener.onCameraFileGenerated(self, file);
+                }
+            }
+        });
     }
 
     @Override

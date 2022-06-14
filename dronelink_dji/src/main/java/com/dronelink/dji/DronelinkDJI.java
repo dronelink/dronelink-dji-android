@@ -93,6 +93,7 @@ import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.mission.waypoint.WaypointTurnMode;
 import dji.common.model.LocationCoordinate2D;
+import dji.common.product.Model;
 import dji.common.realname.AppActivationState;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
@@ -102,6 +103,7 @@ import dji.sdk.camera.Camera;
 import dji.sdk.camera.Lens;
 import dji.sdk.camera.VideoFeeder;
 import dji.sdk.gimbal.Gimbal;
+import dji.sdk.mission.MissionControl;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
@@ -214,12 +216,13 @@ public class DronelinkDJI {
 
 
     public static boolean isMultipleVideoFeedsEnabled(final Aircraft drone) {
-        if (drone.getModel() == null) {
+        final Model model = drone.getModel();
+        if (model == null) {
             return false;
         }
 
         //TODO is there a better way to do this?
-        switch (drone.getModel()) {
+        switch (model) {
             case MATRICE_210:
             case MATRICE_210_V2:
             case MATRICE_210_RTK:
@@ -1273,7 +1276,12 @@ public class DronelinkDJI {
     }
 
     public static boolean isWaypointOperatorCurrentState(final WaypointMissionState[] states) {
-        return isWaypointMissionState(DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator().getCurrentState(), states);
+        final MissionControl missionControl = DJISDKManager.getInstance().getMissionControl();
+        if (missionControl == null) {
+            return false;
+        }
+
+        return isWaypointMissionState(missionControl.getWaypointMissionOperator().getCurrentState(), states);
     }
 
     public static boolean isWaypointMissionState(final WaypointMissionState currentState, final WaypointMissionState[] states) {
@@ -1775,6 +1783,10 @@ public class DronelinkDJI {
     }
 
     public static Message getMessage(final Context context, final GoHomeExecutionState state) {
+        if (state == null) {
+            return null;
+        }
+
         String details = null;
 
         Message.Level level = null;
@@ -1815,7 +1827,7 @@ public class DronelinkDJI {
                 break;
         }
 
-        return new Message(context.getString(R.string.DronelinkDJI_AppActivationState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_GoHomeExecutionState_title), details, level);
     }
 
     public static Message getMessage(final Context context, final WaypointMissionState state) {
@@ -1902,9 +1914,12 @@ public class DronelinkDJI {
                     break;
 
                 case GPS_WAYPOINT:
-                    final Message message = DronelinkDJI.getMessage(context, DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator().getCurrentState());
-                    if (message != null) {
-                        messages.add(message);
+                    final MissionControl missionControl = DJISDKManager.getInstance().getMissionControl();
+                    if (missionControl != null) {
+                        final Message message = DronelinkDJI.getMessage(context, missionControl.getWaypointMissionOperator().getCurrentState());
+                        if (message != null) {
+                            messages.add(message);
+                        }
                     }
                     break;
 

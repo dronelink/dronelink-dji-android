@@ -201,7 +201,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     }
 
     private void activating() {
-        if (state != State.ACTIVATING) {
+        if (state != State.ACTIVATING || djiWaypointMissionOperator == null) {
             return;
         }
 
@@ -254,7 +254,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     }
 
     private void startCurrentMission() {
-        if (state == State.DEACTIVATED) {
+        if (state == State.DEACTIVATED || djiWaypointMissionOperator == null) {
             return;
         }
 
@@ -350,7 +350,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
         @Override
         public void onUploadUpdate(final WaypointMissionUploadEvent event) {
-            if (state == State.DEACTIVATED) {
+            if (state == State.DEACTIVATED || djiWaypointMissionOperator == null) {
                 return;
             }
 
@@ -447,7 +447,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     }
 
     private void startProgressListeners() {
-        if (state != State.ACTIVATED) {
+        if (state != State.ACTIVATED || djiWaypointMissionOperator == null) {
             return;
         }
 
@@ -594,6 +594,10 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
     @Override
     public void deactivate() {
+        if (djiWaypointMissionOperator == null) {
+            return;
+        }
+
         djiWaypointMissionOperator.removeListener(uploadListener);
         djiWaypointMissionOperator.removeListener(progressListener);
         //for some reason we see the flight mode go to joystick after some missions sometimes, so force it out
@@ -629,7 +633,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     }
 
     private void finishCurrentMission() {
-        if (state != State.ACTIVATED) {
+        if (state != State.ACTIVATED || djiWaypointMissionOperator == null) {
             return;
         }
 
@@ -729,7 +733,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     }
 
     private void checkMissionFinishedOffline(final DroneSession session, final int attempt) {
-        if (attempt > 20) {
+        if (attempt > 20 || djiWaypointMissionOperator == null) {
             return;
         }
 
