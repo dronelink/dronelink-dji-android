@@ -68,9 +68,9 @@ import dji.common.airlink.OcuSyncFrequencyBand;
 import dji.common.airlink.PhysicalSource;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.SystemState;
-import dji.common.error.DJIDiagnosticError;
 import dji.common.error.DJIError;
-import dji.common.error.DJIUpgradeError;
+import dji.common.flightcontroller.CompassCalibrationState;
+import dji.common.flightcontroller.CompassSensorState;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.FlightMode;
@@ -104,7 +104,6 @@ import dji.sdk.camera.Lens;
 import dji.sdk.camera.VideoFeeder;
 import dji.sdk.gimbal.Gimbal;
 import dji.sdk.mission.MissionControl;
-import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKManager;
@@ -813,8 +812,41 @@ public class DronelinkDJI {
         return CameraPhotoMode.UNKNOWN;
     }
 
+    public static CameraPhotoMode getCameraPhotoMode(final SettingsDefinitions.FlatCameraMode value) {
+        switch (value) {
+            case PHOTO_TIME_LAPSE: return CameraPhotoMode.TIME_LAPSE;
+            case PHOTO_AEB: return CameraPhotoMode.AEB;
+            case PHOTO_SINGLE: return CameraPhotoMode.SINGLE;
+            case PHOTO_BURST: return CameraPhotoMode.BURST;
+            case PHOTO_HDR: return CameraPhotoMode.HDR;
+            case PHOTO_INTERVAL: return CameraPhotoMode.INTERVAL;
+            case PHOTO_HYPER_LIGHT: return CameraPhotoMode.HYPER_LIGHT;
+            case PHOTO_PANORAMA: return CameraPhotoMode.PANORAMA;
+            case PHOTO_HIGH_RESOLUTION: return CameraPhotoMode.HIGH_RESOLUTION;
+            case PHOTO_EHDR: return CameraPhotoMode.EHDR;
+            case PHOTO_COUNTDOWN:
+            case PHOTO_HYPER_LAPSE:
+            case PHOTO_SUPER_RESOLUTION:
+            case PHOTO_SMART:
+            case INTERNAL_AI_SPOT_CHECKING:
+            case SLOW_MOTION:
+            case VIDEO_NORMAL:
+            case VIDEO_HDR:
+            case VIDEO_ASTEROID:
+            case VIDEO_ROCKET:
+            case VIDEO_DRONIE:
+            case VIDEO_CIRCLE:
+            case VIDEO_HELIX:
+            case VIDEO_BOOMERANG:
+            case VIDEO_DOLLY_ZOOM:
+            case UNKNOWN: return CameraPhotoMode.UNKNOWN;
+        }
+        return CameraPhotoMode.UNKNOWN;
+    }
+
     public static SettingsDefinitions.ShutterSpeed getCameraShutterSpeed(final CameraShutterSpeed value) {
         switch (value) {
+            case AUTO: return SettingsDefinitions.ShutterSpeed.AUTO;
             case _1_8000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_8000;
             case _1_6400: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_6400;
             case _1_6000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_6000;
@@ -948,7 +980,7 @@ public class DronelinkDJI {
             case SHUTTER_SPEED_1_2: return CameraShutterSpeed._1_2;
             case SHUTTER_SPEED_1_1_DOT_67: return CameraShutterSpeed._1_1_DOT_67;
             case SHUTTER_SPEED_1_1_DOT_25: return CameraShutterSpeed.UNKNOWN;
-            case AUTO: return CameraShutterSpeed.UNKNOWN;
+            case AUTO: return CameraShutterSpeed.AUTO;
             case SHUTTER_SPEED_1: return CameraShutterSpeed._1;
             case SHUTTER_SPEED_1_DOT_3: return CameraShutterSpeed._1_DOT_3;
             case SHUTTER_SPEED_1_DOT_6: return CameraShutterSpeed._1_DOT_6;
@@ -2007,5 +2039,87 @@ public class DronelinkDJI {
                     level));
         }
         return messages;
+    }
+
+    public static Message getMessage(final Context context, final CompassCalibrationState state) {
+        if (state == null) {
+            return null;
+        }
+
+        String details = null;
+        Message.Level level = null;
+
+        switch (state) {
+            case NOT_CALIBRATING:
+            case UNKNOWN:
+                return null;
+
+            case HORIZONTAL:
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_HORIZONTAL);
+                level = Message.Level.WARNING;
+                break;
+
+            case VERTICAL:
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_VERTICAL);
+                level = Message.Level.WARNING;
+                break;
+
+            case SUCCESSFUL:
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_SUCCESSFUL);
+                level = Message.Level.INFO;
+                break;
+
+            case FAILED:
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_FAILED);
+                level = Message.Level.ERROR;
+                break;
+        }
+
+        return new Message(context.getString(R.string.DronelinkDJI_CompassCalibrationState_title), details, level);
+    }
+
+    public static Message getMessage(final Context context, final CompassSensorState state) {
+        if (state == null) {
+            return null;
+        }
+
+        String details = null;
+        Message.Level level = null;
+
+        switch (state) {
+            case DISCONNECTED:
+            case NORMAL_MODULUS:
+            case WEAK_MODULUS:
+            case SERIOUS_MODULUS:
+            case UNKNOWN:
+                return null;
+
+            case CALIBRATING:
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATING);
+                level = Message.Level.WARNING;
+                break;
+
+            case UNCALIBRATED:
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_UNCALIBRATED);
+                level = Message.Level.WARNING;
+                break;
+
+            case DATA_EXCEPTION:
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION);
+                level = Message.Level.ERROR;
+                break;
+
+            case CALIBRATION_FAILED:
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED);
+                level = Message.Level.ERROR;
+                break;
+
+            case DIRECTION_EXCEPTION:
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION);
+                level = Message.Level.ERROR;
+                break;
+        }
+
+        return new Message(context.getString(R.string.DronelinkDJI_CompassSensorState_title), details, level);
     }
 }

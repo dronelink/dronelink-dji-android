@@ -127,6 +127,7 @@ import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.Orientation3Optional;
 import com.dronelink.core.kernel.core.enums.CameraMode;
+import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
 import com.dronelink.core.kernel.core.enums.GimbalMode;
 import com.dronelink.dji.adapters.DJICameraStateAdapter;
@@ -164,6 +165,7 @@ import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
 import dji.common.camera.WhiteBalance;
 import dji.common.error.DJIError;
+import dji.common.flightcontroller.CompassState;
 import dji.common.flightcontroller.ConnectionFailSafeBehavior;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.flightcontroller.FlightMode;
@@ -197,6 +199,7 @@ import dji.sdk.battery.Battery;
 import dji.sdk.camera.Camera;
 import dji.sdk.camera.Lens;
 import dji.sdk.camera.VideoFeeder;
+import dji.sdk.flightcontroller.Compass;
 import dji.sdk.flightcontroller.FlightAssistant;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.flightcontroller.LandingGear;
@@ -237,7 +240,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
     private final SparseArray<DatedValue<CameraVideoStreamSource>> cameraVideoStreamSources = new SparseArray<>();
     private final Map<String, DatedValue<FocusState>> cameraFocusStates = new HashMap<>();
-    private final SparseArray<DatedValue<StorageState>> cameraStorageStates = new SparseArray<>();
+    private final SparseArray<Map<CameraStorageLocation, DatedValue<StorageState>>> cameraStorageStates = new SparseArray<>();
     private final Map<String, DatedValue<ExposureSettings>> cameraExposureSettings = new HashMap<>();
     private final SparseArray<DatedValue<SettingsDefinitions.ExposureCompensation>> cameraExposureCompensation = new SparseArray<>();
     private final SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
@@ -257,6 +260,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<ResolutionAndFrameRate> videoResolutionAndFrameRate;
     private DatedValue<WhiteBalance> whiteBalance;
     private DatedValue<SettingsDefinitions.ISO> iso;
+    private DatedValue<SettingsDefinitions.ShutterSpeed> shutterSpeed;
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
 
@@ -269,7 +273,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
     public DJIDroneSession(final Context context, final DroneSessionManager manager, final Aircraft drone) {
         this.context = context;
-        this.state = new DJIDroneStateAdapter(context);
+        this.state = new DJIDroneStateAdapter(context, drone);
         this.manager = manager;
         this.adapter = new DJIDroneAdapter(drone);
         initDrone();
@@ -627,6 +631,21 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
         });
 
+        final Compass compass = flightController.getCompass();
+        if (compass != null) {
+            compass.setCompassStateCallback(new CompassState.Callback() {
+                @Override
+                public void onUpdate(@NonNull final CompassState compassState) {
+                    stateSerialQueue.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            state.compassState = new DatedValue<>(compassState);
+                        }
+                    });
+                }
+            });
+        }
+
         final Battery battery = drone.getBattery();
         if (battery != null) {
             battery.setStateCallback(new BatteryState.Callback() {
@@ -764,14 +783,18 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         camera.setStorageStateCallBack(new StorageState.Callback() {
             @Override
             public void onUpdate(final StorageState storageState) {
-                if (storageState.getStorageLocation() == null || storageState.getStorageLocation() == SettingsDefinitions.StorageLocation.SDCARD) {
-                    cameraSerialQueue.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            cameraStorageStates.put(camera.getIndex(), new DatedValue<>(storageState));
+                cameraSerialQueue.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        final SettingsDefinitions.StorageLocation storageLocation = storageState.getStorageLocation() == null ? SettingsDefinitions.StorageLocation.UNKNOWN : storageState.getStorageLocation();
+                        Map<CameraStorageLocation, DatedValue<StorageState>> cameraStorageState = cameraStorageStates.get(camera.getIndex());
+                        if (cameraStorageState == null) {
+                            cameraStorageState = new HashMap<CameraStorageLocation, DatedValue<StorageState>>();
+                            cameraStorageStates.put(camera.getIndex(), cameraStorageState);
                         }
-                    });
-                }
+                        cameraStorageState.put(DronelinkDJI.getCameraStorageLocation(storageLocation), new DatedValue<>(storageState));
+                    }
+                });
             }
         });
 
@@ -991,6 +1014,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     }
 
     private void initListeners() {
+        startListeningForChanges(FlightControllerKey.create(FlightControllerKey.MAX_FLIGHT_HEIGHT), (oldValue, newValue) -> stateSerialQueue.execute(() -> {
+            if (newValue instanceof Integer)
+                state.maxFlightHeight = new DatedValue<>((Integer) newValue);
+            else if (oldValue instanceof Integer)
+                state.maxFlightHeight = new DatedValue<>((Integer) oldValue);
+            else
+                state.maxFlightHeight = null;
+        }));
+
         startListeningForChanges(FlightControllerKey.create(FlightControllerKey.LOW_BATTERY_WARNING_THRESHOLD), (oldValue, newValue) -> stateSerialQueue.execute(() -> {
             if (newValue instanceof Integer)
                 state.lowBatteryWarningThreshold = new DatedValue<>((Integer) newValue);
@@ -1054,6 +1086,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
         startListeningForChanges(CameraKey.create(CameraKey.ISO), (oldValue, newValue) -> {
             iso = newValue == null ? null : new DatedValue<>((SettingsDefinitions.ISO) newValue);
+        });
+
+        startListeningForChanges(CameraKey.create(CameraKey.SHUTTER_SPEED), (oldValue, newValue) -> {
+            shutterSpeed = newValue == null ? null : new DatedValue<>((SettingsDefinitions.ShutterSpeed) newValue);
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.FOCUS_RING_VALUE), (oldValue, newValue) -> {
@@ -1581,7 +1617,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
                     final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
                     final DatedValue<FocusState> focusState = cameraFocusStates.get(channel + "." + lensIndexResolved);
-                    final DatedValue<StorageState> storageState = cameraStorageStates.get(channel);
+                    final Map<CameraStorageLocation, DatedValue<StorageState>> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel + "." + lensIndexResolved);
                     final DatedValue<SettingsDefinitions.ExposureCompensation> exposureCompensation = cameraExposureCompensation.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
@@ -1589,7 +1625,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             systemState.value,
                             videoStreamSource == null ? null : videoStreamSource.value,
                             focusState == null ? null : focusState.value,
-                            storageState == null ? null : storageState.value,
+                            storageLocation == null || storageState == null || storageState.get(DronelinkDJI.getCameraStorageLocation(storageLocation.value)) == null ? null : storageState.get(DronelinkDJI.getCameraStorageLocation(storageLocation.value)).value,
                             exposureMode == null ? null : exposureMode.value,
                             exposureSettings == null ? null : exposureSettings.value,
                             lensIndexResolved,
@@ -1606,6 +1642,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             videoResolutionAndFrameRate == null ? null : videoResolutionAndFrameRate.value.getResolution(),
                             whiteBalance == null ? null : whiteBalance.value,
                             iso == null ? null : iso.value,
+                            shutterSpeed == null ? null : shutterSpeed.value,
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);

@@ -8,11 +8,17 @@ package com.dronelink.dji.adapters;
 
 
 import com.dronelink.core.Convert;
+import com.dronelink.core.Dronelink;
+import com.dronelink.core.Kernel;
+import com.dronelink.core.adapters.EnumElement;
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.kernel.command.gimbal.VelocityGimbalCommand;
 import com.dronelink.core.kernel.core.enums.GimbalMode;
 import com.dronelink.dji.DronelinkDJI;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -88,5 +94,35 @@ public class DJIGimbalAdapter implements GimbalAdapter {
                 pendingSpeedRotationBuilder = newPendingSpeedRotationBuilder;
             }
         });
+    }
+
+    public List<EnumElement> getEnumElements(final String parameter) {
+        final Map<String, String> enumDefinition = Dronelink.getInstance().getEnumDefinition(parameter);
+        if (enumDefinition == null) {
+            return null;
+        }
+
+        final List<String> range = new ArrayList<>();
+        switch (parameter) {
+            case "GimbalMode":
+                range.add(Kernel.enumRawValue(GimbalMode.YAW_FOLLOW));
+                if (DronelinkDJI.isAdjustYaw360Supported(gimbal)) {
+                    range.add(Kernel.enumRawValue(GimbalMode.FREE));
+                }
+                range.add(Kernel.enumRawValue(GimbalMode.FPV));
+                break;
+        }
+
+        final List<EnumElement> enumElements = new ArrayList<>();
+        for (final String rangeValue : range) {
+            if (rangeValue != null && !rangeValue.equals("unknown")) {
+                final String enumDisplay = enumDefinition.get(rangeValue);
+                if (enumDisplay != null) {
+                    enumElements.add(new EnumElement(enumDisplay, rangeValue));
+                }
+            }
+        }
+
+        return enumElements.isEmpty() ? null : enumElements;
     }
 }

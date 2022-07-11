@@ -27,21 +27,29 @@ import dji.common.airlink.LightbridgeFrequencyBand;
 import dji.common.airlink.OcuSyncFrequencyBand;
 import dji.common.battery.BatteryState;
 import dji.common.flightcontroller.Attitude;
+import dji.common.flightcontroller.CompassState;
 import dji.common.flightcontroller.FlightControllerState;
+import dji.common.flightcontroller.FlightMode;
 import dji.common.flightcontroller.GoHomeAssessment;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
 import dji.common.model.LocationCoordinate2D;
+import dji.sdk.flightcontroller.Compass;
+import dji.sdk.flightcontroller.FlightController;
+import dji.sdk.products.Aircraft;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {
     private final Context context;
+    private final Aircraft drone;
     public DatedValue<FlightControllerState> flightControllerState;
     public DatedValue<AirSenseSystemInformation> flightControllerAirSenseState;
     public DatedValue<List<Message>> diagnosticsInformationMessages;
+    public DatedValue<CompassState> compassState;
     public DatedValue<BatteryState> batteryState;
     public DatedValue<VisionDetectionState> visionDetectionState;
+    public DatedValue<Integer> maxFlightHeight;
     public DatedValue<Integer> uplinkSignalQuality;
     public DatedValue<Integer> downlinkSignalQuality;
     public DatedValue<Integer> lowBatteryWarningThreshold;
@@ -58,8 +66,9 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public boolean initVirtualStickDisabled = false;
     public Location lastKnownGroundLocation;
 
-    public DJIDroneStateAdapter(final Context context) {
+    public DJIDroneStateAdapter(final Context context, final Aircraft drone) {
         this.context = context;
+        this.drone = drone;
     }
 
     public DatedValue<DroneStateAdapter> toDatedValue() {
@@ -76,6 +85,13 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         }
         else {
             messages.add(new Message(context.getString(com.dronelink.dji.R.string.DJIDroneSession_telemetry_unavailable), Message.Level.DANGER));
+        }
+
+        if (compassState != null && compassState.value != null) {
+            final Message message = DronelinkDJI.getMessage(context, compassState.value.getSensorState());
+            if (message != null) {
+                messages.add(message);
+            }
         }
 
         final DatedValue<AirSenseSystemInformation> airSenseState = flightControllerAirSenseState;
@@ -104,6 +120,42 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public boolean isFlying() {
         final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState != null && flightControllerState.value.isFlying();
+    }
+
+    @Override
+    public boolean isReturningHome() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        return flightControllerState != null && flightControllerState.value.getFlightMode() == FlightMode.GO_HOME;
+    }
+
+    @Override
+    public boolean isLanding() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        return flightControllerState != null && flightControllerState.value.getFlightMode() == FlightMode.AUTO_LANDING;
+    }
+
+    @Override
+    public boolean isCompassCalibrating() {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController != null) {
+            final Compass compass = flightController.getCompass();
+            if (compass != null) {
+                return compass.isCalibrating();
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Message getCompassCalibrationMessage() {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController != null) {
+            final Compass compass = flightController.getCompass();
+            if (compass != null) {
+                return DronelinkDJI.getMessage(context, compass.getCalibrationState());
+            }
+        }
+        return null;
     }
 
     @Override
@@ -205,7 +257,6 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         return location.getAltitude();
     }
 
-
     @Override
     public Double getUltrasonicAltitude() {
         final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
@@ -218,6 +269,24 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         }
 
         return null;
+    }
+
+    @Override
+    public Double getReturnHomeAltitude() {
+        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
+        if (flightControllerState == null) {
+            return null;
+        }
+
+        return (double)flightControllerState.value.getGoHomeHeight();
+    }
+
+    @Override
+    public Double getMaxAltitude() {
+        if (maxFlightHeight == null) {
+            return null;
+        }
+        return (double)maxFlightHeight.value;
     }
 
     @Override

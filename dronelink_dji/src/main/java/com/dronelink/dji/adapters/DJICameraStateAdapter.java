@@ -55,6 +55,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.VideoResolution videoResolution;
     public final WhiteBalance whiteBalance;
     public final SettingsDefinitions.ISO iso;
+    public final SettingsDefinitions.ShutterSpeed shutterSpeed;
     public final Double focusRingValue;
     public final Double focusRingMax;
 
@@ -79,6 +80,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final SettingsDefinitions.VideoResolution videoResolution,
             final WhiteBalance whiteBalance,
             final SettingsDefinitions.ISO iso,
+            final SettingsDefinitions.ShutterSpeed shutterSpeed,
             final Double focusRingValue,
             final Double focusRingMax) {
         this.state = state;
@@ -101,6 +103,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         this.videoResolution = videoResolution;
         this.whiteBalance = whiteBalance;
         this.iso = iso;
+        this.shutterSpeed = shutterSpeed;
         this.focusRingValue = focusRingValue;
         this.focusRingMax = focusRingMax;
     }
@@ -112,11 +115,15 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         }
 
         if (focusState != null) {
-            return focusState.getFocusStatus() == SettingsDefinitions.FocusStatus.FOCUSING;
+            if (focusState.getFocusStatus() == SettingsDefinitions.FocusStatus.FOCUSING) {
+                return true;
+            }
         }
 
         if (storageState != null) {
-            return storageState.isFormatting() || storageState.isInitializing();
+            if (storageState.isFormatting() || storageState.isInitializing()) {
+                return true;
+            }
         }
 
         return false;
@@ -165,6 +172,22 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public CameraStorageLocation getStorageLocation() {
         return DronelinkDJI.getCameraStorageLocation(storageLocation == null ? SettingsDefinitions.StorageLocation.UNKNOWN : storageLocation);
+    }
+
+    @Override
+    public Long getStorageRemainingSpace() {
+        if (storageState != null) {
+            return (long)storageState.getRemainingSpaceInMB() * 1048576;
+        }
+        return null;
+    }
+
+    @Override
+    public Long getStorageRemainingPhotos() {
+        if (storageState != null) {
+            return storageState.getAvailableCaptureCount();
+        }
+        return null;
     }
 
     @Override
@@ -233,12 +256,17 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
-    public Integer getISOSensitivity() {
+    public Integer getISOActual() {
         return exposureSettings == null ? null : exposureSettings.getISO();
     }
 
     @Override
     public CameraShutterSpeed getShutterSpeed() {
+        return DronelinkDJI.getCameraShutterSpeed(shutterSpeed == null ? SettingsDefinitions.ShutterSpeed.UNKNOWN : shutterSpeed);
+    }
+
+    @Override
+    public CameraShutterSpeed getShutterSpeedActual() {
         return DronelinkDJI.getCameraShutterSpeed(exposureSettings == null ? SettingsDefinitions.ShutterSpeed.UNKNOWN : exposureSettings.getShutterSpeed());
     }
 

@@ -86,4 +86,16 @@
     <string name="DronelinkDJI_DJIWaypointMissionState_value_EXECUTING">Running</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSED">Paused</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSING">Pausing</string>
+    <string name="DronelinkDJI_CompassCalibrationState_title">Compass Calibration</string>
+    <string name="DronelinkDJI_CompassCalibrationState_value_HORIZONTAL">Rotate 360 Horizontally</string>
+    <string name="DronelinkDJI_CompassCalibrationState_value_VERTICAL">Rotate 360 Vertically</string>
+    <string name="DronelinkDJI_CompassCalibrationState_value_SUCCESSFUL">Finished</string>
+    <string name="DronelinkDJI_CompassCalibrationState_value_FAILED">Failed</string>
+    <string name="DronelinkDJI_CompassSensorState_title">Compass</string>
+    <string name="DronelinkDJI_CompassSensorState_value_DISCONNECTED">Disconnected</string>
+    <string name="DronelinkDJI_CompassSensorState_value_CALIBRATING">Calibrating</string>
+    <string name="DronelinkDJI_CompassSensorState_value_UNCALIBRATED">Uncalibrated</string>
+    <string name="DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION">Data Exception</string>
+    <string name="DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED">Calibration Failed</string>
+    <string name="DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION">Direction Exception</string>
 </resources>

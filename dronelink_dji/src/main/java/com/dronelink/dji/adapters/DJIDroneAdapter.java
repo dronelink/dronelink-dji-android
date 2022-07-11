@@ -9,6 +9,7 @@ package com.dronelink.dji.adapters;
 import com.dronelink.core.Convert;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
+import com.dronelink.core.adapters.EnumElement;
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.RemoteControllerAdapter;
 import com.dronelink.core.command.Command;
@@ -212,7 +213,79 @@ public class DJIDroneAdapter implements DroneAdapter {
     }
 
     @Override
-    public void startGoHome(final Command.Finisher finisher) {
+    public void startTakeoff(final Command.Finisher finisher) {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError("Flight controller unavailable"));
+            }
+            return;
+        }
+
+        flightController.startPrecisionTakeoff(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (djiError == null) {
+                    if (finisher != null) {
+                        finisher.execute(null);
+                    }
+                    return;
+                }
+
+                flightController.startTakeoff(new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(final DJIError djiError) {
+                        if (finisher != null) {
+                            finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public void startLand(final Command.Finisher finisher) {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError("Flight controller unavailable"));
+            }
+            return;
+        }
+
+        flightController.startLanding(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void stopLand(final Command.Finisher finisher) {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError("Flight controller unavailable"));
+            }
+            return;
+        }
+
+        flightController.cancelLanding(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void startReturnHome(final Command.Finisher finisher) {
         final FlightController flightController = drone.getFlightController();
         if (flightController == null) {
             if (finisher != null) {
@@ -232,7 +305,7 @@ public class DJIDroneAdapter implements DroneAdapter {
     }
 
     @Override
-    public void startLanding(final Command.Finisher finisher) {
+    public void stopReturnHome(final Command.Finisher finisher) {
         final FlightController flightController = drone.getFlightController();
         if (flightController == null) {
             if (finisher != null) {
@@ -241,7 +314,47 @@ public class DJIDroneAdapter implements DroneAdapter {
             return;
         }
 
-        flightController.startLanding(new CommonCallbacks.CompletionCallback() {
+        flightController.cancelGoHome(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void startCompassCalibration(final Command.Finisher finisher) {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError("Flight controller unavailable"));
+            }
+            return;
+        }
+
+        flightController.getCompass().startCalibration(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void stopCompassCalibration(final Command.Finisher finisher) {
+        final FlightController flightController = drone.getFlightController();
+        if (flightController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError("Flight controller unavailable"));
+            }
+            return;
+        }
+
+        flightController.getCompass().stopCalibration(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(final DJIError djiError) {
                 if (finisher != null) {
@@ -261,5 +374,9 @@ public class DJIDroneAdapter implements DroneAdapter {
             flightController.setYawControlMode(YawControlMode.ANGULAR_VELOCITY);
             flightController.sendVirtualStickFlightControlData(new FlightControlData(0, 0, 0, 0), completion);
         }
+    }
+
+    public List<EnumElement> getEnumElements(final String parameter) {
+        return null;
     }
 }
