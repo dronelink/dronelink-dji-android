@@ -1517,7 +1517,7 @@ public class DronelinkDJI {
 
             case IN_RESTRICTED_ZONE:
                 details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_RESTRICTED_ZONE);
-                level = Message.Level.DANGER;
+                level = Message.Level.WARNING;
                 break;
 
             case SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
@@ -1552,12 +1552,12 @@ public class DronelinkDJI {
 
             case SUSPECTED_IN_RESTRICTED_ZONE:
                 details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_RESTRICTED_ZONE);
-                level = Message.Level.DANGER;
+                level = Message.Level.WARNING;
                 break;
 
             case PHONE_IN_RESTRICTED_ZONE:
                 details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_PHONE_IN_RESTRICTED_ZONE);
-                level = Message.Level.DANGER;
+                level = Message.Level.WARNING;
                 break;
 
             case NEAR_HEIGHT_LIMITED_ZONE:
@@ -1629,15 +1629,14 @@ public class DronelinkDJI {
             case CAMERA_TemperaturesTooHighToStopRecord:
             case CAMERA_CHIP_OVER_HEAT_STOP_RECORD_WARNING:
             case CAMERA_ABNORMAL_REBOOT:
-                level = Message.Level.ERROR;
-                break;
-
-            case CAMERA_NO_SD_CARD:
             case CAMERA_SD_CARD_NO_SPACE:
             case CAMERA_SD_CARD_FULL:
             case CAMERA_SD_CARD_READ_ONLY:
             case CAMERA_SD_CARD_NOT_FORMATTED:
                 level = Message.Level.WARNING;
+                break;
+
+            case CAMERA_NO_SD_CARD:
                 break;
 
             case GIMBAL_GYROSCOPE_ERROR:
@@ -1646,7 +1645,7 @@ public class DronelinkDJI {
             case GIMBAL_YAW_ERROR:
             case GIMBAL_CONNECT_TO_FC_ERROR:
             case GIMBAL_LOCATE_ERROR:
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case BATTERY_CELL_BROKEN:
@@ -1654,22 +1653,17 @@ public class DronelinkDJI {
             case BATTERY_COMMUNICATION_FAIL:
             case BATTERY_SHORT_CUT:
             case BATTERY_OVER_LOAD:
-                level = Message.Level.ERROR;
-                break;
-
             case BATTERY_DISCHARGE_OVER_CURRENT:
             case BATTERY_DISCHARGE_OVER_HEAT:
             case BATTERY_LOW_TEMPERATURE:
             case BATTERY_NEED_STUDY:
             case BATTERY_ILLEGAL:
             case BATTERY_LOW_VOLTAGE:
-                level = Message.Level.WARNING;
-                break;
-
             case SINGLE_BATTERY_MODE:
             case FAKE_BATTERY_MODE:
             case BATTERY_CYCLE_TIME_OVER:
             case BATTERY_DIFF_USAGE:
+                level = Message.Level.WARNING;
                 break;
 
             case REMOTE_CONTROLLER_FPGA_ERROR:
@@ -1680,7 +1674,7 @@ public class DronelinkDJI {
             case REMOTE_CONTROLLER_RESET:
             case REMOTE_CONTROLLER_OVER_HEAT:
             case REMOTE_CONTROLLER_GO_HOME_FAIL:
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case REMOTE_CONTROLLER_NEED_CALIBRATION:
@@ -1692,20 +1686,17 @@ public class DronelinkDJI {
             case CENTRAL_BOARD_CONNECT_TO_BATTERY_ERROR:
             case CENTRAL_BOARD_CONNECT_TO_GPS_ERROR:
             case CENTRAL_BOARD_CONNECT_TO_FC_ERROR:
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case VIDEO_DECODER_ENCRYPTION_ERROR:
             case VIDEO_DECODER_CONNECT_TO_DESERIALIZER_ERROR:
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case AIR_ENCODER_ERROR:
             case AIR_ENCODER_UPGRADE:
             case AIR_LINK_NO_SIGNAL:
-                level = Message.Level.ERROR;
-                break;
-
             case AIR_LINK_LOW_RC_SIGNAL:
             case AIR_LINK_STRONG_RC_RADIO_SIGNAL_NOISE:
             case AIR_LINK_LOW_RADIO_SIGNAL:
@@ -1718,9 +1709,6 @@ public class DronelinkDJI {
                 level = Message.Level.WARNING;
                 break;
 
-            case FLIGHT_CONTROLLER_IMU_DATA_ERROR:
-            case FLIGHT_CONTROLLER_IMU_ERROR:
-            case FLIGHT_CONTROLLER_IMU_INIT_FAILED:
             case FLIGHT_CONTROLLER_BAROMETER_INIT_FAILED:
             case FLIGHT_CONTROLLER_BAROMETER_ERROR:
             case FLIGHT_CONTROLLER_ACCELEROMETER_INIT_FAILED:
@@ -1749,6 +1737,9 @@ public class DronelinkDJI {
                 level = Message.Level.ERROR;
                 break;
 
+            case FLIGHT_CONTROLLER_IMU_DATA_ERROR:
+            case FLIGHT_CONTROLLER_IMU_ERROR:
+            case FLIGHT_CONTROLLER_IMU_INIT_FAILED:
             case FLIGHT_CONTROLLER_IMU_NEED_CALIBRATION:
             case FLIGHT_CONTROLLER_IMU_CALIBRATION_INCOMPLETE:
             case FLIGHT_CONTROLLER_TAKEOFF_FAILED:
@@ -1786,9 +1777,6 @@ public class DronelinkDJI {
             case VISION_SENSOR_CALIBRATION_ERROR:
             case VISION_SENSOR_COMMUNICATION_ERROR:
             case VISION_SYSTEM_ERROR:
-                level = Message.Level.ERROR;
-                break;
-
             case VISION_SYSTEM_NEED_CALIBRATION:
             case VISION_PROPELLER_GUARD:
             case VISION_WEAK_AMBIENT_LIGHT:
@@ -1796,11 +1784,8 @@ public class DronelinkDJI {
                 break;
 
             case RTK_POSITIONING_ERROR:
-                level = Message.Level.ERROR;
-                break;
-
             case RTK_ORIENTEERING_ERROR:
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case PRODUCT_AIRCRAFT_DISCONNECTED:
@@ -1998,11 +1983,11 @@ public class DronelinkDJI {
             }
 
             if (state.getAircraftLocation() == null) {
-                messages.add(new Message(context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_title), context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_details), Message.Level.WARNING));
+                messages.add(new Message(context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_title), context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_details), Message.Level.DANGER));
             }
 
             if (!state.isHomeLocationSet()) {
-                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_homeLocationNotSet_title), Message.Level.WARNING));
+                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_homeLocationNotSet_title), Message.Level.DANGER));
             }
         }
 
@@ -2106,17 +2091,17 @@ public class DronelinkDJI {
 
             case DATA_EXCEPTION:
                 details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION);
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case CALIBRATION_FAILED:
                 details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED);
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
 
             case DIRECTION_EXCEPTION:
                 details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION);
-                level = Message.Level.ERROR;
+                level = Message.Level.WARNING;
                 break;
         }
 

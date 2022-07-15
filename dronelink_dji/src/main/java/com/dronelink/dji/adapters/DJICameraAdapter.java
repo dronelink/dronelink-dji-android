@@ -13,6 +13,7 @@ import com.dronelink.core.adapters.EnumElement;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
 import com.dronelink.core.kernel.core.enums.CameraPhotoFileFormat;
+import com.dronelink.core.kernel.core.enums.CameraPhotoMode;
 import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
 import com.dronelink.core.kernel.core.enums.CameraVideoFileFormat;
 import com.dronelink.core.kernel.core.enums.CameraVideoStreamSource;
@@ -120,6 +121,13 @@ public class DJICameraAdapter implements CameraAdapter {
                     for (final SettingsDefinitions.FlatCameraMode value : modes) {
                         range.add(Kernel.enumRawValue(DronelinkDJI.getCameraPhotoMode(value)));
                     }
+                }
+                else {
+                    range.add(Kernel.enumRawValue(CameraPhotoMode.SINGLE));
+                    range.add(Kernel.enumRawValue(CameraPhotoMode.INTERVAL));
+                    range.add(Kernel.enumRawValue(CameraPhotoMode.BURST));
+                    range.add(Kernel.enumRawValue(CameraPhotoMode.AEB));
+                    range.add(Kernel.enumRawValue(CameraPhotoMode.HYPER_LIGHT));
                 }
                 break;
             case "CameraPhotoFileFormat":
