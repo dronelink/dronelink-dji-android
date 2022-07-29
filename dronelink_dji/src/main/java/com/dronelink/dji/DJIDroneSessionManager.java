@@ -53,7 +53,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     }
 
     private void initFlyZoneManagerCallback(final int attempt) {
-        if (attempt < 5) {
+        if (attempt < 10) {
             if (DJISDKManager.getInstance().getFlyZoneManager() == null) {
                 new Handler().postDelayed(new Runnable() {
                     @Override
@@ -77,7 +77,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     }
 
     private void initAppActivationManagerStateListener(final int attempt) {
-        if (attempt < 5) {
+        if (attempt < 10) {
             if (DJISDKManager.getInstance().getAppActivationManager() == null) {
                 new Handler().postDelayed(new Runnable() {
                     @Override
