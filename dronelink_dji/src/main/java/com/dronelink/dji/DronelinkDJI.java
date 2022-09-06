@@ -56,6 +56,7 @@ import com.dronelink.core.kernel.core.enums.DroneLightbridgeChannelSelectionMode
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
+import com.dronelink.core.kernel.core.enums.RemoteControllerPairingState;
 import com.dronelink.core.kernel.core.enums.VideoFeedSource;
 
 import java.util.ArrayList;
@@ -95,6 +96,7 @@ import dji.common.mission.waypoint.WaypointTurnMode;
 import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.common.realname.AppActivationState;
+import dji.common.remotecontroller.PairingState;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
 import dji.internal.diagnostics.DiagnosticsBaseHandler;
@@ -202,6 +204,18 @@ public class DronelinkDJI {
             case UNKNOWN: return DroneOcuSyncFrequencyBand.UNKNOWN;
         }
         return DroneOcuSyncFrequencyBand.UNKNOWN;
+    }
+
+    public static RemoteControllerPairingState getRemoteControllerPairingState(final PairingState value) {
+        switch (value) {
+            case UNPAIRED: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEUNPAIRED;
+            case PAIRING: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEPAIRING;
+            case PAIRED: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEPAIRED;
+            case FirmwareSwitching: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATESWITCHING;
+            case FirmwareSwitched: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATESWITCHINGEND;
+            case UNKNOWN: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEUNKNOWN;
+        }
+        return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEUNKNOWN;
     }
 
     public static PhysicalSource getOcuSyncFeedSource(final OcuSyncVideoFeedSourcesDroneCommand command, final int channel) {
