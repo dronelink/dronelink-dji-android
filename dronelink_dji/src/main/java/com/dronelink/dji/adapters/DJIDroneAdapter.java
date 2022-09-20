@@ -364,46 +364,6 @@ public class DJIDroneAdapter implements DroneAdapter {
         });
     }
 
-    @Override
-    public void startRemoteControlLinking(final Command.Finisher finisher) {
-        final RemoteController remoteController = drone.getRemoteController();
-        if (remoteController == null) {
-            if (finisher != null) {
-                finisher.execute(new CommandError("Remote controller unavailable"));
-            }
-            return;
-        }
-
-        remoteController.startPairing(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(final DJIError djiError) {
-                if (finisher != null) {
-                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
-                }
-            }
-        });
-    }
-
-    @Override
-    public void stopRemoteControlLinking(final Command.Finisher finisher) {
-        final RemoteController remoteController = drone.getRemoteController();
-        if (remoteController == null) {
-            if (finisher != null) {
-                finisher.execute(new CommandError("Remote controller unavailable"));
-            }
-            return;
-        }
-
-        remoteController.stopPairing(new CommonCallbacks.CompletionCallback() {
-            @Override
-            public void onResult(final DJIError djiError) {
-                if (finisher != null) {
-                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
-                }
-            }
-        });
-    }
-
     public void sendResetVelocityCommand(final CommonCallbacks.CompletionCallback completion) {
         final FlightController flightController = drone.getFlightController();
         if (flightController != null) {

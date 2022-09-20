@@ -208,14 +208,14 @@ public class DronelinkDJI {
 
     public static RemoteControllerPairingState getRemoteControllerPairingState(final PairingState value) {
         switch (value) {
-            case UNPAIRED: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEUNPAIRED;
-            case PAIRING: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEPAIRING;
-            case PAIRED: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEPAIRED;
-            case FirmwareSwitching: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATESWITCHING;
-            case FirmwareSwitched: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATESWITCHINGEND;
-            case UNKNOWN: return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEUNKNOWN;
+            case UNPAIRED: return RemoteControllerPairingState.UNPAIRED;
+            case PAIRING: return RemoteControllerPairingState.PAIRING;
+            case PAIRED: return RemoteControllerPairingState.PAIRED;
+            case FirmwareSwitching: return RemoteControllerPairingState.SWITCHING;
+            case FirmwareSwitched: return RemoteControllerPairingState.SWITCHINGEND;
+            case UNKNOWN: return RemoteControllerPairingState.PAIRINGUNKNOWN;
         }
-        return RemoteControllerPairingState.DJIRCPAIRINGSTATESTATEUNKNOWN;
+        return RemoteControllerPairingState.PAIRINGUNKNOWN;
     }
 
     public static PhysicalSource getOcuSyncFeedSource(final OcuSyncVideoFeedSourcesDroneCommand command, final int channel) {
