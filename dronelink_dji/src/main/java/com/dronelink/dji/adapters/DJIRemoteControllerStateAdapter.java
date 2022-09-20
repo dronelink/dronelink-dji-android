@@ -25,7 +25,7 @@ public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAda
     }
 
     public RemoteControllerWheel getLeftWheel() {
-        return state == null ? null : new RemoteControllerWheel(true, true, (double) state.getLeftDial() / 660.0);
+        return state == null ? null : new RemoteControllerWheel(true, true, (double)state.getLeftDial() / 660.0);
     }
 
     public RemoteControllerStick getRightStick() {

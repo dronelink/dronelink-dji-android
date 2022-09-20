@@ -204,8 +204,6 @@ public class DronelinkDJI {
         return DroneOcuSyncFrequencyBand.UNKNOWN;
     }
 
-
-
     public static PhysicalSource getOcuSyncFeedSource(final OcuSyncVideoFeedSourcesDroneCommand command, final int channel) {
         final VideoFeedSource source = command.ocuSyncVideoFeedSources.get(channel);
         if (source != null) {
