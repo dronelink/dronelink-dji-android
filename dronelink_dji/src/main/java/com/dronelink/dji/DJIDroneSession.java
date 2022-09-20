@@ -178,7 +178,6 @@ import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
 import dji.common.product.Model;
 import dji.common.remotecontroller.HardwareState;
-import dji.common.remotecontroller.PairingState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
 import dji.keysdk.CameraKey;
@@ -262,7 +261,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<WhiteBalance> whiteBalance;
     private DatedValue<SettingsDefinitions.ISO> iso;
     private DatedValue<SettingsDefinitions.ShutterSpeed> shutterSpeed;
-    private DatedValue<PairingState> remoteControllerPairingState;
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
 
@@ -1120,10 +1118,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 state.remoteControllerGimbalChannel = null;
             }
         });
-
-        startListeningForChanges(RemoteControllerKey.create(RemoteControllerKey.PAIRING_STATE), (oldValue, newValue) -> {
-            remoteControllerPairingState = newValue == null ? null : new DatedValue<>((PairingState) newValue);
-        });
     }
 
     private void startListeningForChanges(final DJIKey key, final KeyListener listener) {
@@ -1583,7 +1577,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
-                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerPairingState.value);
+                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value);
                     return new DatedValue<>(remoteControllerStateAdapter, remoteControllerState.date);
                 }
             }).get();
