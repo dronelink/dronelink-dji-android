@@ -26,9 +26,7 @@ import java.util.Map;
 
 import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJIError;
-import dji.common.gimbal.CapabilityKey;
 import dji.common.util.CommonCallbacks;
-import dji.common.util.DJIParamCapability;
 import dji.sdk.camera.Camera;
 import dji.sdk.camera.Lens;
 
@@ -52,6 +50,18 @@ public class DJICameraAdapter implements CameraAdapter {
     @Override
     public void format(final CameraStorageLocation storageLocation, final Command.Finisher finisher) {
         camera.formatStorage(DronelinkDJI.getCameraStorageLocation(storageLocation), new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void setHistogramEnabled(final boolean enabled, final Command.Finisher finisher) {
+        camera.setHistogramEnabled(enabled, new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(final DJIError djiError) {
                 if (finisher != null) {

@@ -602,6 +602,16 @@ public class DronelinkDJI {
         return SettingsDefinitions.FocusMode.UNKNOWN;
     }
 
+    public static CameraFocusMode getCameraFocusMode(final SettingsDefinitions.FocusMode value) {
+        switch (value) {
+            case MANUAL: return CameraFocusMode.MANUAL;
+            case AUTO: return CameraFocusMode.AUTO;
+            case AFC: return CameraFocusMode.AFC;
+            case UNKNOWN: return CameraFocusMode.UNKNOWN;
+        }
+        return CameraFocusMode.UNKNOWN;
+    }
+
     public static SettingsDefinitions.ISO getCameraISO(final CameraISO value) {
         switch (value) {
             case AUTO: return SettingsDefinitions.ISO.AUTO;
@@ -647,6 +657,16 @@ public class DronelinkDJI {
             case UNKNOWN: return SettingsDefinitions.MeteringMode.UNKNOWN;
         }
         return SettingsDefinitions.MeteringMode.UNKNOWN;
+    }
+
+    public static CameraMeteringMode getCameraMeteringMode(final SettingsDefinitions.MeteringMode value) {
+        switch (value) {
+            case CENTER: return CameraMeteringMode.CENTER;
+            case AVERAGE: return CameraMeteringMode.AVERAGE;
+            case SPOT: return CameraMeteringMode.SPOT;
+            case UNKNOWN: return CameraMeteringMode.UNKNOWN;
+        }
+        return CameraMeteringMode.UNKNOWN;
     }
 
     public static SettingsDefinitions.CameraMode getCameraMode(final CameraMode value) {

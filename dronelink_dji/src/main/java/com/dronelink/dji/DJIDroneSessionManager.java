@@ -16,7 +16,6 @@ import androidx.annotation.NonNull;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
-import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.kernel.core.Message;
 
 import java.util.ArrayList;

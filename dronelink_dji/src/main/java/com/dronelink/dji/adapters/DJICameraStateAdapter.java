@@ -12,7 +12,9 @@ import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraBurstCount;
 import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraExposureMode;
+import com.dronelink.core.kernel.core.enums.CameraFocusMode;
 import com.dronelink.core.kernel.core.enums.CameraISO;
+import com.dronelink.core.kernel.core.enums.CameraMeteringMode;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.core.kernel.core.enums.CameraPhotoAspectRatio;
 import com.dronelink.core.kernel.core.enums.CameraPhotoFileFormat;
@@ -41,6 +43,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final StorageState storageState;
     public final SettingsDefinitions.ExposureMode exposureMode;
     public final ExposureSettings exposureSettings;
+    public final short[] histogram;
     public final int lensIndex;
     public final String lensInformation;
     public final SettingsDefinitions.StorageLocation storageLocation;
@@ -56,8 +59,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final WhiteBalance whiteBalance;
     public final SettingsDefinitions.ISO iso;
     public final SettingsDefinitions.ShutterSpeed shutterSpeed;
+    public final SettingsDefinitions.FocusMode focusMode;
     public final Double focusRingValue;
     public final Double focusRingMax;
+    public final SettingsDefinitions.MeteringMode meteringMode;
+    public final Boolean isAutoExposureLockEnabled;
 
     public DJICameraStateAdapter(
             final SystemState state,
@@ -66,6 +72,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final StorageState storageState,
             final SettingsDefinitions.ExposureMode exposureMode,
             final ExposureSettings exposureSettings,
+            final short[] histogram,
             final int lensIndex,
             final String lensInformation,
             final SettingsDefinitions.StorageLocation storageLocation,
@@ -81,14 +88,18 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final WhiteBalance whiteBalance,
             final SettingsDefinitions.ISO iso,
             final SettingsDefinitions.ShutterSpeed shutterSpeed,
+            final SettingsDefinitions.FocusMode focusMode,
             final Double focusRingValue,
-            final Double focusRingMax) {
+            final Double focusRingMax,
+            final SettingsDefinitions.MeteringMode meteringMode,
+            final Boolean isAutoExposureLockEnabled) {
         this.state = state;
         this.videoStreamSource = videoStreamSource;
         this.focusState = focusState;
         this.storageState = storageState;
         this.exposureMode = exposureMode;
         this.exposureSettings = exposureSettings;
+        this.histogram = histogram;
         this.lensIndex = lensIndex;
         this.lensInformation = lensInformation;
         this.storageLocation = storageLocation;
@@ -104,8 +115,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         this.whiteBalance = whiteBalance;
         this.iso = iso;
         this.shutterSpeed = shutterSpeed;
+        this.focusMode = focusMode;
         this.focusRingValue = focusRingValue;
         this.focusRingMax = focusRingMax;
+        this.meteringMode = meteringMode;
+        this.isAutoExposureLockEnabled = isAutoExposureLockEnabled;
     }
 
     @Override
@@ -286,6 +300,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
+    public short[] getHistogram() {
+        return histogram;
+    }
+
+    @Override
     public int getLensIndex() {
         return lensIndex;
     }
@@ -296,6 +315,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
+    public CameraFocusMode getFocusMode() {
+        return DronelinkDJI.getCameraFocusMode(focusMode == null ? SettingsDefinitions.FocusMode.UNKNOWN : focusMode);
+    }
+
+    @Override
     public Double getFocusRingValue() {
         return focusRingValue;
     }
@@ -303,6 +327,16 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public Double getFocusRingMax() {
         return focusRingMax;
+    }
+
+    @Override
+    public CameraMeteringMode getMeteringMode() {
+        return DronelinkDJI.getCameraMeteringMode(meteringMode == null ? SettingsDefinitions.MeteringMode.UNKNOWN : meteringMode);
+    }
+
+    @Override
+    public boolean isAutoExposureLockEnabled() {
+        return isAutoExposureLockEnabled != null && isAutoExposureLockEnabled;
     }
 
     @Override
