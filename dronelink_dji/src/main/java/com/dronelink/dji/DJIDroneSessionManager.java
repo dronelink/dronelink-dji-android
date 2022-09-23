@@ -30,6 +30,7 @@ import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.common.flightcontroller.flyzone.FlyZoneState;
 import dji.common.realname.AppActivationState;
+import dji.common.remotecontroller.PairingState;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
@@ -133,18 +134,18 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
     @Override
     public void startRemoteControllerLinking(final Command.Finisher finisher) {
-        Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
+        final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
         if (aircraft == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_startRemoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
 
-        RemoteController remoteController = aircraft.getRemoteController();
+        final RemoteController remoteController = aircraft.getRemoteController();
         if (remoteController == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_startRemoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
@@ -159,19 +160,22 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         });
     }
 
+
+
     @Override
     public void stopRemoteControllerLinking(final Command.Finisher finisher) {
-        Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
+        final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
         if (aircraft == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_stopRemoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
-        RemoteController remoteController = aircraft.getRemoteController();
+
+        final RemoteController remoteController = aircraft.getRemoteController();
         if (remoteController == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_stopRemoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
