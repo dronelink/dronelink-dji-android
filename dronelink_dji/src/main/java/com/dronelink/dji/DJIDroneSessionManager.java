@@ -16,6 +16,9 @@ import androidx.annotation.NonNull;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
+import com.dronelink.core.adapters.DroneStateAdapter;
+import com.dronelink.core.command.Command;
+import com.dronelink.core.command.CommandError;
 import com.dronelink.core.kernel.core.Message;
 
 import java.util.ArrayList;
@@ -27,10 +30,13 @@ import dji.common.error.DJIError;
 import dji.common.error.DJISDKError;
 import dji.common.flightcontroller.flyzone.FlyZoneState;
 import dji.common.realname.AppActivationState;
+import dji.common.remotecontroller.PairingState;
+import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseComponent;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
+import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKInitEvent;
 import dji.sdk.sdkmanager.DJISDKManager;
 
@@ -124,6 +130,62 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                 listener.onClosed(previousSession);
             }
         }
+    }
+
+    @Override
+    public void startRemoteControllerLinking(final Command.Finisher finisher) {
+        final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
+        if (aircraft == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+            }
+            return;
+        }
+
+        final RemoteController remoteController = aircraft.getRemoteController();
+        if (remoteController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+            }
+            return;
+        }
+
+        remoteController.startPairing(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void stopRemoteControllerLinking(final Command.Finisher finisher) {
+        final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
+        if (aircraft == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+            }
+            return;
+        }
+
+        final RemoteController remoteController = aircraft.getRemoteController();
+        if (remoteController == null) {
+            if (finisher != null) {
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+            }
+            return;
+        }
+
+        remoteController.stopPairing(new CommonCallbacks.CompletionCallback() {
+            @Override
+            public void onResult(final DJIError djiError) {
+                if (finisher != null) {
+                    finisher.execute(djiError == null ? null : new CommandError(djiError.getDescription(), djiError.getErrorCode()));
+                }
+            }
+        });
     }
 
     @Override

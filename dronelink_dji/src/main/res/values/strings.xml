@@ -40,6 +40,7 @@
     <string name="DJIDroneSession_cameraCommand_focus_target_ring_invalid">Focus Ring Outside Limits:</string>
     <string name="DJIDroneSession_gimbalCommand_orientation_not_achieved">Gimbal Not Rotated</string>
     <string name="DJIDroneSession_telemetry_unavailable">Telemetry Unavailable</string>
+    <string name="DJIDroneSessionManager_remoteControllerLinking_unavailable">Remote controller is unavailable.</string>
     <string name="DronelinkDJI_AppActivationState_title">DJI Activation</string>
     <string name="DronelinkDJI_AppActivationState_value_NOT_SUPPORTED">Not Supported</string>
     <string name="DronelinkDJI_AppActivationState_value_LOGIN_REQUIRED">Login Required</string>
