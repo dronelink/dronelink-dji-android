@@ -160,8 +160,6 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         });
     }
 
-
-
     @Override
     public void stopRemoteControllerLinking(final Command.Finisher finisher) {
         final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
