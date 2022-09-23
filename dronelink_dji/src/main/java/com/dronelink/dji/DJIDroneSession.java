@@ -243,6 +243,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final SparseArray<Map<CameraStorageLocation, DatedValue<StorageState>>> cameraStorageStates = new SparseArray<>();
     private final Map<String, DatedValue<ExposureSettings>> cameraExposureSettings = new HashMap<>();
     private final SparseArray<DatedValue<SettingsDefinitions.ExposureCompensation>> cameraExposureCompensation = new SparseArray<>();
+    private final Map<String, DatedValue<short[]>> cameraHistograms = new HashMap<>();
     private final SparseArray<DatedValue<String>> cameraLensInformation = new SparseArray<>();
 
     private final ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
@@ -261,8 +262,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<WhiteBalance> whiteBalance;
     private DatedValue<SettingsDefinitions.ISO> iso;
     private DatedValue<SettingsDefinitions.ShutterSpeed> shutterSpeed;
+    private DatedValue<SettingsDefinitions.FocusMode> focusMode;
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
+    private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
+    private DatedValue<Boolean> autoExposureLock;
 
     private DatedValue<CameraFile> mostRecentCameraFile;
     public DatedValue<CameraFile> getMostRecentCameraFile() {
@@ -829,6 +833,13 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
         });
 
+        camera.setHistogramCallback(new Camera.HistogramCallback() {
+            @Override
+            public void onUpdate(final short[] shorts) {
+                cameraHistograms.put(camera.getIndex() + ".0", new DatedValue<>(shorts));
+            }
+        });
+
         camera.setMediaFileCallback(new MediaFile.Callback() {
             @Override
             public void onNewFile(@NonNull final MediaFile mediaFile) {
@@ -1092,6 +1103,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             shutterSpeed = newValue == null ? null : new DatedValue<>((SettingsDefinitions.ShutterSpeed) newValue);
         });
 
+        startListeningForChanges(CameraKey.create(CameraKey.FOCUS_MODE), (oldValue, newValue) -> {
+            focusMode = newValue == null ? null : new DatedValue<>((SettingsDefinitions.FocusMode)newValue);
+        });
+
         startListeningForChanges(CameraKey.create(CameraKey.FOCUS_RING_VALUE), (oldValue, newValue) -> {
             if (newValue instanceof Integer) {
                 focusRingValue = new DatedValue<>(((Integer) newValue).doubleValue());
@@ -1107,6 +1122,19 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
             else {
                 focusRingMax = null;
+            }
+        });
+
+        startListeningForChanges(CameraKey.create(CameraKey.METERING_MODE), (oldValue, newValue) -> {
+            meteringMode = newValue == null ? null : new DatedValue<>((SettingsDefinitions.MeteringMode)newValue);
+        });
+
+        startListeningForChanges(CameraKey.create(CameraKey.AE_LOCK), (oldValue, newValue) -> {
+            if (newValue instanceof Boolean) {
+                autoExposureLock = new DatedValue<>(((Boolean) newValue));
+            }
+            else {
+                autoExposureLock = null;
             }
         });
 
@@ -1186,6 +1214,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         }
                     }
                     cameraExposureCompensation.put(camera.getIndex(), null);
+                    for (final String key : cameraHistograms.keySet().toArray(new String[]{})) {
+                        if (key.startsWith(camera.getIndex() + ".")) {
+                            cameraHistograms.remove(key);
+                        }
+                    }
                     cameraLensInformation.put(camera.getIndex(), null);
                 }
             });
@@ -1619,6 +1652,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     final DatedValue<FocusState> focusState = cameraFocusStates.get(channel + "." + lensIndexResolved);
                     final Map<CameraStorageLocation, DatedValue<StorageState>> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel + "." + lensIndexResolved);
+                    final DatedValue<short[]> histogram = cameraHistograms.get(channel + "." + lensIndexResolved);
                     final DatedValue<SettingsDefinitions.ExposureCompensation> exposureCompensation = cameraExposureCompensation.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
                     final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(
@@ -1628,6 +1662,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             storageLocation == null || storageState == null || storageState.get(DronelinkDJI.getCameraStorageLocation(storageLocation.value)) == null ? null : storageState.get(DronelinkDJI.getCameraStorageLocation(storageLocation.value)).value,
                             exposureMode == null ? null : exposureMode.value,
                             exposureSettings == null ? null : exposureSettings.value,
+                            histogram == null ? null : histogram.value,
                             lensIndexResolved,
                             lensInformation == null ? null : lensInformation.value,
                             storageLocation == null ? null : storageLocation.value,
@@ -1643,8 +1678,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             whiteBalance == null ? null : whiteBalance.value,
                             iso == null ? null : iso.value,
                             shutterSpeed == null ? null : shutterSpeed.value,
+                            focusMode == null ? null : focusMode.value,
                             focusRingValue == null ? null : focusRingValue.value,
-                            focusRingMax == null ? null : focusRingMax.value);
+                            focusRingMax == null ? null : focusRingMax.value,
+                            meteringMode == null ? null : meteringMode.value,
+                            autoExposureLock == null ? null : autoExposureLock.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
                 }
             }).get();
