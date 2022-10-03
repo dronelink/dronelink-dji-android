@@ -206,9 +206,9 @@ public class DJIDroneAdapter implements DroneAdapter {
         }
 
         flightController.setYawControlMode(remoteControllerSticks.heading == null ? YawControlMode.ANGULAR_VELOCITY : YawControlMode.ANGLE);
-        flightController.sendVirtualStickFlightControlData(new FlightControlData((float)-remoteControllerSticks.rightStick.y * 30,
-                (float)remoteControllerSticks.rightStick.x * 30,
-                (float)Math.toDegrees(remoteControllerSticks.heading == null ? remoteControllerSticks.leftStick.x * 100 : Convert.AngleDifferenceSigned(remoteControllerSticks.heading, 0)),
+        flightController.sendVirtualStickFlightControlData(new FlightControlData((float)(-remoteControllerSticks.rightStick.y * 30),
+                (float)(remoteControllerSticks.rightStick.x * 30),
+                remoteControllerSticks.heading == null ? (float)(remoteControllerSticks.leftStick.x * 100) : (float)Math.toDegrees(Convert.AngleDifferenceSigned(remoteControllerSticks.heading, 0)),
                 (float)(remoteControllerSticks.leftStick.y * 4.0)), null);
     }
 
