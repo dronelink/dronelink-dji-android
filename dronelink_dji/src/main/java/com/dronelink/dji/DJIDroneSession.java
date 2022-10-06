@@ -1,4 +1,4 @@
-//  DJIControlSession.java
+//  DJIDroneSession.java
 //  DronelinkDJI
 //
 //  Created by Jim McAndrew on 11/7/19.

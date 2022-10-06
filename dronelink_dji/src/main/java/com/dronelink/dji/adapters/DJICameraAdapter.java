@@ -85,6 +85,7 @@ public class DJICameraAdapter implements CameraAdapter {
         return 0;
     }
 
+    @Override
     public List<EnumElement> getEnumElements(final String parameter) {
         switch (parameter) {
             case "CameraPhotoInterval":

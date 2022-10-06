@@ -6,7 +6,6 @@
 //
 package com.dronelink.dji;
 
-
 import android.content.Context;
 import android.location.Location;
 

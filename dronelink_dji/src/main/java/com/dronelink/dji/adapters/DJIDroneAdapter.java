@@ -376,6 +376,7 @@ public class DJIDroneAdapter implements DroneAdapter {
         }
     }
 
+    @Override
     public List<EnumElement> getEnumElements(final String parameter) {
         return null;
     }

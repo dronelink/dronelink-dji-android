@@ -6,7 +6,6 @@
 //
 package com.dronelink.dji.adapters;
 
-
 import com.dronelink.core.Convert;
 import com.dronelink.core.Dronelink;
 import com.dronelink.core.Kernel;
@@ -96,6 +95,7 @@ public class DJIGimbalAdapter implements GimbalAdapter {
         });
     }
 
+    @Override
     public List<EnumElement> getEnumElements(final String parameter) {
         final Map<String, String> enumDefinition = Dronelink.getInstance().getEnumDefinition(parameter);
         if (enumDefinition == null) {

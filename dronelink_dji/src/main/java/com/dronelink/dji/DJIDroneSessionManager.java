@@ -1,4 +1,4 @@
-//  DJIControlSession.java
+//  DJIDroneSessionManager.java
 //  DronelinkDJI
 //
 //  Created by Jim McAndrew on 11/7/19.
@@ -47,7 +47,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     private DatedValue<FlyZoneState> flyZoneState;
     private DatedValue<AppActivationState> appActivationState;
     private DJIDroneSession session;
-    private AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
+    private final AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
     private final List<Listener> listeners = new LinkedList<>();
 
     public DJIDroneSessionManager(final Context context) {
@@ -231,10 +231,10 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                         @Override
                         public void onRegister(DJIError djiError) {
                             if (djiError == DJISDKError.REGISTRATION_SUCCESS) {
-                                Log.i(TAG, "SDK Registered successfully");
+                                Log.i(TAG, "DJI SDK registered successfully");
                                 DJISDKManager.getInstance().startConnectionToProduct();
                             } else {
-                                Log.e(TAG, "SDK Registered with error: " + djiError.getDescription());
+                                Log.e(TAG, "DJI SDK registered with error: " + djiError.getDescription());
                             }
                         }
 

@@ -1,4 +1,4 @@
-//  DJIGimbalStateAdapter.java
+//  DJIRemoteControllerStateAdapter.java
 //  DronelinkDJI
 //
 //  Created by Jim McAndrew on 11/6/19.
