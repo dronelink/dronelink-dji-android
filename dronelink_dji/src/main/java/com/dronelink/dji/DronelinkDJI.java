@@ -380,10 +380,10 @@ public class DronelinkDJI {
 
     public static CameraAperture getCameraAperture(final SettingsDefinitions.Aperture value) {
         switch (value) {
-            case F_1: return CameraAperture.UNKNOWN;
-            case F_1_DOT_2: return CameraAperture.UNKNOWN;
-            case F_1_DOT_3: return CameraAperture.UNKNOWN;
-            case F_1_DOT_4: return CameraAperture.UNKNOWN;
+            case F_1: return CameraAperture.F_1_DOT_0;
+            case F_1_DOT_2: return CameraAperture.F_1_DOT_2;
+            case F_1_DOT_3: return CameraAperture.F_1_DOT_3;
+            case F_1_DOT_4: return CameraAperture.F_1_DOT_4;
             case F_1_DOT_6: return CameraAperture.F_1_DOT_6;
             case F_1_DOT_7: return CameraAperture.F_1_DOT_7;
             case F_1_DOT_8: return CameraAperture.F_1_DOT_8;
@@ -416,15 +416,15 @@ public class DronelinkDJI {
             case F_19: return CameraAperture.F_19;
             case F_20: return CameraAperture.F_20;
             case F_22: return CameraAperture.F_22;
-            case F_25: return CameraAperture.UNKNOWN;
-            case F_28: return CameraAperture.UNKNOWN;
-            case F_32: return CameraAperture.UNKNOWN;
-            case F_37: return CameraAperture.UNKNOWN;
-            case F_41: return CameraAperture.UNKNOWN;
-            case F_45: return CameraAperture.UNKNOWN;
-            case F_52: return CameraAperture.UNKNOWN;
-            case F_58: return CameraAperture.UNKNOWN;
-            case F_64: return CameraAperture.UNKNOWN;
+            case F_25: return CameraAperture.F_25;
+            case F_28: return CameraAperture.F_28;
+            case F_32: return CameraAperture.F_32;
+            case F_37: return CameraAperture.F_37;
+            case F_41: return CameraAperture.F_41;
+            case F_45: return CameraAperture.F_45;
+            case F_52: return CameraAperture.F_52;
+            case F_58: return CameraAperture.F_58;
+            case F_64: return CameraAperture.F_64;
             case UNKNOWN: return CameraAperture.UNKNOWN;
         }
         return CameraAperture.UNKNOWN;
@@ -763,10 +763,13 @@ public class DronelinkDJI {
             case RAW: return SettingsDefinitions.PhotoFileFormat.RAW;
             case JPEG: return SettingsDefinitions.PhotoFileFormat.JPEG;
             case RAW_JPEG: return SettingsDefinitions.PhotoFileFormat.RAW_AND_JPEG;
+            case TIFF_8_BIT: return SettingsDefinitions.PhotoFileFormat.TIFF_8_BIT;
             case TIFF_14_BIT: return SettingsDefinitions.PhotoFileFormat.TIFF_14_BIT;
-            case RADIOMETRIC_JPEG: return SettingsDefinitions.PhotoFileFormat.RADIOMETRIC_JPEG;
             case TIFF_14_BIT_LINEAR_LOW_TEMP_RESOLUTION: return SettingsDefinitions.PhotoFileFormat.TIFF_14_BIT_LINEAR_LOW_TEMP_RESOLUTION;
             case TIFF_14_BIT_LINEAR_HIGH_TEMP_RESOLUTION: return SettingsDefinitions.PhotoFileFormat.TIFF_14_BIT_LINEAR_HIGH_TEMP_RESOLUTION;
+            case RADIOMETRIC_JPEG: return SettingsDefinitions.PhotoFileFormat.RADIOMETRIC_JPEG;
+            case RADIOMETRIC_JPEG_LOW: return SettingsDefinitions.PhotoFileFormat.RADIOMETRIC_JPEG_LOW;
+            case RADIOMETRIC_JPEG_HIGH: return SettingsDefinitions.PhotoFileFormat.RADIOMETRIC_JPEG_HIGH;
             case UNKNOWN: return SettingsDefinitions.PhotoFileFormat.UNKNOWN;
         }
         return SettingsDefinitions.PhotoFileFormat.UNKNOWN;
@@ -777,13 +780,13 @@ public class DronelinkDJI {
             case RAW: return CameraPhotoFileFormat.RAW;
             case JPEG: return CameraPhotoFileFormat.JPEG;
             case RAW_AND_JPEG: return CameraPhotoFileFormat.RAW_JPEG;
-            case TIFF_8_BIT: return CameraPhotoFileFormat.UNKNOWN;
+            case TIFF_8_BIT: return CameraPhotoFileFormat.TIFF_8_BIT;
             case TIFF_14_BIT: return CameraPhotoFileFormat.TIFF_14_BIT;
             case TIFF_14_BIT_LINEAR_LOW_TEMP_RESOLUTION: return CameraPhotoFileFormat.TIFF_14_BIT_LINEAR_LOW_TEMP_RESOLUTION;
             case TIFF_14_BIT_LINEAR_HIGH_TEMP_RESOLUTION: return CameraPhotoFileFormat.TIFF_14_BIT_LINEAR_HIGH_TEMP_RESOLUTION;
             case RADIOMETRIC_JPEG: return CameraPhotoFileFormat.RADIOMETRIC_JPEG;
-            case RADIOMETRIC_JPEG_LOW: return CameraPhotoFileFormat.RADIOMETRIC_JPEG;
-            case RADIOMETRIC_JPEG_HIGH: return CameraPhotoFileFormat.RADIOMETRIC_JPEG;
+            case RADIOMETRIC_JPEG_LOW: return CameraPhotoFileFormat.RADIOMETRIC_JPEG_LOW;
+            case RADIOMETRIC_JPEG_HIGH: return CameraPhotoFileFormat.RADIOMETRIC_JPEG_HIGH;
             case UNKNOWN: return CameraPhotoFileFormat.UNKNOWN;
         }
         return CameraPhotoFileFormat.UNKNOWN;
@@ -823,8 +826,8 @@ public class DronelinkDJI {
             case SHALLOW_FOCUS: return CameraPhotoMode.SHALLOW_FOCUS;
             case EHDR: return CameraPhotoMode.EHDR;
             case HYPER_LIGHT: return CameraPhotoMode.HYPER_LIGHT;
-            case HYPER_LAPSE: return CameraPhotoMode.UNKNOWN;
-            case SUPER_RESOLUTION: return CameraPhotoMode.UNKNOWN;
+            case HYPER_LAPSE: return CameraPhotoMode.HYPER_LAPSE;
+            case SUPER_RESOLUTION: return CameraPhotoMode.SUPER_RESOLUTION;
             case HIGH_RESOLUTION: return CameraPhotoMode.HIGH_RESOLUTION;
             case UNKNOWN: return CameraPhotoMode.UNKNOWN;
         }
@@ -843,11 +846,11 @@ public class DronelinkDJI {
             case PHOTO_PANORAMA: return CameraPhotoMode.PANORAMA;
             case PHOTO_HIGH_RESOLUTION: return CameraPhotoMode.HIGH_RESOLUTION;
             case PHOTO_EHDR: return CameraPhotoMode.EHDR;
-            case PHOTO_COUNTDOWN:
-            case PHOTO_HYPER_LAPSE:
-            case PHOTO_SUPER_RESOLUTION:
-            case PHOTO_SMART:
-            case INTERNAL_AI_SPOT_CHECKING:
+            case PHOTO_COUNTDOWN: return CameraPhotoMode.COUNTDOWN;
+            case PHOTO_HYPER_LAPSE: return CameraPhotoMode.HYPER_LAPSE;
+            case PHOTO_SUPER_RESOLUTION: return CameraPhotoMode.SUPER_RESOLUTION;
+            case PHOTO_SMART: return CameraPhotoMode.SMART;
+            case INTERNAL_AI_SPOT_CHECKING: return CameraPhotoMode.INTERNAL_AI_SPOT_CHECKING;
             case SLOW_MOTION:
             case VIDEO_NORMAL:
             case VIDEO_HDR:
@@ -866,6 +869,10 @@ public class DronelinkDJI {
     public static SettingsDefinitions.ShutterSpeed getCameraShutterSpeed(final CameraShutterSpeed value) {
         switch (value) {
             case AUTO: return SettingsDefinitions.ShutterSpeed.AUTO;
+            case _1_20000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_20000;
+            case _1_16000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_16000;
+            case _1_12800: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_12800;
+            case _1_10000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_10000;
             case _1_8000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_8000;
             case _1_6400: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_6400;
             case _1_6000: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_6000;
@@ -917,6 +924,7 @@ public class DronelinkDJI {
             case _0_DOT_3: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_2_DOT_5; //missing 0.3
             case _1_2: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_2;
             case _1_1_DOT_67: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_1_DOT_67;
+            case _1_1_DOT_25: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_1_DOT_25;
             case _0_DOT_7: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_1_DOT_67; //missing 0.7
             case _1: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1;
             case _1_DOT_3: return SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_DOT_3;
@@ -1057,6 +1065,8 @@ public class DronelinkDJI {
             case MP4: return SettingsDefinitions.VideoFileFormat.MP4;
             case TIFF_SEQ: return SettingsDefinitions.VideoFileFormat.TIFF_SEQ;
             case SEQ: return SettingsDefinitions.VideoFileFormat.SEQ;
+            case CDNG:
+            case MXF:
             case UNKNOWN: return SettingsDefinitions.VideoFileFormat.UNKNOWN;
         }
         return SettingsDefinitions.VideoFileFormat.UNKNOWN;

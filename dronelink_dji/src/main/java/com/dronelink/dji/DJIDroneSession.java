@@ -860,7 +860,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         }
 
                         final DatedValue<DroneStateAdapter> state = getState();
-                        final DJICameraFile cameraFile = new DJICameraFile(camera.getIndex(), mediaFile, state.value.getLocation(), state.value.getAltitude(), orientation);
+                        final DJICameraFile cameraFile = new DJICameraFile(camera.getIndex(), null, mediaFile, state.value.getLocation(), state.value.getAltitude(), orientation);
                         mostRecentCameraFile = new DatedValue<CameraFile>(cameraFile);
                         onCameraFileGenerated(cameraFile);
                     }
@@ -1622,11 +1622,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
     @Override
     public DatedValue<CameraStateAdapter> getCameraState(final int channel) {
-        return getCameraState(channel, null);
-    }
-
-    @Override
-    public DatedValue<CameraStateAdapter> getCameraState(final int channel, final Integer lensIndex) {
         try {
             return cameraSerialQueue.submit(new Callable<DatedValue<CameraStateAdapter>>() {
                 @Override
@@ -1638,17 +1633,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     }
 
                     int lensIndexResolved = 0;
-                    if (lensIndex != null) {
-                        lensIndexResolved = lensIndex;
-                    }
-                    else {
-                        final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
-                        if (videoStreamSource != null && videoStreamSource.value != null) {
-                            lensIndexResolved = camera.getLensIndex(DronelinkDJI.getCameraVideoStreamSource(videoStreamSource.value));
-                        }
+                    final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
+                    if (videoStreamSource != null && videoStreamSource.value != null) {
+                        lensIndexResolved = camera.getLensIndex(DronelinkDJI.getCameraVideoStreamSource(videoStreamSource.value));
                     }
 
-                    final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
                     final DatedValue<FocusState> focusState = cameraFocusStates.get(channel + "." + lensIndexResolved);
                     final Map<CameraStorageLocation, DatedValue<StorageState>> storageState = cameraStorageStates.get(channel);
                     final DatedValue<ExposureSettings> exposureSettings = cameraExposureSettings.get(channel + "." + lensIndexResolved);

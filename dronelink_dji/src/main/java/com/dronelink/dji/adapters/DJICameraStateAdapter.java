@@ -290,6 +290,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
+    public CameraAperture getApertureActual() {
+        return getAperture();
+    }
+
+    @Override
     public CameraWhiteBalancePreset getWhiteBalancePreset() {
         return DronelinkDJI.getCameraWhiteBalancePreset(whiteBalance == null ? SettingsDefinitions.WhiteBalancePreset.UNKNOWN : whiteBalance.getWhiteBalancePreset());
     }

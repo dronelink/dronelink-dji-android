@@ -48,6 +48,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     private DatedValue<AppActivationState> appActivationState;
     private DJIDroneSession session;
     private final AtomicBoolean isRegistrationInProgress = new AtomicBoolean(false);
+    private boolean registered = false;
     private final List<Listener> listeners = new LinkedList<>();
 
     public DJIDroneSessionManager(final Context context) {
@@ -217,6 +218,10 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     }
 
     public void register(final Context context) {
+        if (registered) {
+            return;
+        }
+
         if (isRegistrationInProgress.compareAndSet(false, true)) {
             final DJIDroneSessionManager self = this;
             AsyncTask.execute(new Runnable() {
@@ -233,6 +238,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                             if (djiError == DJISDKError.REGISTRATION_SUCCESS) {
                                 Log.i(TAG, "DJI SDK registered successfully");
                                 DJISDKManager.getInstance().startConnectionToProduct();
+                                registered = true;
                             } else {
                                 Log.e(TAG, "DJI SDK registered with error: " + djiError.getDescription());
                             }

@@ -48,6 +48,11 @@ public class DJICameraAdapter implements CameraAdapter {
     }
 
     @Override
+    public Integer getLensIndex() {
+        return null;
+    }
+
+    @Override
     public void format(final CameraStorageLocation storageLocation, final Command.Finisher finisher) {
         camera.formatStorage(DronelinkDJI.getCameraStorageLocation(storageLocation), new CommonCallbacks.CompletionCallback() {
             @Override
