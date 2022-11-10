@@ -15,7 +15,6 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.dronelink.core.CameraFile;
 import com.dronelink.core.Convert;
@@ -28,6 +27,7 @@ import com.dronelink.core.Executor;
 import com.dronelink.core.MissionExecutor;
 import com.dronelink.core.ModeExecutor;
 import com.dronelink.core.Version;
+import com.dronelink.core.adapters.BatteryStateAdapter;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.CameraStateAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
@@ -860,7 +860,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         }
 
                         final DatedValue<DroneStateAdapter> state = getState();
-                        final DJICameraFile cameraFile = new DJICameraFile(camera.getIndex(), null, mediaFile, state.value.getLocation(), state.value.getAltitude(), orientation);
+                        final DJICameraFile cameraFile = new DJICameraFile(camera.getIndex(), mediaFile, state.value.getLocation(), state.value.getAltitude(), orientation);
                         mostRecentCameraFile = new DatedValue<CameraFile>(cameraFile);
                         onCameraFileGenerated(cameraFile);
                     }
@@ -1634,9 +1634,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
                     int lensIndexResolved = 0;
                     final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
-                    if (videoStreamSource != null && videoStreamSource.value != null) {
-                        lensIndexResolved = camera.getLensIndex(DronelinkDJI.getCameraVideoStreamSource(videoStreamSource.value));
-                    }
+                    //FIXME
+//                    if (videoStreamSource != null && videoStreamSource.value != null) {
+//                        lensIndexResolved = camera.getLensIndex(DronelinkDJI.getCameraVideoStreamSource(videoStreamSource.value));
+//                    }
 
                     final DatedValue<FocusState> focusState = cameraFocusStates.get(channel + "." + lensIndexResolved);
                     final Map<CameraStorageLocation, DatedValue<StorageState>> storageState = cameraStorageStates.get(channel);
@@ -1652,7 +1653,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             exposureMode == null ? null : exposureMode.value,
                             exposureSettings == null ? null : exposureSettings.value,
                             histogram == null ? null : histogram.value,
-                            lensIndexResolved,
                             lensInformation == null ? null : lensInformation.value,
                             storageLocation == null ? null : storageLocation.value,
                             photoMode == null ? null : photoMode.value,
@@ -1700,6 +1700,12 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         catch (final ExecutionException | InterruptedException e) {
             return null;
         }
+    }
+
+    @Override
+    public DatedValue<BatteryStateAdapter> getBatteryState(final int index) {
+        //TODO
+        return null;
     }
 
     @Override
@@ -2487,7 +2493,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             Command.conditionallyExecute(DronelinkDJI.getCameraExposureCompensation(djiState.getExposureCompensation()) != target, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
-                    final Lens lens = DronelinkDJI.getLens(camera, djiState.getLensIndex());
+                    final Lens lens = null; //FIXME DronelinkDJI.getLens(camera, djiState.getLensIndex());
                     if (lens == null) {
                         camera.setExposureCompensation(target, createCompletionCallback(finished));
                     }
@@ -2504,7 +2510,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             Command.conditionallyExecute(DronelinkDJI.getCameraExposureCompensation(djiState.getExposureCompensation()) != target, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
-                    final Lens lens = DronelinkDJI.getLens(camera, djiState.getLensIndex());
+                    final Lens lens = null; //FIXME DronelinkDJI.getLens(camera, djiState.getLensIndex());
                     if (lens == null) {
                         camera.setExposureCompensation(target, createCompletionCallback(finished));
                     }
@@ -2708,7 +2714,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             camera.getPhotoTimeIntervalSettings(createCompletionCallbackWith(new Command.FinisherWith<SettingsDefinitions.PhotoTimeIntervalSettings>() {
                 @Override
                 public void execute(final SettingsDefinitions.PhotoTimeIntervalSettings current) {
-                    final SettingsDefinitions.PhotoTimeIntervalSettings target = new SettingsDefinitions.PhotoTimeIntervalSettings(255, ((PhotoIntervalCameraCommand) command).photoInterval);
+                    final SettingsDefinitions.PhotoTimeIntervalSettings target = new SettingsDefinitions.PhotoTimeIntervalSettings(255, (int)((PhotoIntervalCameraCommand) command).photoInterval);
                     Command.conditionallyExecute(current.getCaptureCount() != target.getCaptureCount() || current.getTimeIntervalInSeconds() != target.getTimeIntervalInSeconds(), finished, new Command.ConditionalExecutor() {
                         @Override
                         public void execute() {

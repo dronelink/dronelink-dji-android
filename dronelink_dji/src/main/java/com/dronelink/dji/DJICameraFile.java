@@ -10,6 +10,7 @@ import android.location.Location;
 
 import com.dronelink.core.CameraFile;
 import com.dronelink.core.kernel.core.Orientation3;
+import com.dronelink.core.kernel.core.enums.CameraLensType;
 
 import java.util.Date;
 
@@ -17,16 +18,14 @@ import dji.sdk.media.MediaFile;
 
 public class DJICameraFile implements CameraFile {
     private final int channel;
-    private final Integer lensIndex;
     private final Date created;
     private final Location coordinate;
     private final Double altitude;
     private final Orientation3 orientation;
     private final MediaFile mediaFile;
 
-    public DJICameraFile(final int channel, final Integer lensIndex, final MediaFile mediaFile, final Location coordinate, final Double altitude, final Orientation3 orientation) {
+    public DJICameraFile(final int channel, final MediaFile mediaFile, final Location coordinate, final Double altitude, final Orientation3 orientation) {
         this.channel = channel;
-        this.lensIndex = lensIndex;
         this.mediaFile = mediaFile;
         this.created = new Date();
         this.coordinate = coordinate;
@@ -40,8 +39,8 @@ public class DJICameraFile implements CameraFile {
     }
 
     @Override
-    public Integer getLensIndex() {
-        return lensIndex;
+    public CameraLensType getLensType() {
+        return null;
     }
 
     @Override

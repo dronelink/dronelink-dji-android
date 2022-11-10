@@ -7,6 +7,7 @@
 package com.dronelink.dji.adapters;
 
 import com.dronelink.core.Convert;
+import com.dronelink.core.adapters.BatteryAdapter;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.EnumElement;
@@ -82,6 +83,12 @@ public class DJIDroneAdapter implements DroneAdapter {
     }
 
     @Override
+    public Collection<BatteryAdapter> getBatteries() {
+        //TODO
+        return null;
+    }
+
+    @Override
     public RemoteControllerAdapter getRemoteController(final int channel) {
         final RemoteControllerAdapter remoteControllerAdapter = remoteControllers.get(channel);
         if (remoteControllerAdapter == null && channel < 1) {
@@ -138,6 +145,12 @@ public class DJIDroneAdapter implements DroneAdapter {
             }
         }
         return gimbalAdapter;
+    }
+
+    @Override
+    public BatteryAdapter getBattery(final int index) {
+        //TODO
+        return null;
     }
 
     @Override

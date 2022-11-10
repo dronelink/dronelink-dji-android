@@ -740,6 +740,9 @@ public class DronelinkDJI {
             case _4_3: return SettingsDefinitions.PhotoAspectRatio.RATIO_4_3;
             case _16_9: return SettingsDefinitions.PhotoAspectRatio.RATIO_16_9;
             case _3_2: return SettingsDefinitions.PhotoAspectRatio.RATIO_3_2;
+            case _1_1: return SettingsDefinitions.PhotoAspectRatio.RATIO_1_1;
+            case _18_9: return SettingsDefinitions.PhotoAspectRatio.RATIO_18_9;
+            case _5_4: return SettingsDefinitions.PhotoAspectRatio.RATIO_5_4;
             case UNKNOWN: return SettingsDefinitions.PhotoAspectRatio.UNKNOWN;
         }
         return SettingsDefinitions.PhotoAspectRatio.UNKNOWN;
@@ -750,9 +753,9 @@ public class DronelinkDJI {
             case RATIO_4_3: return CameraPhotoAspectRatio._4_3;
             case RATIO_16_9: return CameraPhotoAspectRatio._16_9;
             case RATIO_3_2: return CameraPhotoAspectRatio._3_2;
-            case RATIO_1_1: return CameraPhotoAspectRatio.UNKNOWN;
-            case RATIO_18_9: return CameraPhotoAspectRatio.UNKNOWN;
-            case RATIO_5_4: return CameraPhotoAspectRatio.UNKNOWN;
+            case RATIO_1_1: return CameraPhotoAspectRatio._1_1;
+            case RATIO_18_9: return CameraPhotoAspectRatio._18_9;
+            case RATIO_5_4: return CameraPhotoAspectRatio._5_4;
             case UNKNOWN: return CameraPhotoAspectRatio.UNKNOWN;
         }
         return CameraPhotoAspectRatio.UNKNOWN;
@@ -1152,8 +1155,8 @@ public class DronelinkDJI {
             case _5280x2160: return SettingsDefinitions.VideoResolution.RESOLUTION_5280x2160;
             case _5280x2972: return SettingsDefinitions.VideoResolution.RESOLUTION_5280x2972;
             case _5472x3078: return SettingsDefinitions.VideoResolution.RESOLUTION_5472x3078;
-            case _5760X3240: return SettingsDefinitions.VideoResolution.RESOLUTION_5760X3240;
-            case _6016X3200: return SettingsDefinitions.VideoResolution.RESOLUTION_6016X3200;
+            case _5760x3240: return SettingsDefinitions.VideoResolution.RESOLUTION_5760X3240;
+            case _6016x3200: return SettingsDefinitions.VideoResolution.RESOLUTION_6016X3200;
             case _7680x4320: return SettingsDefinitions.VideoResolution.RESOLUTION_7680x4320;
             case MAX: return SettingsDefinitions.VideoResolution.RESOLUTION_MAX;
             case NO_SSD_VIDEO: return SettingsDefinitions.VideoResolution.NO_SSD_VIDEO;
@@ -1178,8 +1181,8 @@ public class DronelinkDJI {
             case RESOLUTION_5280x2160: return CameraVideoResolution._5280x2160;
             case RESOLUTION_MAX: return CameraVideoResolution.MAX;
             case NO_SSD_VIDEO: return CameraVideoResolution.NO_SSD_VIDEO;
-            case RESOLUTION_5760X3240: return CameraVideoResolution._5760X3240;
-            case RESOLUTION_6016X3200: return CameraVideoResolution._6016X3200;
+            case RESOLUTION_5760X3240: return CameraVideoResolution._5760x3240;
+            case RESOLUTION_6016X3200: return CameraVideoResolution._6016x3200;
             case RESOLUTION_2048x1080: return CameraVideoResolution._2048x1080;
             case RESOLUTION_5280x2972: return CameraVideoResolution._5280x2972;
             case RESOLUTION_336x256: return CameraVideoResolution._336x256;
@@ -1825,7 +1828,23 @@ public class DronelinkDJI {
                 break;
         }
 
-        return level == null ? null : new Message(diagnostics.getReason(), diagnostics.getSolution(), level);
+        String reason = diagnostics.getReason();
+        if (reason == null) {
+            reason = "";
+        }
+            reason = reason.trim();
+
+        String solution = diagnostics.getSolution();
+        if (solution == null) {
+            solution = "";
+        }
+        solution = solution.trim();
+
+        if (reason.isEmpty() && solution.isEmpty()) {
+            return null;
+        }
+
+        return level == null ? null : new Message(reason, solution, level);
     }
 
     public static Message getMessage(final Context context, final GoHomeExecutionState state) {

@@ -64,7 +64,7 @@
     <string name="DronelinkDJI_FlyZoneState_value_OUTSIDE_SPECIAL_UNLOCK_ZONE">Outside Special Unlock Zone</string>
     <string name="DronelinkDJI_FlyZoneState_value_FLY_TOUCH_AUTHORIZE_HAS_LICENSE">Fly Touch Authorize has License</string>
     <string name="DronelinkDJI_DJIAirSenseAirplaneState_title">AirSense Alert</string>
-    <string name="DronelinkDJI_DJIAirSenseAirplaneState_message">Aircraft %1$s to the %2$s heading %3$s</string>
+    <string name="DronelinkDJI_DJIAirSenseAirplaneState_message">Aircraft %1$s at %2$s %3$s</string>
     <string name="DronelinkDJI_GoHomeExecutionState_title">RTH</string>
     <string name="DronelinkDJI_GoHomeExecutionState_value_TURN_DIRECTION_TO_HOME_POINT">Turning to Home Point</string>
     <string name="DronelinkDJI_GoHomeExecutionState_value_GO_UP_TO_HEIGHT">Ascending to Altitude</string>
@@ -83,7 +83,7 @@
     <string name="DronelinkDJI_DJIWaypointMissionState_value_RECOVERING">Recovering</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_READY_TO_UPLOAD">Ready to Upload</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_UPLOADING">Uploading</string>
-    <string name="DronelinkDJI_DJIWaypointMissionState_value_READY_TO_EXECUTE">Ready to Execute</string>
+    <string name="DronelinkDJI_DJIWaypointMissionState_value_READY_TO_EXECUTE">Ready to Go</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_EXECUTING">Running</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSED">Paused</string>
     <string name="DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSING">Pausing</string>

@@ -16,7 +16,6 @@ import com.dronelink.core.kernel.core.enums.CameraPhotoFileFormat;
 import com.dronelink.core.kernel.core.enums.CameraPhotoMode;
 import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
 import com.dronelink.core.kernel.core.enums.CameraVideoFileFormat;
-import com.dronelink.core.kernel.core.enums.CameraVideoStreamSource;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.dji.DronelinkDJI;
 
@@ -28,7 +27,6 @@ import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJIError;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.camera.Camera;
-import dji.sdk.camera.Lens;
 
 public class DJICameraAdapter implements CameraAdapter {
     public final Camera camera;
@@ -45,11 +43,6 @@ public class DJICameraAdapter implements CameraAdapter {
     @Override
     public int getIndex() {
         return camera.getIndex();
-    }
-
-    @Override
-    public Integer getLensIndex() {
-        return null;
     }
 
     @Override
@@ -74,20 +67,6 @@ public class DJICameraAdapter implements CameraAdapter {
                 }
             }
         });
-    }
-
-    @Override
-    public int getLensIndex(final CameraVideoStreamSource videoStreamSource) {
-        final SettingsDefinitions.LensType lensType = DronelinkDJI.getCameraVideoStreamSourceLensType(videoStreamSource);
-        if (camera.getLenses() != null) {
-            for (final Lens lens : camera.getLenses()) {
-                if (lens.getType() == lensType) {
-                    return lens.getIndex();
-                }
-            }
-        }
-
-        return 0;
     }
 
     @Override

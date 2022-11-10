@@ -6,8 +6,8 @@
 //
 package com.dronelink.dji.adapters;
 
-import com.dronelink.core.kernel.core.RemoteControllerButton;
 import com.dronelink.core.adapters.RemoteControllerStateAdapter;
+import com.dronelink.core.kernel.core.RemoteControllerButton;
 import com.dronelink.core.kernel.core.RemoteControllerStick;
 import com.dronelink.core.kernel.core.RemoteControllerWheel;
 
@@ -25,7 +25,7 @@ public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAda
     }
 
     public RemoteControllerWheel getLeftWheel() {
-        return state == null ? null : new RemoteControllerWheel(true, true, (double)state.getLeftDial() / 660.0);
+        return state == null ? null : new RemoteControllerWheel(true, false, (double)state.getLeftDial() / 660.0);
     }
 
     public RemoteControllerStick getRightStick() {

@@ -44,7 +44,6 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.ExposureMode exposureMode;
     public final ExposureSettings exposureSettings;
     public final short[] histogram;
-    public final int lensIndex;
     public final String lensInformation;
     public final SettingsDefinitions.StorageLocation storageLocation;
     public final SettingsDefinitions.ShootPhotoMode photoMode;
@@ -73,7 +72,6 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final SettingsDefinitions.ExposureMode exposureMode,
             final ExposureSettings exposureSettings,
             final short[] histogram,
-            final int lensIndex,
             final String lensInformation,
             final SettingsDefinitions.StorageLocation storageLocation,
             final SettingsDefinitions.ShootPhotoMode photoMode,
@@ -100,7 +98,6 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         this.exposureMode = exposureMode;
         this.exposureSettings = exposureSettings;
         this.histogram = histogram;
-        this.lensIndex = lensIndex;
         this.lensInformation = lensInformation;
         this.storageLocation = storageLocation;
         this.photoMode = photoMode;
@@ -220,8 +217,8 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
-    public Integer getPhotoInterval() {
-        return photoTimeIntervalSettings == null ? null : photoTimeIntervalSettings.getTimeIntervalInSeconds();
+    public Double getPhotoInterval() {
+        return photoTimeIntervalSettings == null ? null : (double)photoTimeIntervalSettings.getTimeIntervalInSeconds();
     }
 
     @Override
@@ -307,11 +304,6 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public short[] getHistogram() {
         return histogram;
-    }
-
-    @Override
-    public int getLensIndex() {
-        return lensIndex;
     }
 
     @Override
