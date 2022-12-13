@@ -181,7 +181,7 @@ public class DJIDroneAdapter implements DroneAdapter {
         flightController.sendVirtualStickFlightControlData(new FlightControlData((float)horizontal.getY(),
                 (float)horizontal.getX(),
                 (float)Math.toDegrees(velocityCommand.heading == null ? velocityCommand.velocity.getRotational() : Convert.AngleDifferenceSigned(velocityCommand.heading, 0)),
-                (float)velocityCommand.velocity.getVertical()), null);
+                Math.min(4.0f, Math.max(-4.0f, (float)velocityCommand.velocity.getVertical()))), null);
     }
 
     //kluge: if we send commands to any P4 model faster than 150ms, it results in sudden stopping and resuming every few seconds!
