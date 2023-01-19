@@ -9,6 +9,8 @@ package com.dronelink.dji;
 import android.content.Context;
 import android.location.Location;
 
+import androidx.annotation.Nullable;
+
 import com.dronelink.core.Convert;
 import com.dronelink.core.Dronelink;
 import com.dronelink.core.command.CommandError;
@@ -956,7 +958,11 @@ public class DronelinkDJI {
         }
         return SettingsDefinitions.ShutterSpeed.UNKNOWN;
     }
-    public static CameraShutterSpeed getCameraShutterSpeed(final SettingsDefinitions.ShutterSpeed value) {
+    public static CameraShutterSpeed getCameraShutterSpeed(@Nullable final SettingsDefinitions.ShutterSpeed value) {
+        if (value == null) {
+            return CameraShutterSpeed.UNKNOWN;
+        }
+
         switch (value) {
             case SHUTTER_SPEED_1_20000: return CameraShutterSpeed.UNKNOWN;
             case SHUTTER_SPEED_1_16000: return CameraShutterSpeed.UNKNOWN;

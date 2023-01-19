@@ -1710,8 +1710,18 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
     @Override
     public void resetPayloads() {
-        sendResetGimbalCommands();
-        sendResetCameraCommands();
+        resetPayloads(true, true);
+    }
+
+    @Override
+    public void resetPayloads(final boolean gimbal, final boolean camera) {
+        if (gimbal) {
+            sendResetGimbalCommands();
+        }
+
+        if (camera) {
+            sendResetCameraCommands();
+        }
     }
 
     @Override
