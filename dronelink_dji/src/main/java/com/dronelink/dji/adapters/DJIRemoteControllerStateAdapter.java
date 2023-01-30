@@ -21,7 +21,7 @@ public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAda
     }
 
     public RemoteControllerStick getLeftStick() {
-        return state == null ? null : new RemoteControllerStick(state.getLeftStick().getHorizontalPosition() / 660.0, state.getLeftStick().getVerticalPosition() / 660.0);
+        return state == null || state.getLeftStick() == null ? null : new RemoteControllerStick(state.getLeftStick().getHorizontalPosition() / 660.0, state.getLeftStick().getVerticalPosition() / 660.0);
     }
 
     public RemoteControllerWheel getLeftWheel() {
@@ -29,22 +29,22 @@ public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAda
     }
 
     public RemoteControllerStick getRightStick() {
-        return state == null ? null : new RemoteControllerStick(state.getRightStick().getHorizontalPosition() / 660.0, state.getRightStick().getVerticalPosition() / 660.0);
+        return state == null || state.getRightStick() == null ? null : new RemoteControllerStick(state.getRightStick().getHorizontalPosition() / 660.0, state.getRightStick().getVerticalPosition() / 660.0);
     }
 
     public RemoteControllerButton getPauseButton() {
-        return state == null ? null : new RemoteControllerButton(state.getPauseButton().isPresent(), state.getPauseButton().isClicked());
+        return state == null || state.getPauseButton() == null ? null : new RemoteControllerButton(state.getPauseButton().isPresent(), state.getPauseButton().isClicked());
     }
 
     public RemoteControllerButton getReturnHomeButton() {
-        return state == null ? null : new RemoteControllerButton(state.getGoHomeButton().isPresent(), state.getGoHomeButton().isClicked());
+        return state == null || state.getGoHomeButton() == null ? null : new RemoteControllerButton(state.getGoHomeButton().isPresent(), state.getGoHomeButton().isClicked());
     }
 
     public RemoteControllerButton getC1Button() {
-        return state == null ? null : new RemoteControllerButton(state.getC1Button().isPresent(), state.getC1Button().isClicked());
+        return state == null || state.getC1Button() == null ? null : new RemoteControllerButton(state.getC1Button().isPresent(), state.getC1Button().isClicked());
     }
 
     public RemoteControllerButton getC2Button() {
-        return state == null ? null : new RemoteControllerButton(state.getC2Button().isPresent(), state.getC2Button().isClicked());
+        return state == null || state.getC2Button() == null ? null : new RemoteControllerButton(state.getC2Button().isPresent(), state.getC2Button().isClicked());
     }
 }
