@@ -12,6 +12,7 @@ import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.EnumElement;
 import com.dronelink.core.adapters.GimbalAdapter;
+import com.dronelink.core.adapters.RTKAdapter;
 import com.dronelink.core.adapters.RemoteControllerAdapter;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
@@ -149,7 +150,11 @@ public class DJIDroneAdapter implements DroneAdapter {
 
     @Override
     public BatteryAdapter getBattery(final int index) {
-        //TODO
+        return null;
+    }
+
+    @Override
+    public RTKAdapter getRTK() {
         return null;
     }
 

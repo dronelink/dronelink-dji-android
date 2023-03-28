@@ -34,6 +34,7 @@ import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.GimbalStateAdapter;
+import com.dronelink.core.adapters.RTKStateAdapter;
 import com.dronelink.core.adapters.RemoteControllerStateAdapter;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandConfig;
@@ -1705,6 +1706,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     @Override
     public DatedValue<BatteryStateAdapter> getBatteryState(final int index) {
         //TODO
+        return null;
+    }
+
+    @Override
+    public DatedValue<RTKStateAdapter> getRTKState() {
         return null;
     }
 
