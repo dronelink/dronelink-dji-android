@@ -1291,6 +1291,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     }
 
     @Override
+    public String getAdapterName() {
+        return "dji";
+    }
+
+    @Override
     public String getManufacturer() {
         return "DJI";
     }
