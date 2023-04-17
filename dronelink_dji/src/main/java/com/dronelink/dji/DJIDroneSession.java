@@ -1347,7 +1347,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
         final DatedValue<FlightControllerState> flightControllerState = state.flightControllerState;
         if (flightControllerState == null || flightControllerState.value == null) {
-            return new Message(context.getString(R.string.MissionDisengageReason_telemetry_unavailable_title));
+            return new Message(context.getString(R.string.DJIDroneSession_telemetry_unavailable));
         }
 
         if (isTelemetryDelayed()) {
