@@ -24,6 +24,8 @@
     <string name="MissionDisengageReason_drone_accessory_aggregation_unavailable_title">Accessories Unavailable</string>
     <string name="MissionDisengageReason_drone_beacon_unavailable_title">Beacon Unavailable</string>
     <string name="MissionDisengageReason_drone_spotlight_unavailable_title">Spotlight Unavailable</string>
+    <string name="MissionDisengageReason_live_streaming_unavailable_title">Live Streaming Unavailable</string>
+    <string name="MissionDisengageReason_live_streaming_failed_title">Unable to Start Live Streaming</string>
     <string name="MissionDisengageReason_drone_remote_controller_unavailable_title">Remote Controller Unavailable</string>
     <string name="MissionDisengageReason_drone_camera_unavailable_title">Camera Unavailable</string>
     <string name="MissionDisengageReason_drone_lens_unavailable_title">Lens Unavailable</string>

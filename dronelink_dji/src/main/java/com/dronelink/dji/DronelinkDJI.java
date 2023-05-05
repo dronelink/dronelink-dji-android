@@ -52,6 +52,7 @@ import com.dronelink.core.kernel.core.enums.DJIWaypointMissionFlightPathMode;
 import com.dronelink.core.kernel.core.enums.DJIWaypointMissionGotoWaypointMode;
 import com.dronelink.core.kernel.core.enums.DJIWaypointMissionHeadingMode;
 import com.dronelink.core.kernel.core.enums.DJIWaypointTurnMode;
+import com.dronelink.core.kernel.core.enums.DroneAuxiliaryLightMode;
 import com.dronelink.core.kernel.core.enums.DroneConnectionFailSafeBehavior;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
@@ -80,6 +81,7 @@ import dji.common.flightcontroller.GoHomeExecutionState;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.adsb.AirSenseAirplaneState;
 import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
+import dji.common.flightcontroller.flightassistant.FillLightMode;
 import dji.common.flightcontroller.flyzone.FlyZoneState;
 import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
@@ -143,6 +145,17 @@ public class DronelinkDJI {
             case UNKNOWN: return ConnectionFailSafeBehavior.UNKNOWN;
         }
         return ConnectionFailSafeBehavior.UNKNOWN;
+    }
+
+    public static FillLightMode getFillLightMode(final DroneAuxiliaryLightMode value) {
+        switch (value) {
+            case AUTO: return FillLightMode.AUTO;
+            case ON: return FillLightMode.ON;
+            case OFF: return FillLightMode.OFF;
+            case BEACON: return FillLightMode.BEACON;
+            case UNKNOWN: return FillLightMode.UNKNOWN;
+        }
+        return FillLightMode.UNKNOWN;
     }
 
     public static ChannelSelectionMode getLightbridgeChannelSelectionMode(final DroneLightbridgeChannelSelectionMode value) {
