@@ -6,12 +6,14 @@
 //
 package com.dronelink.dji.adapters;
 
+import com.dronelink.core.Kernel;
 import com.dronelink.core.adapters.CameraStateAdapter;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
 import com.dronelink.core.kernel.core.enums.CameraAperture;
 import com.dronelink.core.kernel.core.enums.CameraBurstCount;
 import com.dronelink.core.kernel.core.enums.CameraExposureCompensation;
 import com.dronelink.core.kernel.core.enums.CameraExposureMode;
+import com.dronelink.core.kernel.core.enums.CameraFeatures;
 import com.dronelink.core.kernel.core.enums.CameraFocusMode;
 import com.dronelink.core.kernel.core.enums.CameraISO;
 import com.dronelink.core.kernel.core.enums.CameraMeteringMode;
@@ -25,7 +27,11 @@ import com.dronelink.core.kernel.core.enums.CameraVideoFileFormat;
 import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
+import com.dronelink.core.kernel.core.enums.CameraZoomSpec;
 import com.dronelink.dji.DronelinkDJI;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import dji.common.camera.CameraVideoStreamSource;
 import dji.common.camera.ExposureSettings;
@@ -35,8 +41,11 @@ import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
 import dji.common.camera.WhiteBalance;
 
+import dji.sdk.camera.Camera;
+
 public
 class DJICameraStateAdapter implements CameraStateAdapter {
+    public final Camera camera;
     public final SystemState state;
     public final CameraVideoStreamSource videoStreamSource;
     public final FocusState focusState;
@@ -61,10 +70,13 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.FocusMode focusMode;
     public final Double focusRingValue;
     public final Double focusRingMax;
+    public final Double opticalZoomValue;
+    public final SettingsDefinitions.OpticalZoomSpec opticalZoomSpec;
     public final SettingsDefinitions.MeteringMode meteringMode;
     public final Boolean isAutoExposureLockEnabled;
 
     public DJICameraStateAdapter(
+            final Camera camera,
             final SystemState state,
             final CameraVideoStreamSource videoStreamSource,
             final FocusState focusState,
@@ -89,8 +101,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final SettingsDefinitions.FocusMode focusMode,
             final Double focusRingValue,
             final Double focusRingMax,
+            final Double opticalZoomValue,
+            final SettingsDefinitions.OpticalZoomSpec opticalZoomSpec,
             final SettingsDefinitions.MeteringMode meteringMode,
             final Boolean isAutoExposureLockEnabled) {
+        this.camera = camera;
         this.state = state;
         this.videoStreamSource = videoStreamSource;
         this.focusState = focusState;
@@ -115,6 +130,8 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         this.focusMode = focusMode;
         this.focusRingValue = focusRingValue;
         this.focusRingMax = focusRingMax;
+        this.opticalZoomValue = opticalZoomValue;
+        this.opticalZoomSpec = opticalZoomSpec;
         this.meteringMode = meteringMode;
         this.isAutoExposureLockEnabled = isAutoExposureLockEnabled;
     }
@@ -324,6 +341,37 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public Double getFocusRingMax() {
         return focusRingMax;
+    }
+
+    @Override
+    public boolean isFeatureSupported(CameraFeatures feature) {
+        switch (feature) {
+            case OPTICAL_ZOOM:
+                return camera.isOpticalZoomSupported();
+            case DIGITAL_ZOOM:
+                return camera.isDigitalZoomSupported();
+            case HYBRID_ZOOM:
+                return camera.isHybridZoomSupported();
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public Map<String, Integer> getOpticalZoomSpec() {
+        Map<String, Integer> zoomSpec = new HashMap<>();
+        if (opticalZoomSpec == null) {
+            return zoomSpec;
+        }
+        zoomSpec.put(Kernel.enumRawValue(CameraZoomSpec.MIN), opticalZoomSpec.getMinFocalLength());
+        zoomSpec.put(Kernel.enumRawValue(CameraZoomSpec.MAX), opticalZoomSpec.getMaxFocalLength());
+        zoomSpec.put(Kernel.enumRawValue(CameraZoomSpec.STEP), opticalZoomSpec.getFocalLengthStep());
+        return zoomSpec;
+    }
+
+    @Override
+    public Double getOpticalZoomValue() {
+        return opticalZoomValue;
     }
 
     @Override

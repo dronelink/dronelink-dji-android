@@ -24,6 +24,7 @@ import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
 import com.dronelink.core.Dronelink;
 import com.dronelink.core.Executor;
+import com.dronelink.core.Kernel;
 import com.dronelink.core.MissionExecutor;
 import com.dronelink.core.ModeExecutor;
 import com.dronelink.core.Version;
@@ -81,6 +82,7 @@ import com.dronelink.core.kernel.command.camera.VideoStandardCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoStreamSourceCameraCommand;
 import com.dronelink.core.kernel.command.camera.WhiteBalanceCustomCameraCommand;
 import com.dronelink.core.kernel.command.camera.WhiteBalancePresetCameraCommand;
+import com.dronelink.core.kernel.command.camera.ZoomCameraCommand;
 import com.dronelink.core.kernel.command.drone.AccessoryDroneCommand;
 import com.dronelink.core.kernel.command.drone.BeaconDroneCommand;
 import com.dronelink.core.kernel.command.drone.CollisionAvoidanceDroneCommand;
@@ -129,8 +131,10 @@ import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.Orientation3Optional;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
+import com.dronelink.core.kernel.core.enums.CameraZoomSpec;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
 import com.dronelink.core.kernel.core.enums.GimbalMode;
+import com.dronelink.dji.adapters.DJICameraAdapter;
 import com.dronelink.dji.adapters.DJICameraStateAdapter;
 import com.dronelink.dji.adapters.DJIDroneAdapter;
 import com.dronelink.dji.adapters.DJIDroneStateAdapter;
@@ -266,6 +270,8 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<SettingsDefinitions.FocusMode> focusMode;
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
+    private DatedValue<Double> opticalZoomValue;
+    private DatedValue<SettingsDefinitions.OpticalZoomSpec> opticalZoomSpec;
     private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
     private DatedValue<Boolean> autoExposureLock;
 
@@ -1126,6 +1132,19 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
         });
 
+        startListeningForChanges(CameraKey.create(CameraKey.OPTICAL_ZOOM_FOCAL_LENGTH), (oldValue, newValue) -> {
+            if (newValue instanceof Integer) {
+                opticalZoomValue = new DatedValue<>(((Integer) newValue).doubleValue());
+            }
+            else {
+                opticalZoomValue = null;
+            }
+        });
+
+        startListeningForChanges(CameraKey.create(CameraKey.OPTICAL_ZOOM_SPEC), (oldValue, newValue) -> {
+            opticalZoomSpec = newValue == null ? null : new DatedValue<>((SettingsDefinitions.OpticalZoomSpec)newValue);
+        });
+
         startListeningForChanges(CameraKey.create(CameraKey.METERING_MODE), (oldValue, newValue) -> {
             meteringMode = newValue == null ? null : new DatedValue<>((SettingsDefinitions.MeteringMode)newValue);
         });
@@ -1638,6 +1657,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
+                    DJICameraAdapter djiCamera = null;
+                    if (camera instanceof DJICameraAdapter) {
+                        djiCamera = (DJICameraAdapter) camera;
+                    }
+
                     int lensIndexResolved = 0;
                     final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
                     //FIXME
@@ -1652,6 +1676,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     final DatedValue<SettingsDefinitions.ExposureCompensation> exposureCompensation = cameraExposureCompensation.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
                     final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(
+                            djiCamera == null ? null : djiCamera.camera,
                             systemState.value,
                             videoStreamSource == null ? null : videoStreamSource.value,
                             focusState == null ? null : focusState.value,
@@ -1676,6 +1701,8 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             focusMode == null ? null : focusMode.value,
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value,
+                            opticalZoomValue == null ? null : opticalZoomValue.value,
+                            opticalZoomSpec == null ? null : opticalZoomSpec.value,
                             meteringMode == null ? null : meteringMode.value,
                             autoExposureLock == null ? null : autoExposureLock.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
@@ -2626,6 +2653,12 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         if (command instanceof FocusRingCameraCommand) {
             final Double focusRingMax = djiState.getFocusRingMax();
             camera.setFocusRingValue((int)(((FocusRingCameraCommand)command).focusRingPercent * (focusRingMax == null ? 0 : focusRingMax)), createCompletionCallback(finished));
+            return null;
+        }
+
+        if (command instanceof ZoomCameraCommand) {
+            Integer zoomMax = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX));
+            camera.setOpticalZoomFocalLength((int)(((ZoomCameraCommand)command).zoomPercent * (zoomMax == null ? 0 : zoomMax)), createCompletionCallback(finished));
             return null;
         }
 
