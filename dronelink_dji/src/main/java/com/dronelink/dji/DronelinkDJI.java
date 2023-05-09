@@ -98,6 +98,7 @@ import dji.common.mission.waypoint.WaypointTurnMode;
 import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.common.realname.AppActivationState;
+import dji.common.remotecontroller.GPSData;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
 import dji.internal.diagnostics.DiagnosticsBaseHandler;
@@ -145,6 +146,17 @@ public class DronelinkDJI {
             case UNKNOWN: return ConnectionFailSafeBehavior.UNKNOWN;
         }
         return ConnectionFailSafeBehavior.UNKNOWN;
+    }
+
+    public static DroneAuxiliaryLightMode getAuxiliaryLightMode(final FillLightMode value) {
+        switch (value) {
+            case AUTO: return DroneAuxiliaryLightMode.AUTO;
+            case ON: return DroneAuxiliaryLightMode.ON;
+            case OFF: return DroneAuxiliaryLightMode.OFF;
+            case BEACON: return DroneAuxiliaryLightMode.BEACON;
+            case UNKNOWN: return DroneAuxiliaryLightMode.UNKNOWN;
+        }
+        return DroneAuxiliaryLightMode.UNKNOWN;
     }
 
     public static FillLightMode getFillLightMode(final DroneAuxiliaryLightMode value) {
@@ -1523,6 +1535,16 @@ public class DronelinkDJI {
         final Location location = new Location("");
         location.setLatitude(value.getLatitude());
         location.setLongitude(value.getLongitude());
+        return location;
+    }
+
+    public static Location getLocation(final GPSData value) {
+        if (value == null || !value.isValid()) {
+            return null;
+        }
+        final Location location = new Location("");
+        location.setLatitude(value.getLocation().getLatitude());
+        location.setLongitude(value.getLocation().getLongitude());
         return location;
     }
 

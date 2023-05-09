@@ -181,12 +181,12 @@ import dji.common.flightcontroller.LandingGearState;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.flightcontroller.VisionSensorPosition;
 import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
-import dji.common.flightcontroller.flightassistant.AdvancedPilotAssistantSystemState;
 import dji.common.flightcontroller.flightassistant.FillLightMode;
 import dji.common.gimbal.GimbalState;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
 import dji.common.product.Model;
+import dji.common.remotecontroller.GPSData;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
@@ -219,8 +219,6 @@ import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKManager;
 import dji.sdk.sdkmanager.LiveStreamManager;
-import dji.sdk.sdkmanager.LiveVideoBitRateMode;
-import dji.sdk.sdkmanager.LiveVideoResolution;
 
 public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSourceListener {
     private static final String TAG = DJIDroneSession.class.getCanonicalName();
@@ -249,6 +247,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final ExecutorService remoteControllerSerialQueue = Executors.newSingleThreadExecutor();
     private Date remoteControllerInitialized;
     private DatedValue<HardwareState> remoteControllerState;
+    private GPSData remoteControllerGPSData;
 
     private final ExecutorService cameraSerialQueue = Executors.newSingleThreadExecutor();
     private final SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
@@ -697,6 +696,16 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     }
                 }
             });
+
+            flightAssistant.getDownwardFillLightMode(new CommonCallbacks.CompletionCallbackWith<FillLightMode>() {
+                @Override
+                public void onSuccess(final FillLightMode fillLightMode) {
+                    state.auxiliaryLightModeBottom = new DatedValue<>(fillLightMode);
+                }
+
+                @Override
+                public void onFailure(final DJIError djiError) {}
+            });
         }
 
         final AirLink airlink = adapter.getDrone().getAirLink();
@@ -1037,6 +1046,13 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         remoteControllerState = new DatedValue<>(hardwareState);
                     }
                 });
+            }
+        });
+
+        remoteController.setGPSDataCallback(new GPSData.Callback() {
+            @Override
+            public void onUpdate(@NonNull final GPSData gpsData) {
+                remoteControllerGPSData = gpsData;
             }
         });
     }
@@ -1645,7 +1661,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
-                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value);
+                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerGPSData);
                     return new DatedValue<>(remoteControllerStateAdapter, remoteControllerState.date);
                 }
             }).get();
@@ -2042,7 +2058,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             Command.conditionallyExecute(current != target, finished, new Command.ConditionalExecutor() {
                                 @Override
                                 public void execute() {
-                                    flightAssistant.setDownwardFillLightMode(target, createCompletionCallback(finished));
+                                    flightAssistant.setDownwardFillLightMode(target, new CommonCallbacks.CompletionCallback() {
+                                        @Override
+                                        public void onResult(final DJIError error) {
+                                            if (error == null) {
+                                                state.auxiliaryLightModeBottom = new DatedValue<>(target);
+                                            }
+                                            finished.execute(DronelinkDJI.createCommandError(error));
+                                        }
+                                    });
                                 }
                             });
                         }
