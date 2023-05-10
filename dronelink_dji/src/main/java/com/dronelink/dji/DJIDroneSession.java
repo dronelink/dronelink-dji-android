@@ -2658,7 +2658,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
         if (command instanceof ZoomCameraCommand) {
             Integer zoomMax = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX));
-            camera.setOpticalZoomFocalLength((int)(((ZoomCameraCommand)command).zoomPercent * (zoomMax == null ? 0 : zoomMax)), createCompletionCallback(finished));
+            Integer zoomStep = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP));
+            if (zoomMax == null) {
+                zoomMax = 0;
+            }
+            if (zoomStep == null || zoomStep == 0) {
+                zoomStep = 1;
+            }
+            //Per DJI SDK documentation, setOpticalZoomFocalLength requires a value that is a multiple of zoomStep.
+            camera.setOpticalZoomFocalLength((int)Math.round((((ZoomCameraCommand)command).zoomPercent * zoomMax) / zoomStep) * zoomStep, createCompletionCallback(finished));
             return null;
         }
 
