@@ -52,6 +52,7 @@ import com.dronelink.core.kernel.core.enums.DJIWaypointMissionFlightPathMode;
 import com.dronelink.core.kernel.core.enums.DJIWaypointMissionGotoWaypointMode;
 import com.dronelink.core.kernel.core.enums.DJIWaypointMissionHeadingMode;
 import com.dronelink.core.kernel.core.enums.DJIWaypointTurnMode;
+import com.dronelink.core.kernel.core.enums.DroneAuxiliaryLightMode;
 import com.dronelink.core.kernel.core.enums.DroneConnectionFailSafeBehavior;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeChannelSelectionMode;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
@@ -80,6 +81,7 @@ import dji.common.flightcontroller.GoHomeExecutionState;
 import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.adsb.AirSenseAirplaneState;
 import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
+import dji.common.flightcontroller.flightassistant.FillLightMode;
 import dji.common.flightcontroller.flyzone.FlyZoneState;
 import dji.common.gimbal.CapabilityKey;
 import dji.common.gimbal.GimbalMode;
@@ -96,6 +98,7 @@ import dji.common.mission.waypoint.WaypointTurnMode;
 import dji.common.model.LocationCoordinate2D;
 import dji.common.product.Model;
 import dji.common.realname.AppActivationState;
+import dji.common.remotecontroller.GPSData;
 import dji.common.util.DJIParamCapability;
 import dji.common.util.DJIParamMinMaxCapability;
 import dji.internal.diagnostics.DiagnosticsBaseHandler;
@@ -143,6 +146,28 @@ public class DronelinkDJI {
             case UNKNOWN: return ConnectionFailSafeBehavior.UNKNOWN;
         }
         return ConnectionFailSafeBehavior.UNKNOWN;
+    }
+
+    public static DroneAuxiliaryLightMode getAuxiliaryLightMode(final FillLightMode value) {
+        switch (value) {
+            case AUTO: return DroneAuxiliaryLightMode.AUTO;
+            case ON: return DroneAuxiliaryLightMode.ON;
+            case OFF: return DroneAuxiliaryLightMode.OFF;
+            case BEACON: return DroneAuxiliaryLightMode.BEACON;
+            case UNKNOWN: return DroneAuxiliaryLightMode.UNKNOWN;
+        }
+        return DroneAuxiliaryLightMode.UNKNOWN;
+    }
+
+    public static FillLightMode getFillLightMode(final DroneAuxiliaryLightMode value) {
+        switch (value) {
+            case AUTO: return FillLightMode.AUTO;
+            case ON: return FillLightMode.ON;
+            case OFF: return FillLightMode.OFF;
+            case BEACON: return FillLightMode.BEACON;
+            case UNKNOWN: return FillLightMode.UNKNOWN;
+        }
+        return FillLightMode.UNKNOWN;
     }
 
     public static ChannelSelectionMode getLightbridgeChannelSelectionMode(final DroneLightbridgeChannelSelectionMode value) {
@@ -1510,6 +1535,16 @@ public class DronelinkDJI {
         final Location location = new Location("");
         location.setLatitude(value.getLatitude());
         location.setLongitude(value.getLongitude());
+        return location;
+    }
+
+    public static Location getLocation(final GPSData value) {
+        if (value == null || !value.isValid()) {
+            return null;
+        }
+        final Location location = new Location("");
+        location.setLatitude(value.getLocation().getLatitude());
+        location.setLongitude(value.getLocation().getLongitude());
         return location;
     }
 

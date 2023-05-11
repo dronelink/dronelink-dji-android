@@ -14,6 +14,7 @@ import com.dronelink.core.DatedValue;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
+import com.dronelink.core.kernel.core.enums.DroneAuxiliaryLightMode;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
 import com.dronelink.dji.DronelinkDJI;
@@ -35,6 +36,7 @@ import dji.common.flightcontroller.LocationCoordinate3D;
 import dji.common.flightcontroller.ObstacleDetectionSector;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
+import dji.common.flightcontroller.flightassistant.FillLightMode;
 import dji.common.model.LocationCoordinate2D;
 import dji.sdk.flightcontroller.Compass;
 import dji.sdk.flightcontroller.FlightController;
@@ -55,6 +57,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public DatedValue<Integer> lowBatteryWarningThreshold;
     public DatedValue<LightbridgeFrequencyBand> lightbridgeFrequencyBand;
     public DatedValue<OcuSyncFrequencyBand> ocuSyncFrequencyBand;
+    public DatedValue<FillLightMode> auxiliaryLightModeBottom;
     public DatedValue<Integer> remoteControllerGimbalChannel;
     public String id = UUID.randomUUID().toString();
     public String serialNumber;
@@ -385,4 +388,8 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         return ocuSyncFrequencyBand == null ? null : DronelinkDJI.getOcuSyncFrequencyBand(ocuSyncFrequencyBand.value);
     }
 
+    @Override
+    public DroneAuxiliaryLightMode getAuxiliaryLightModeBottom() {
+        return auxiliaryLightModeBottom == null ? null : DronelinkDJI.getAuxiliaryLightMode(auxiliaryLightModeBottom.value);
+    }
 }

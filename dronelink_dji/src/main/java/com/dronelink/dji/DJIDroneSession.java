@@ -35,6 +35,7 @@ import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.adapters.GimbalAdapter;
 import com.dronelink.core.adapters.GimbalStateAdapter;
+import com.dronelink.core.adapters.LiveStreamingStateAdapter;
 import com.dronelink.core.adapters.RTKStateAdapter;
 import com.dronelink.core.adapters.RemoteControllerStateAdapter;
 import com.dronelink.core.command.Command;
@@ -84,6 +85,7 @@ import com.dronelink.core.kernel.command.camera.WhiteBalanceCustomCameraCommand;
 import com.dronelink.core.kernel.command.camera.WhiteBalancePresetCameraCommand;
 import com.dronelink.core.kernel.command.camera.ZoomCameraCommand;
 import com.dronelink.core.kernel.command.drone.AccessoryDroneCommand;
+import com.dronelink.core.kernel.command.drone.AuxiliaryLightModeDroneCommand;
 import com.dronelink.core.kernel.command.drone.BeaconDroneCommand;
 import com.dronelink.core.kernel.command.drone.CollisionAvoidanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.ConnectionFailSafeBehaviorDroneCommand;
@@ -122,6 +124,10 @@ import com.dronelink.core.kernel.command.gimbal.GimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.ModeGimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.OrientationGimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.YawSimultaneousFollowGimbalCommand;
+import com.dronelink.core.kernel.command.livestreaming.LiveStreamingCommand;
+import com.dronelink.core.kernel.command.livestreaming.ModuleLiveStreamingCommand;
+import com.dronelink.core.kernel.command.livestreaming.RTMPLiveStreamingCommand;
+import com.dronelink.core.kernel.command.livestreaming.RTMPSettingsLiveStreamingCommand;
 import com.dronelink.core.kernel.command.remotecontroller.RemoteControllerCommand;
 import com.dronelink.core.kernel.command.remotecontroller.TargetGimbalChannelRemoteControllerCommand;
 import com.dronelink.core.kernel.core.CameraFocusCalibration;
@@ -140,6 +146,7 @@ import com.dronelink.dji.adapters.DJIDroneAdapter;
 import com.dronelink.dji.adapters.DJIDroneStateAdapter;
 import com.dronelink.dji.adapters.DJIGimbalAdapter;
 import com.dronelink.dji.adapters.DJIGimbalStateAdapter;
+import com.dronelink.dji.adapters.DJILiveStreamingStateAdapter;
 import com.dronelink.dji.adapters.DJIRemoteControllerStateAdapter;
 
 import org.json.JSONException;
@@ -178,10 +185,12 @@ import dji.common.flightcontroller.LandingGearState;
 import dji.common.flightcontroller.VisionDetectionState;
 import dji.common.flightcontroller.VisionSensorPosition;
 import dji.common.flightcontroller.adsb.AirSenseSystemInformation;
+import dji.common.flightcontroller.flightassistant.FillLightMode;
 import dji.common.gimbal.GimbalState;
 import dji.common.gimbal.Rotation;
 import dji.common.gimbal.RotationMode;
 import dji.common.product.Model;
+import dji.common.remotecontroller.GPSData;
 import dji.common.remotecontroller.HardwareState;
 import dji.common.util.CommonCallbacks;
 import dji.keysdk.AirLinkKey;
@@ -213,6 +222,7 @@ import dji.sdk.media.MediaFile;
 import dji.sdk.products.Aircraft;
 import dji.sdk.remotecontroller.RemoteController;
 import dji.sdk.sdkmanager.DJISDKManager;
+import dji.sdk.sdkmanager.LiveStreamManager;
 
 public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSourceListener {
     private static final String TAG = DJIDroneSession.class.getCanonicalName();
@@ -230,6 +240,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final List<Listener> listeners = new LinkedList<>();
     private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
     private final CommandQueue droneCommands = new CommandQueue();
+    private final CommandQueue liveStreamingCommands = new CommandQueue();
     private final MultiChannelCommandQueue remoteControllerCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue cameraCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue gimbalCommands = new MultiChannelCommandQueue();
@@ -240,6 +251,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final ExecutorService remoteControllerSerialQueue = Executors.newSingleThreadExecutor();
     private Date remoteControllerInitialized;
     private DatedValue<HardwareState> remoteControllerState;
+    private GPSData remoteControllerGPSData;
 
     private final ExecutorService cameraSerialQueue = Executors.newSingleThreadExecutor();
     private final SparseArray<DatedValue<SystemState>> cameraStates = new SparseArray<>();
@@ -253,6 +265,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
     private final ExecutorService gimbalSerialQueue = Executors.newSingleThreadExecutor();
     private final SparseArray<DatedValue<GimbalState>> gimbalStates = new SparseArray<>();
+    private final DJILiveStreamingStateAdapter liveStreamingState;
 
     private DatedValue<SettingsDefinitions.ExposureMode> exposureMode;
     private DatedValue<SettingsDefinitions.StorageLocation> storageLocation;
@@ -287,6 +300,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         this.state = new DJIDroneStateAdapter(context, drone);
         this.manager = manager;
         this.adapter = new DJIDroneAdapter(drone);
+        this.liveStreamingState = new DJILiveStreamingStateAdapter(context);
         initDrone();
 
         new Thread() {
@@ -347,6 +361,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         }
 
                         droneCommands.process();
+                        liveStreamingCommands.process();
                         remoteControllerCommands.process();
                         cameraCommands.process();
                         gimbalCommands.process();
@@ -686,6 +701,16 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         });
                     }
                 }
+            });
+
+            flightAssistant.getDownwardFillLightMode(new CommonCallbacks.CompletionCallbackWith<FillLightMode>() {
+                @Override
+                public void onSuccess(final FillLightMode fillLightMode) {
+                    state.auxiliaryLightModeBottom = new DatedValue<>(fillLightMode);
+                }
+
+                @Override
+                public void onFailure(final DJIError djiError) {}
             });
         }
 
@@ -1027,6 +1052,13 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         remoteControllerState = new DatedValue<>(hardwareState);
                     }
                 });
+            }
+        });
+
+        remoteController.setGPSDataCallback(new GPSData.Callback() {
+            @Override
+            public void onUpdate(@NonNull final GPSData gpsData) {
+                remoteControllerGPSData = gpsData;
             }
         });
     }
@@ -1503,6 +1535,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 }
             };
         }
+        else if (command instanceof LiveStreamingCommand) {
+            executor = new Command.Executor() {
+                @Override
+                public CommandError execute(final Command.Finisher finished) {
+                    onCommandExecuted(command);
+                    return executeLiveStreamingCommand((LiveStreamingCommand)command, finished);
+                }
+            };
+        }
         else if (command instanceof RemoteControllerCommand) {
             executor = new Command.Executor() {
                 @Override
@@ -1566,6 +1607,9 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             if (command instanceof DroneCommand) {
                 droneCommands.addCommand(c);
             }
+            else if (command instanceof LiveStreamingCommand) {
+                liveStreamingCommands.addCommand(c);
+            }
             else if (command instanceof RemoteControllerCommand) {
                 remoteControllerCommands.addCommand(((RemoteControllerCommand)command).channel, c);
             }
@@ -1584,6 +1628,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     @Override
     public void removeCommands() {
         droneCommands.removeAll();
+        liveStreamingCommands.removeAll();
         remoteControllerCommands.removeAll();
         cameraCommands.removeAll();
         gimbalCommands.removeAll();
@@ -1635,7 +1680,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
-                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value);
+                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerGPSData);
                     return new DatedValue<>(remoteControllerStateAdapter, remoteControllerState.date);
                 }
             }).get();
@@ -1744,6 +1789,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     @Override
     public DatedValue<RTKStateAdapter> getRTKState() {
         return null;
+    }
+
+    @Override
+    public DatedValue<LiveStreamingStateAdapter> getLiveStreamingState() {
+        return liveStreamingState.toDatedValue();
     }
 
     @Override
@@ -2023,6 +2073,50 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         final FlightAssistant flightAssistant = flightController.getFlightAssistant();
         if (flightAssistant == null) {
             return new CommandError(context.getString(R.string.MissionDisengageReason_drone_flight_assistant_unavailable_title));
+        }
+
+        if (command instanceof AuxiliaryLightModeDroneCommand) {
+            final FillLightMode target = DronelinkDJI.getFillLightMode(((AuxiliaryLightModeDroneCommand) command).auxiliaryLightMode);
+            switch (((AuxiliaryLightModeDroneCommand) command).auxiliaryLightPosition) {
+                case BOTTOM:
+                    flightAssistant.getDownwardFillLightMode(createCompletionCallbackWith(new Command.FinisherWith<FillLightMode>() {
+                        @Override
+                        public void execute(final FillLightMode current) {
+                            Command.conditionallyExecute(current != target, finished, new Command.ConditionalExecutor() {
+                                @Override
+                                public void execute() {
+                                    flightAssistant.setDownwardFillLightMode(target, new CommonCallbacks.CompletionCallback() {
+                                        @Override
+                                        public void onResult(final DJIError error) {
+                                            if (error == null) {
+                                                state.auxiliaryLightModeBottom = new DatedValue<>(target);
+                                            }
+                                            finished.execute(DronelinkDJI.createCommandError(error));
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }, finished));
+                    return null;
+
+                case TOP:
+                    flightAssistant.getUpwardFillLightMode(createCompletionCallbackWith(new Command.FinisherWith<FillLightMode>() {
+                        @Override
+                        public void execute(final FillLightMode current) {
+                            Command.conditionallyExecute(current != target, finished, new Command.ConditionalExecutor() {
+                                @Override
+                                public void execute() {
+                                    flightAssistant.setUpwardFillLightMode(target, createCompletionCallback(finished));
+                                }
+                            });
+                        }
+                    }, finished));
+                    return null;
+
+                case UNKNOWN:
+                    break;
+            }
         }
 
         if (command instanceof CollisionAvoidanceDroneCommand) {
@@ -2369,6 +2463,60 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
 
             spotlight.setBrightness((int)(((SpotlightBrightnessDroneCommand) command).spotlightBrightness * 100), createCompletionCallback(finished));
+            return null;
+        }
+
+        return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
+    }
+
+    private CommandError executeLiveStreamingCommand(final LiveStreamingCommand command, final Command.Finisher finished) {
+        final LiveStreamManager liveStreamManager = DJISDKManager.getInstance().getLiveStreamManager();
+        if (liveStreamManager == null) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_live_streaming_unavailable_title));
+        }
+
+        if (command instanceof ModuleLiveStreamingCommand) {
+            if (((ModuleLiveStreamingCommand)command).enabled) {
+                new Thread() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "Starting live stream: " + liveStreamManager.getLiveUrl());
+                        //liveStreamManager.setAudioStreamingEnabled(false);
+                        liveStreamManager.setAudioMuted(true);
+                        //liveStreamManager.setVideoEncodingEnabled(true);
+                        //liveStreamManager.setLiveVideoResolution(LiveVideoResolution.VIDEO_RESOLUTION_1280_720);
+                        //liveStreamManager.setLiveVideoBitRateMode(LiveVideoBitRateMode.MANUAL);
+                        //liveStreamManager.setLiveVideoBitRate(0.3f);
+                        final int result = liveStreamManager.startStream();
+                        liveStreamManager.setStartTime();
+                        Log.d(TAG, "Starting live stream result: " + result);
+                        if (result == 0) {
+                            finished.execute(null);
+                        }
+                        else {
+                            finished.execute(new CommandError(context.getString(R.string.MissionDisengageReason_live_streaming_failed_title), result));
+                        }
+                    }
+                }.start();
+                return null;
+            }
+
+            liveStreamManager.stopStream();
+            finished.execute(null);
+            return null;
+        }
+
+        if (command instanceof RTMPLiveStreamingCommand) {
+            return executeRTMPLiveStreamingCommand((RTMPLiveStreamingCommand) command, liveStreamManager, finished);
+        }
+
+        return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unhandled));
+    }
+
+    private CommandError executeRTMPLiveStreamingCommand(final RTMPLiveStreamingCommand command, final LiveStreamManager liveStreamManager, final Command.Finisher finished) {
+        if (command instanceof RTMPSettingsLiveStreamingCommand) {
+            liveStreamManager.setLiveUrl(((RTMPSettingsLiveStreamingCommand) command).url);
+            finished.execute(null);
             return null;
         }
 
