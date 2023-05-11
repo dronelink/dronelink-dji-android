@@ -1,3 +1,2 @@
-include ':dronelink_dji', ':dronelink_core'
-project(':dronelink_core').projectDir = new File(settingsDir, '../../private/dronelink-core-android/dronelink_core')
+include ':dronelink_dji'
 rootProject.name='DronelinkDJI'
