@@ -345,6 +345,10 @@ class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public boolean isFeatureSupported(CameraFeatures feature) {
+        if (camera == null) {
+            return false;
+        }
+
         switch (feature) {
             case OPTICAL_ZOOM:
                 return camera.isOpticalZoomSupported();

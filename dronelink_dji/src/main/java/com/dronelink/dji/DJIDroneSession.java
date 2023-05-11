@@ -1702,11 +1702,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
-                    DJICameraAdapter djiCamera = null;
-                    if (camera instanceof DJICameraAdapter) {
-                        djiCamera = (DJICameraAdapter) camera;
-                    }
-
                     int lensIndexResolved = 0;
                     final DatedValue<CameraVideoStreamSource> videoStreamSource = cameraVideoStreamSources.get(channel);
                     //FIXME
@@ -1721,7 +1716,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     final DatedValue<SettingsDefinitions.ExposureCompensation> exposureCompensation = cameraExposureCompensation.get(channel);
                     final DatedValue<String> lensInformation = cameraLensInformation.get(channel);
                     final CameraStateAdapter cameraStateAdapter = new DJICameraStateAdapter(
-                            djiCamera == null ? null : djiCamera.camera,
+                            camera instanceof DJICameraAdapter ? ((DJICameraAdapter) camera).camera : null,
                             systemState.value,
                             videoStreamSource == null ? null : videoStreamSource.value,
                             focusState == null ? null : focusState.value,
