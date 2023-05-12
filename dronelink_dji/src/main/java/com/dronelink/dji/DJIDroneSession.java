@@ -2800,16 +2800,16 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         }
 
         if (command instanceof ZoomCameraCommand) {
-            Integer zoomMax = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX));
-            Integer zoomStep = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP));
-            if (zoomMax == null) {
-                zoomMax = 0;
-            }
-            if (zoomStep == null || zoomStep == 0) {
-                zoomStep = 1;
-            }
+            Integer zoomMax = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX))
+                    == null ? 0 : djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX));
+            Integer zoomMin = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MIN))
+                    == null ? 0 : djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MIN));
+            Integer zoomStep = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP)) == null
+                    || djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP)) == 0
+                    ? 1 : djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP));
+
             //Per DJI SDK documentation, setOpticalZoomFocalLength requires a value that is a multiple of zoomStep.
-            camera.setOpticalZoomFocalLength((int)Math.round((((ZoomCameraCommand)command).zoomPercent * zoomMax) / zoomStep) * zoomStep, createCompletionCallback(finished));
+            camera.setOpticalZoomFocalLength((int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep, createCompletionCallback(finished));
             return null;
         }
 
