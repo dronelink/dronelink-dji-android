@@ -17,6 +17,7 @@ import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
 import com.dronelink.core.Dronelink;
 import com.dronelink.core.Executor;
+import com.dronelink.core.LocaleUtil;
 import com.dronelink.core.MissionExecutor;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.kernel.command.camera.ModeCameraCommand;
@@ -197,6 +198,12 @@ public class DJIWaypointMissionSession implements DroneControlSession {
             default:
                 return false;
         }
+    }
+
+    @Override
+    public void setLocale(final String locale) {
+        LocaleUtil.selectedLocale = locale;
+        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
     }
 
     private void activating() {

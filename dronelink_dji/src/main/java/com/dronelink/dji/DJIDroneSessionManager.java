@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
+import com.dronelink.core.LocaleUtil;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
 import com.dronelink.core.kernel.core.Message;
@@ -102,6 +103,12 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         else {
             Log.e(TAG, "Unable to initialize DJI AppActivationManagerState listener");
         }
+    }
+
+    @Override
+    public void setLocale(final String locale) {
+        LocaleUtil.selectedLocale = locale;
+        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
     }
 
     @Override

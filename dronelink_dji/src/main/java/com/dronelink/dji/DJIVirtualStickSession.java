@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
+import com.dronelink.core.LocaleUtil;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
 
@@ -59,6 +60,12 @@ public class DJIVirtualStickSession implements DroneControlSession {
     @Override
     public ExecutionEngine getExecutionEngine() {
         return ExecutionEngine.DRONELINK_KERNEL;
+    }
+
+    @Override
+    public void setLocale(final String locale) {
+        LocaleUtil.selectedLocale = locale;
+        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
     }
 
     public Message getDisengageReason() {
