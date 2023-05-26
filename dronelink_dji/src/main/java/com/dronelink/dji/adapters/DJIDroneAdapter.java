@@ -12,6 +12,7 @@ import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.DroneAdapter;
 import com.dronelink.core.adapters.EnumElement;
 import com.dronelink.core.adapters.GimbalAdapter;
+import com.dronelink.core.adapters.LiveStreamingAdapter;
 import com.dronelink.core.adapters.RTKAdapter;
 import com.dronelink.core.adapters.RemoteControllerAdapter;
 import com.dronelink.core.command.Command;
@@ -155,6 +156,11 @@ public class DJIDroneAdapter implements DroneAdapter {
 
     @Override
     public RTKAdapter getRTK() {
+        return null;
+    }
+
+    @Override
+    public LiveStreamingAdapter getLiveStreaming() {
         return null;
     }
 

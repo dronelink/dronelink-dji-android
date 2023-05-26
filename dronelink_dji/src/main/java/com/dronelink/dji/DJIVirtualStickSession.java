@@ -75,8 +75,10 @@ public class DJIVirtualStickSession implements DroneControlSession {
 
         final DatedValue<FlightControllerState> flightControllerState = droneSession.getFlightControllerState();
         if (flightControllerState != null) {
-            if (state == State.FLIGHT_MODE_JOYSTICK_COMPLETE && flightControllerState.value.getFlightMode() != FlightMode.JOYSTICK) {
-                return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
+            if (state == State.FLIGHT_MODE_JOYSTICK_COMPLETE) {
+                if (flightControllerState.value.getFlightMode() != FlightMode.JOYSTICK) {
+                    return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
+                }
             }
         }
 
