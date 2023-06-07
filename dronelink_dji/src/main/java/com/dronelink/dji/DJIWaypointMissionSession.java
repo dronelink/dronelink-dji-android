@@ -77,7 +77,6 @@ public class DJIWaypointMissionSession implements DroneControlSession {
         DEACTIVATED
     }
 
-    private final Context context;
     private final WaypointMissionOperator djiWaypointMissionOperator;
     private final DJIDroneSession droneSession;
     private final MissionExecutor missionExecutor;
@@ -108,12 +107,12 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     case GO_HOME:
                     case AUTO_LANDING:
                         if (!terminalFlightModeAllowed) {
-                            return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
+                            return new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_title), Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_details));
                         }
                         break;
 
                     default:
-                        return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
+                        return new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_title), Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_details));
                 }
             }
 
@@ -123,10 +122,10 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     WaypointMissionState.NOT_SUPPORTED,
                     WaypointMissionState.EXECUTION_PAUSED
             })) {
-                return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
+                return new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_title), Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_details));
             }
             else if (DronelinkDJI.isWaypointOperatorCurrentState(new WaypointMissionState[] {WaypointMissionState.DISCONNECTED})) {
-                return new Message(context.getString(R.string.MissionDisengageReason_drone_disconnected_title));
+                return new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_disconnected_title));
             }
         }
 
@@ -142,8 +141,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     private boolean terminalFlightModeAllowed = false;
     private WaypointExecutionProgress latestProgress = null;
 
-    public DJIWaypointMissionSession(final Context context, final DJIDroneSession droneSession, final MissionExecutor missionExecutor) throws JSONException {
-        this.context = context;
+    public DJIWaypointMissionSession(final DJIDroneSession droneSession, final MissionExecutor missionExecutor) throws JSONException {
         this.kernelComponents = missionExecutor.getJSONForExecutionEngine(DJIWaypointMissionComponent[].class, ExecutionEngine.DJI);
         if (kernelComponents == null || kernelComponents.length == 0) {
             throw new JSONException("kernelComponents invalid");
@@ -200,12 +198,6 @@ public class DJIWaypointMissionSession implements DroneControlSession {
         }
     }
 
-    @Override
-    public void setLocale(final String locale) {
-        LocaleUtil.selectedLocale = locale;
-        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
-    }
-
     private void activating() {
         if (state != State.ACTIVATING || djiWaypointMissionOperator == null) {
             return;
@@ -213,7 +205,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
         final DJIExecutionState executionState = getExecutionState();
         if (executionState == null || executionState.componentIndex >= djiWaypointMissions.length) {
-            disengageReason = new Message(context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
+            disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
             return;
         }
 
@@ -266,7 +258,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
         final DJIExecutionState executionState = getExecutionState();
         if (executionState == null || executionState.componentIndex >= djiWaypointMissions.length) {
-            disengageReason = new Message(context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
+            disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
             return;
         }
 
@@ -325,7 +317,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
         final DJIError error = djiWaypointMissionOperator.loadMission(mission.build());
         if (error != null) {
             Log.e(TAG,"Load mission failed: " + error.getDescription());
-            disengageReason = new Message(context.getString(R.string.MissionDisengageReason_load_mission_failed_title), error.getDescription());
+            disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_load_mission_failed_title), error.getDescription());
             return;
         }
 
@@ -362,7 +354,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
             final DJIExecutionState executionState = getExecutionState();
             if (executionState == null || executionState.componentIndex >= djiWaypointMissions.length) {
-                disengageReason = new Message(context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
+                disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
                 return;
             }
 
@@ -374,7 +366,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     if (state == State.ACTIVATED) {
                         final WaypointMission currentDJIWaypointMission = djiWaypointMissions[executionState.componentIndex];
                         updateExternalExecutionState(new Message[]{
-                                new Message(context.getString(R.string.DJIWaypointMissionSession_statusMessage_uploading_title,
+                                new Message(Dronelink.getInstance().context.getString(R.string.DJIWaypointMissionSession_statusMessage_uploading_title,
                                         progress.uploadedWaypointIndex + 1,
                                         currentDJIWaypointMission.getWaypointCount()))
                         }, null);
@@ -399,7 +391,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
                         if (djiError != null) {
                             Log.e(TAG, "Start mission failed: " + djiError.getDescription());
-                            disengageReason = new Message(context.getString(R.string.MissionDisengageReason_start_mission_failed_title), djiError.getDescription());
+                            disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_start_mission_failed_title), djiError.getDescription());
                             return;
                         }
 
@@ -449,7 +441,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
     private void uploadFailed(final DJIError error) {
         final String details = error == null ? "Unknown Error" : error.getDescription();
         Log.e(TAG, "Upload mission failed: " + details);
-        disengageReason = new Message(context.getString(R.string.MissionDisengageReason_upload_mission_failed_title), details);
+        disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_upload_mission_failed_title), details);
     }
 
     private void startProgressListeners() {
@@ -475,7 +467,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
             final DJIExecutionState executionState = getExecutionState();
             if (executionState == null || executionState.componentIndex >= djiWaypointMissions.length) {
-                disengageReason = new Message(context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
+                disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
                 return;
             }
 
@@ -490,7 +482,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     final int waypointIndex = resumeWaypointIndex + Math.max(0, progress.targetWaypointIndex - (progress.isWaypointReached ? 0 : 1));
                     final List<Message> messages = new LinkedList<>();
                     if (kernelComponents.length > 1) {
-                        messages.add(new Message(context.getString(R.string.DJIWaypointMissionSession_statusMessage_component_title,
+                        messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIWaypointMissionSession_statusMessage_component_title,
                                 executionState.componentIndex + 1, kernelComponents.length),
                                 currentKernelComponent.descriptors.name));
                     }
@@ -523,15 +515,15 @@ public class DJIWaypointMissionSession implements DroneControlSession {
                     }
 
                     if ((resumeWaypointIndex > 0 || resumeWaypointProgress > 0) && progress.targetWaypointIndex == 0) {
-                        messages.add(new Message(context.getString(R.string.DJIWaypointMissionSession_statusMessage_reengaging_title,
+                        messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIWaypointMissionSession_statusMessage_reengaging_title,
                                 Dronelink.getInstance().format("percent", resumeWaypointIndex, ""),
                                 waypointIndex + 2)));
                     } else if (progress.targetWaypointIndex == 0) {
-                        messages.add(new Message(context.getString(R.string.DJIWaypointMissionSession_statusMessage_waypoint_0_title,
+                        messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIWaypointMissionSession_statusMessage_waypoint_0_title,
                                 waypointIndex + 1,
                                 currentDJIWaypointMission.getWaypointCount())));
                     } else {
-                        messages.add(new Message(context.getString(R.string.DJIWaypointMissionSession_statusMessage_waypoint_n_title,
+                        messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIWaypointMissionSession_statusMessage_waypoint_n_title,
                                 Math.min(waypointIndex + 1, (currentDJIWaypointMission.getWaypointCount()) - 1) + 1,
                                 currentDJIWaypointMission.getWaypointCount(),
                                 Dronelink.getInstance().format("percent", waypointProgress, ""))));
@@ -564,7 +556,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
         final DatedValue<FlightControllerState> flightControllerState = droneSession.getFlightControllerState();
         if (flightControllerState == null) {
-            disengageReason = new Message(context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
+            disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
             return;
         }
 
@@ -645,7 +637,7 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
         final DJIExecutionState executionState = getExecutionState();
         if (executionState == null || executionState.componentIndex >= djiWaypointMissions.length) {
-            disengageReason = new Message(context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
+            disengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_execution_state_invalid_title));
             return;
         }
 

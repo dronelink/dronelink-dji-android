@@ -11,6 +11,7 @@ import android.location.Location;
 
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
+import com.dronelink.core.Dronelink;
 import com.dronelink.core.adapters.DroneStateAdapter;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
@@ -43,7 +44,6 @@ import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
 
 public class DJIDroneStateAdapter implements DroneStateAdapter {
-    private final Context context;
     private final Aircraft drone;
     public DatedValue<FlightControllerState> flightControllerState;
     public DatedValue<AirSenseSystemInformation> flightControllerAirSenseState;
@@ -69,8 +69,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     public boolean initVirtualStickDisabled = false;
     public Location lastKnownGroundLocation;
 
-    public DJIDroneStateAdapter(final Context context, final Aircraft drone) {
-        this.context = context;
+    public DJIDroneStateAdapter(final Aircraft drone) {
         this.drone = drone;
     }
 
@@ -84,14 +83,14 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
         final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         if (flightControllerState != null && flightControllerState.value != null) {
-            messages.addAll(DronelinkDJI.getStatusMessages(context, flightControllerState.value));
+            messages.addAll(DronelinkDJI.getStatusMessages(flightControllerState.value));
         }
         else {
-            messages.add(new Message(context.getString(com.dronelink.dji.R.string.DJIDroneSession_telemetry_unavailable), Message.Level.DANGER));
+            messages.add(new Message(Dronelink.getInstance().context.getString(com.dronelink.dji.R.string.DJIDroneSession_telemetry_unavailable), Message.Level.DANGER));
         }
 
         if (compassState != null && compassState.value != null) {
-            final Message message = DronelinkDJI.getMessage(context, compassState.value.getSensorState());
+            final Message message = DronelinkDJI.getMessage(compassState.value.getSensorState());
             if (message != null) {
                 messages.add(message);
             }
@@ -99,7 +98,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
 
         final DatedValue<AirSenseSystemInformation> airSenseState = flightControllerAirSenseState;
         if (airSenseState != null && airSenseState.value != null) {
-            final List<Message> statusMessages = DronelinkDJI.getStatusMessages(context, airSenseState.value);
+            final List<Message> statusMessages = DronelinkDJI.getStatusMessages(airSenseState.value);
             if (!statusMessages.isEmpty()) {
                 messages.addAll(statusMessages);
             }
@@ -155,7 +154,7 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
         if (flightController != null) {
             final Compass compass = flightController.getCompass();
             if (compass != null) {
-                return DronelinkDJI.getMessage(context, compass.getCalibrationState());
+                return DronelinkDJI.getMessage(compass.getCalibrationState());
             }
         }
         return null;

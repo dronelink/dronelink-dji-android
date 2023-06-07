@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneControlSession;
+import com.dronelink.core.Dronelink;
 import com.dronelink.core.LocaleUtil;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
@@ -43,7 +44,6 @@ public class DJIVirtualStickSession implements DroneControlSession {
         DEACTIVATED
     }
 
-    private final Context context;
     private final DJIDroneSession droneSession;
 
     private State state = State.TAKEOFF_START;
@@ -52,20 +52,13 @@ public class DJIVirtualStickSession implements DroneControlSession {
     private Date flightModeJoystickAttemptingStarted = null;
     private Message attemptDisengageReason = null;
 
-    public DJIVirtualStickSession(final Context context, final DJIDroneSession droneSession) {
-        this.context = context;
+    public DJIVirtualStickSession(final DJIDroneSession droneSession) {
         this.droneSession = droneSession;
     }
 
     @Override
     public ExecutionEngine getExecutionEngine() {
         return ExecutionEngine.DRONELINK_KERNEL;
-    }
-
-    @Override
-    public void setLocale(final String locale) {
-        LocaleUtil.selectedLocale = locale;
-        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
     }
 
     public Message getDisengageReason() {
@@ -77,7 +70,7 @@ public class DJIVirtualStickSession implements DroneControlSession {
         if (flightControllerState != null) {
             if (state == State.FLIGHT_MODE_JOYSTICK_COMPLETE) {
                 if (flightControllerState.value.getFlightMode() != FlightMode.JOYSTICK) {
-                    return new Message(context.getString(R.string.MissionDisengageReason_drone_control_override_title), context.getString(R.string.MissionDisengageReason_drone_control_override_details));
+                    return new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_title), Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_drone_control_override_details));
                 }
             }
         }
@@ -124,7 +117,7 @@ public class DJIVirtualStickSession implements DroneControlSession {
                                 public void onResult(final DJIError djiError) {
                                     if (djiError != null) {
                                         Log.e(TAG, "Takeoff failed: " + djiError.getDescription());
-                                        attemptDisengageReason = new Message(context.getString(R.string.MissionDisengageReason_take_off_failed_title), djiError.getDescription());
+                                        attemptDisengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_take_off_failed_title), djiError.getDescription());
                                         deactivate();
                                         return;
                                     }
@@ -207,7 +200,7 @@ public class DJIVirtualStickSession implements DroneControlSession {
                         public void onResult(DJIError djiError) {
                             if (djiError != null) {
                                 if (virtualStickAttempts >= 5) {
-                                    attemptDisengageReason = new Message(context.getString(R.string.MissionDisengageReason_take_control_failed_title), djiError.getDescription());
+                                    attemptDisengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_take_control_failed_title), djiError.getDescription());
                                     deactivate();
                                 }
                                 else {
@@ -236,7 +229,7 @@ public class DJIVirtualStickSession implements DroneControlSession {
 
                 if (flightModeJoystickAttemptingStarted != null) {
                     if ((System.currentTimeMillis() - flightModeJoystickAttemptingStarted.getTime()) > 2000) {
-                        attemptDisengageReason = new Message(context.getString(R.string.MissionDisengageReason_take_control_failed_title));
+                        attemptDisengageReason = new Message(Dronelink.getInstance().context.getString(R.string.MissionDisengageReason_take_control_failed_title));
                         deactivate();
                         return false;
                     }

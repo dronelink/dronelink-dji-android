@@ -21,14 +21,10 @@ import dji.sdk.sdkmanager.DJISDKManager;
 import dji.sdk.sdkmanager.LiveStreamManager;
 
 public class DJILiveStreamingStateAdapter implements LiveStreamingStateAdapter, LiveStreamManager.OnLiveErrorStatusListener {
-    private final Context context;
-
     private int errorCode;
     private String errorMessage;
 
-    public DJILiveStreamingStateAdapter(final Context context) {
-        this.context = context;
-
+    public DJILiveStreamingStateAdapter() {
         final LiveStreamManager liveStreamManager = DJISDKManager.getInstance().getLiveStreamManager();
         if (liveStreamManager != null) {
             liveStreamManager.addLiveErrorStatusListener(this);
