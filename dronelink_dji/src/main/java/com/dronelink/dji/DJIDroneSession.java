@@ -24,7 +24,6 @@ import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
 import com.dronelink.core.Dronelink;
 import com.dronelink.core.Executor;
-import com.dronelink.core.Kernel;
 import com.dronelink.core.MissionExecutor;
 import com.dronelink.core.ModeExecutor;
 import com.dronelink.core.Version;
@@ -131,13 +130,13 @@ import com.dronelink.core.kernel.command.livestreaming.RTMPSettingsLiveStreaming
 import com.dronelink.core.kernel.command.remotecontroller.RemoteControllerCommand;
 import com.dronelink.core.kernel.command.remotecontroller.TargetGimbalChannelRemoteControllerCommand;
 import com.dronelink.core.kernel.core.CameraFocusCalibration;
+import com.dronelink.core.kernel.core.CameraZoomSpec;
 import com.dronelink.core.kernel.core.GeoCoordinate;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.Orientation3Optional;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
-import com.dronelink.core.kernel.core.enums.CameraZoomSpec;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
 import com.dronelink.core.kernel.core.enums.GimbalMode;
 import com.dronelink.dji.adapters.DJICameraAdapter;
@@ -283,8 +282,8 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<SettingsDefinitions.FocusMode> focusMode;
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
-    private DatedValue<Double> opticalZoomValue;
-    private DatedValue<SettingsDefinitions.OpticalZoomSpec> opticalZoomSpec;
+    private DatedValue<Double> zoomValue;
+    private DatedValue<CameraZoomSpec> zoomSpec;
     private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
     private DatedValue<Boolean> autoExposureLock;
 
@@ -1164,17 +1163,19 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
         });
 
-        startListeningForChanges(CameraKey.create(CameraKey.OPTICAL_ZOOM_FOCAL_LENGTH), (oldValue, newValue) -> {
+        startListeningForChanges(CameraKey.create(CameraKey.HYBRID_ZOOM_FOCAL_LENGTH), (oldValue, newValue) -> {
             if (newValue instanceof Integer) {
-                opticalZoomValue = new DatedValue<>(((Integer) newValue).doubleValue());
+                zoomValue = new DatedValue<>(((Integer) newValue).doubleValue());
             }
             else {
-                opticalZoomValue = null;
+                zoomValue = null;
             }
         });
 
-        startListeningForChanges(CameraKey.create(CameraKey.OPTICAL_ZOOM_SPEC), (oldValue, newValue) -> {
-            opticalZoomSpec = newValue == null ? null : new DatedValue<>((SettingsDefinitions.OpticalZoomSpec)newValue);
+        startListeningForChanges(CameraKey.create(CameraKey.HYBRID_ZOOM_SPEC), (oldValue, newValue) -> {
+            final SettingsDefinitions.HybridZoomSpec hybridZoomSpec = newValue == null ? null : (SettingsDefinitions.HybridZoomSpec) newValue;
+            zoomSpec = hybridZoomSpec == null ? null : new DatedValue<>(new CameraZoomSpec(hybridZoomSpec.getMinHybridFocalLength(),
+                    hybridZoomSpec.getMaxHybridFocalLength(), hybridZoomSpec.getMaxOpticalFocalLength(), hybridZoomSpec.getFocalLengthStep()));
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.METERING_MODE), (oldValue, newValue) -> {
@@ -1741,8 +1742,8 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             focusMode == null ? null : focusMode.value,
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value,
-                            opticalZoomValue == null ? null : opticalZoomValue.value,
-                            opticalZoomSpec == null ? null : opticalZoomSpec.value,
+                            zoomValue == null ? null : zoomValue.value,
+                            zoomSpec == null ? null : zoomSpec.value,
                             meteringMode == null ? null : meteringMode.value,
                             autoExposureLock == null ? null : autoExposureLock.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
@@ -2800,16 +2801,16 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         }
 
         if (command instanceof ZoomCameraCommand) {
-            Integer zoomMax = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX))
-                    == null ? 0 : djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MAX));
-            Integer zoomMin = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MIN))
-                    == null ? 0 : djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.MIN));
-            Integer zoomStep = djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP)) == null
-                    || djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP)) == 0
-                    ? 1 : djiState.getOpticalZoomSpec().get(Kernel.enumRawValue(CameraZoomSpec.STEP));
-
-            //Per DJI SDK documentation, setOpticalZoomFocalLength requires a value that is a multiple of zoomStep.
-            camera.setOpticalZoomFocalLength((int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep, createCompletionCallback(finished));
+            final CameraZoomSpec zoomSpec = djiState.getZoomSpec();
+            Command.conditionallyExecute(zoomSpec != null, finished, new Command.ConditionalExecutor() {
+                @Override
+                public void execute() {
+                    int zoomMax = zoomSpec.getMax();
+                    int zoomMin = zoomSpec.getMin();
+                    int zoomStep = zoomSpec.getStep() == 0 ? 1 : zoomSpec.getStep();
+                    camera.setHybridZoomFocalLength((int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep, createCompletionCallback(finished));
+                }
+            });
             return null;
         }
 
