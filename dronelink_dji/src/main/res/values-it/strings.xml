@@ -13,11 +13,11 @@
   <string name="MissionDisengageReason_upload_mission_failed_title">Impossibile caricare la missione</string>
   <string name="MissionDisengageReason_start_mission_failed_title">Impossibile avviare la missione</string>
   <string name="MissionDisengageReason_telemetry_delayed_title">Segnale debole</string>
-  <string name="MissionDisengageReason_telemetry_delayed_details">• Punta le antenne RC verso il drone.\n• Se il segnale non migliora, prova ad avvicinarti al drone.\n• Se il segnale continua a non migliorare, spostati in un'area con meno ostacoli o interferenze RF.</string>
+  <string name="MissionDisengageReason_telemetry_delayed_details">• Please point the RC antennas towards the drone.\n• If the signal does not improve, try moving closer to the drone.\n• If the signal still does not improve, move to an area with fewer obstacles or RF interference.</string>
   <string name="MissionDisengageReason_drone_max_altitude_title">Altitudine massima raggiunta</string>
-  <string name="MissionDisengageReason_drone_max_altitude_details">Aumentare l'impostazione dell'altitudine massima per continuare.</string>
+  <string name="MissionDisengageReason_drone_max_altitude_details">Aumentare l\'impostazione dell\'altitudine massima per continuare.</string>
   <string name="MissionDisengageReason_drone_max_distance_title">Distanza massima raggiunta</string>
-  <string name="MissionDisengageReason_drone_max_distance_details">Aumentare l'impostazione della distanza massima per continuare.</string>
+  <string name="MissionDisengageReason_drone_max_distance_details">Aumentare l\'impostazione della distanza massima per continuare.</string>
   <string name="MissionDisengageReason_drone_flight_assistant_unavailable_title">Assistente di volo non disponibile</string>
   <string name="MissionDisengageReason_drone_landing_gear_unavailable_title">Carrello di atterraggio non disponibile</string>
   <string name="MissionDisengageReason_drone_lightbridge_unavailable_title">Collegamento Lightbridge non disponibile</string>
