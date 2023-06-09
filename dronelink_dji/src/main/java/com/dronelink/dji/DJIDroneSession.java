@@ -2802,13 +2802,18 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
         if (command instanceof ZoomCameraCommand) {
             final CameraZoomSpec zoomSpec = djiState.getZoomSpec();
-            Command.conditionallyExecute(zoomSpec != null, finished, new Command.ConditionalExecutor() {
+            if (zoomSpec == null) {
+                return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
+            }
+
+            int zoomMax = zoomSpec.getMax();
+            int zoomMin = zoomSpec.getMin();
+            int zoomStep = zoomSpec.getStep() == 0 ? 1 : zoomSpec.getStep();
+            final int hybridZoomFocalLength = (int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep;
+            Command.conditionallyExecute(state.value.getZoomValue() == null || hybridZoomFocalLength != state.value.getZoomValue().intValue(), finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
-                    int zoomMax = zoomSpec.getMax();
-                    int zoomMin = zoomSpec.getMin();
-                    int zoomStep = zoomSpec.getStep() == 0 ? 1 : zoomSpec.getStep();
-                    camera.setHybridZoomFocalLength((int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep, createCompletionCallback(finished));
+                    camera.setHybridZoomFocalLength(hybridZoomFocalLength, createCompletionCallback(finished));
                 }
             });
             return null;
