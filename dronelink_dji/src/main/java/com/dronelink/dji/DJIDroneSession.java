@@ -2808,7 +2808,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
             int zoomMax = zoomSpec.getMax();
             int zoomMin = zoomSpec.getMin();
-            int zoomStep = zoomSpec.getStep() == 0 ? 1 : zoomSpec.getStep();
+            int zoomStep = zoomSpec.getStep();
             final int hybridZoomFocalLength = (int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep;
             Command.conditionallyExecute(state.value.getZoomValue() == null || hybridZoomFocalLength != state.value.getZoomValue().intValue(), finished, new Command.ConditionalExecutor() {
                 @Override
