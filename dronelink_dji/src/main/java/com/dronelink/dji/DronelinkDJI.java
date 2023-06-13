@@ -1564,7 +1564,7 @@ public class DronelinkDJI {
         return PhysicalSource.UNKNOWN;
     }
 
-    public static Message getMessage(final FlyZoneState state) {
+    public static Message getMessage(final Context context, final FlyZoneState state) {
         String details = null;
         Message.Level level = null;
 
@@ -1574,100 +1574,100 @@ public class DronelinkDJI {
                 return null;
 
             case NEAR_RESTRICTED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_RESTRICTED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_RESTRICTED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
                 level = Message.Level.WARNING;
                 break;
 
             case IN_WARNING_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case IN_RESTRICTED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_RESTRICTED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_RESTRICTED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
                 level = Message.Level.WARNING;
                 break;
 
             case PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION);
                 level = Message.Level.WARNING;
                 break;
 
             case IN_ENHANCE_WARNING_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_ENHANCE_WARNING_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_ENHANCE_WARNING_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case IN_AUTHORIZED_ZONE_WITH_LICENSE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE_WITH_LICENSE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE_WITH_LICENSE);
                 level = Message.Level.WARNING;
                 break;
 
             case IN_AUTHORIZED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case SUSPECTED_IN_AUTHORIZED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_AUTHORIZED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_AUTHORIZED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case SUSPECTED_IN_RESTRICTED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_RESTRICTED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_RESTRICTED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case PHONE_IN_RESTRICTED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_PHONE_IN_RESTRICTED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_PHONE_IN_RESTRICTED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case NEAR_HEIGHT_LIMITED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_HEIGHT_LIMITED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_HEIGHT_LIMITED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case NEAR_AUTHORIZED_ZONE_WITH_LICENSE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE_WITH_LICENSE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE_WITH_LICENSE);
                 level = Message.Level.WARNING;
                 break;
 
             case NEAR_AUTHORIZED_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case NEAR_MULTIPLE_TYPE_FLY_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_MULTIPLE_TYPE_FLY_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_NEAR_MULTIPLE_TYPE_FLY_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case OUTSIDE_SPECIAL_UNLOCK_ZONE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_OUTSIDE_SPECIAL_UNLOCK_ZONE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_OUTSIDE_SPECIAL_UNLOCK_ZONE);
                 level = Message.Level.WARNING;
                 break;
 
             case FLY_TOUCH_AUTHORIZE_HAS_LICENSE:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_value_FLY_TOUCH_AUTHORIZE_HAS_LICENSE);
+                details = context.getString(R.string.DronelinkDJI_FlyZoneState_value_FLY_TOUCH_AUTHORIZE_HAS_LICENSE);
                 level = Message.Level.WARNING;
                 break;
         }
 
-        return new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_FlyZoneState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_FlyZoneState_title), details, level);
     }
 
-    public static Message getMessage(final AppActivationState state) {
+    public static Message getMessage(final Context context, final AppActivationState state) {
         String details = null;
         Message.Level level = null;
 
@@ -1677,17 +1677,17 @@ public class DronelinkDJI {
                 return null;
 
             case NOT_SUPPORTED:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_AppActivationState_value_NOT_SUPPORTED);
+                details = context.getString(R.string.DronelinkDJI_AppActivationState_value_NOT_SUPPORTED);
                 level = Message.Level.ERROR;
                 break;
 
             case LOGIN_REQUIRED:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_AppActivationState_value_LOGIN_REQUIRED);
+                details = context.getString(R.string.DronelinkDJI_AppActivationState_value_LOGIN_REQUIRED);
                 level = Message.Level.WARNING;
                 break;
         }
 
-        return new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_AppActivationState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_AppActivationState_title), details, level);
     }
 
     public static Message getMessage(final DJIDiagnostics diagnostics) {
@@ -1888,7 +1888,7 @@ public class DronelinkDJI {
         return level == null ? null : new Message(reason, solution, level);
     }
 
-    public static Message getMessage(final GoHomeExecutionState state) {
+    public static Message getMessage(final Context context, final GoHomeExecutionState state) {
         if (state == null) {
             return null;
         }
@@ -1903,40 +1903,40 @@ public class DronelinkDJI {
                 return null;
 
             case TURN_DIRECTION_TO_HOME_POINT:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_TURN_DIRECTION_TO_HOME_POINT);
+                details = context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_TURN_DIRECTION_TO_HOME_POINT);
                 level = Message.Level.WARNING;
                 break;
 
             case GO_UP_TO_HEIGHT:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_GO_UP_TO_HEIGHT);
+                details = context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_GO_UP_TO_HEIGHT);
                 level = Message.Level.WARNING;
                 break;
 
             case AUTO_FLY_TO_HOME_POINT:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_AUTO_FLY_TO_HOME_POINT);
+                details = context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_AUTO_FLY_TO_HOME_POINT);
                 level = Message.Level.WARNING;
                 break;
 
             case GO_DOWN_TO_GROUND:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_GO_DOWN_TO_GROUND);
+                details = context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_GO_DOWN_TO_GROUND);
                 level = Message.Level.WARNING;
                 break;
 
             case BRAKING:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_BRAKING);
+                details = context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_BRAKING);
                 level = Message.Level.WARNING;
                 break;
 
             case BYPASSING:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_BYPASSING);
+                details = context.getString(R.string.DronelinkDJI_GoHomeExecutionState_value_BYPASSING);
                 level = Message.Level.WARNING;
                 break;
         }
 
-        return new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_GoHomeExecutionState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_GoHomeExecutionState_title), details, level);
     }
 
-    public static Message getMessage(final WaypointMissionState state) {
+    public static Message getMessage(final Context context, final WaypointMissionState state) {
         String details = null;
         Message.Level level = null;
 
@@ -1945,41 +1945,41 @@ public class DronelinkDJI {
         }
 
         if (state == WaypointMissionState.RECOVERING) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_RECOVERING);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_RECOVERING);
             level = Message.Level.WARNING;
         }
         else if (state == WaypointMissionState.READY_TO_UPLOAD) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_READY_TO_UPLOAD);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_READY_TO_UPLOAD);
             level = Message.Level.INFO;
         }
         else if (state == WaypointMissionState.UPLOADING) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_UPLOADING);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_UPLOADING);
             level = Message.Level.WARNING;
         }
         else if (state == WaypointMissionState.READY_TO_EXECUTE) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_READY_TO_EXECUTE);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_READY_TO_EXECUTE);
             level = Message.Level.INFO;
         }
         else if (state == WaypointMissionState.EXECUTING) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_EXECUTING);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_EXECUTING);
             level = Message.Level.INFO;
         }
         else if (state == WaypointMissionState.EXECUTION_PAUSED) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSED);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSED);
             level = Message.Level.INFO;
         }
         else if (state == WaypointMissionState.EXECUTION_PAUSING) {
-            details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSING);
+            details = context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSING);
             level = Message.Level.INFO;
         }
 
-        return new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_DJIWaypointMissionState_title), details, level);
     }
 
-    public static List<Message> getStatusMessages(final FlightControllerState state) {
+    public static List<Message> getStatusMessages(final Context context, final FlightControllerState state) {
         final List<Message> messages = new ArrayList<>();
 
-        final Message goHomeExecutionStateMessage = DronelinkDJI.getMessage(state.getGoHomeExecutionState());
+        final Message goHomeExecutionStateMessage = DronelinkDJI.getMessage(context, state.getGoHomeExecutionState());
         if (goHomeExecutionStateMessage != null) {
             if (state.getFlightMode() == FlightMode.CONFIRM_LANDING) {
             }
@@ -1989,22 +1989,22 @@ public class DronelinkDJI {
         }
         else {
             if (state.isLowerThanSeriousBatteryWarningThreshold()) {
-                messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanSeriousBatteryWarningThreshold_title), Message.Level.DANGER));
+                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanSeriousBatteryWarningThreshold_title), Message.Level.DANGER));
             }
             else if (state.isLowerThanBatteryWarningThreshold()) {
-                messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanBatteryWarningThreshold_title), Message.Level.WARNING));
+                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanBatteryWarningThreshold_title), Message.Level.WARNING));
             }
 
             if (state.hasReachedMaxFlightRadius()) {
-                messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightRadius_title), Message.Level.WARNING));
+                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightRadius_title), Message.Level.WARNING));
             }
 
             if (state.hasReachedMaxFlightHeight()) {
-                messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightHeight_title), Message.Level.WARNING));
+                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightHeight_title), Message.Level.WARNING));
             }
 
             if (DronelinkDJI.isWaypointOperatorCurrentState(new WaypointMissionState[] { WaypointMissionState.UPLOADING })) {
-                final Message message = DronelinkDJI.getMessage(DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator().getCurrentState());
+                final Message message = DronelinkDJI.getMessage(context, DJISDKManager.getInstance().getMissionControl().getWaypointMissionOperator().getCurrentState());
                 if (message != null) {
                     messages.add(message);
                 }
@@ -2022,7 +2022,7 @@ public class DronelinkDJI {
                 case GPS_WAYPOINT:
                     final MissionControl missionControl = DJISDKManager.getInstance().getMissionControl();
                     if (missionControl != null) {
-                        final Message message = DronelinkDJI.getMessage(missionControl.getWaypointMissionOperator().getCurrentState());
+                        final Message message = DronelinkDJI.getMessage(context, missionControl.getWaypointMissionOperator().getCurrentState());
                         if (message != null) {
                             messages.add(message);
                         }
@@ -2072,18 +2072,18 @@ public class DronelinkDJI {
             }
 
             if (state.getAircraftLocation() == null) {
-                messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_title), Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_details), Message.Level.DANGER));
+                messages.add(new Message(context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_title), context.getString(R.string.DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_details), Message.Level.DANGER));
             }
 
             if (!state.isHomeLocationSet()) {
-                messages.add(new Message(Dronelink.getInstance().context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_homeLocationNotSet_title), Message.Level.DANGER));
+                messages.add(new Message(context.getString(R.string.DJIDronelink_DJIFlightControllerState_statusMessages_homeLocationNotSet_title), Message.Level.DANGER));
             }
         }
 
         return messages;
     }
 
-    public static List<Message> getStatusMessages(final AirSenseSystemInformation state) {
+    public static List<Message> getStatusMessages(final Context context, final AirSenseSystemInformation state) {
         final List<Message> messages = new ArrayList<>();
         for (final AirSenseAirplaneState airplaneState : state.getAirplaneStates()) {
             Message.Level level = null;
@@ -2105,8 +2105,8 @@ public class DronelinkDJI {
             }
 
             messages.add(new Message(
-                    Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIAirSenseAirplaneState_title),
-                    Dronelink.getInstance().context.getString(R.string.DronelinkDJI_DJIAirSenseAirplaneState_message,
+                    context.getString(R.string.DronelinkDJI_DJIAirSenseAirplaneState_title),
+                    context.getString(R.string.DronelinkDJI_DJIAirSenseAirplaneState_message,
                             Dronelink.getInstance().format("distance", (double)airplaneState.getDistance(), ""),
                             Dronelink.getInstance().format("angle", Convert.DegreesToRadians((double)airplaneState.getHeading()), ""),
                             airplaneState.getCode()),
@@ -2115,7 +2115,7 @@ public class DronelinkDJI {
         return messages;
     }
 
-    public static Message getMessage(final CompassCalibrationState state) {
+    public static Message getMessage(final Context context, final CompassCalibrationState state) {
         if (state == null) {
             return null;
         }
@@ -2129,30 +2129,30 @@ public class DronelinkDJI {
                 return null;
 
             case HORIZONTAL:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_HORIZONTAL);
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_HORIZONTAL);
                 level = Message.Level.WARNING;
                 break;
 
             case VERTICAL:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_VERTICAL);
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_VERTICAL);
                 level = Message.Level.WARNING;
                 break;
 
             case SUCCESSFUL:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_SUCCESSFUL);
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_SUCCESSFUL);
                 level = Message.Level.INFO;
                 break;
 
             case FAILED:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_FAILED);
+                details = context.getString(R.string.DronelinkDJI_CompassCalibrationState_value_FAILED);
                 level = Message.Level.ERROR;
                 break;
         }
 
-        return new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassCalibrationState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_CompassCalibrationState_title), details, level);
     }
 
-    public static Message getMessage(final CompassSensorState state) {
+    public static Message getMessage(final Context context, final CompassSensorState state) {
         if (state == null) {
             return null;
         }
@@ -2169,31 +2169,31 @@ public class DronelinkDJI {
                 return null;
 
             case CALIBRATING:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATING);
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATING);
                 level = Message.Level.WARNING;
                 break;
 
             case UNCALIBRATED:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassSensorState_value_UNCALIBRATED);
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_UNCALIBRATED);
                 level = Message.Level.WARNING;
                 break;
 
             case DATA_EXCEPTION:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION);
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION);
                 level = Message.Level.WARNING;
                 break;
 
             case CALIBRATION_FAILED:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED);
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED);
                 level = Message.Level.WARNING;
                 break;
 
             case DIRECTION_EXCEPTION:
-                details = Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION);
+                details = context.getString(R.string.DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION);
                 level = Message.Level.WARNING;
                 break;
         }
 
-        return new Message(Dronelink.getInstance().context.getString(R.string.DronelinkDJI_CompassSensorState_title), details, level);
+        return new Message(context.getString(R.string.DronelinkDJI_CompassSensorState_title), details, level);
     }
 }

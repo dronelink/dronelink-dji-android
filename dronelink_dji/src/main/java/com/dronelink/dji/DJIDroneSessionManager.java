@@ -16,7 +16,6 @@ import androidx.annotation.NonNull;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
-import com.dronelink.core.Dronelink;
 import com.dronelink.core.LocaleUtil;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
@@ -43,6 +42,7 @@ import dji.sdk.sdkmanager.DJISDKManager;
 public class DJIDroneSessionManager implements DroneSessionManager {
     private static final String TAG = DJIDroneSessionManager.class.getCanonicalName();
 
+    private final Context context;
     private DatedValue<FlyZoneState> flyZoneState;
     private DatedValue<AppActivationState> appActivationState;
     private DJIDroneSession session;
@@ -50,7 +50,9 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     private boolean registered = false;
     private final List<Listener> listeners = new LinkedList<>();
 
-    public DJIDroneSessionManager() {
+    public DJIDroneSessionManager(final Context context) {
+        this.context = context;
+
         initFlyZoneManagerCallback(0);
         initAppActivationManagerStateListener(0);
     }
@@ -104,6 +106,15 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     }
 
     @Override
+    public void setLocale(final String locale) {
+        LocaleUtil.selectedLocale = locale;
+        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
+        if (this.session != null) {
+            this.session.setLocale(locale);
+        }
+    }
+
+    @Override
     public void addListener(final Listener listener) {
         listeners.add(listener);
         final DroneSession session = this.session;
@@ -135,7 +146,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
         if (aircraft == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(Dronelink.getInstance().context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
@@ -143,7 +154,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         final RemoteController remoteController = aircraft.getRemoteController();
         if (remoteController == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(Dronelink.getInstance().context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
@@ -163,7 +174,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         final Aircraft aircraft = ((Aircraft) DJISDKManager.getInstance().getProduct());
         if (aircraft == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(Dronelink.getInstance().context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
@@ -171,7 +182,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         final RemoteController remoteController = aircraft.getRemoteController();
         if (remoteController == null) {
             if (finisher != null) {
-                finisher.execute(new CommandError(Dronelink.getInstance().context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
+                finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_remoteControllerLinking_unavailable)));
             }
             return;
         }
@@ -197,7 +208,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
         final DatedValue<FlyZoneState> flyZoneState = this.flyZoneState;
         if (flyZoneState != null && flyZoneState.value != null) {
-            final Message message = DronelinkDJI.getMessage(flyZoneState.value);
+            final Message message = DronelinkDJI.getMessage(context, flyZoneState.value);
             if (message != null) {
                 messages.add(message);
             }
@@ -205,7 +216,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
         final DatedValue<AppActivationState> appActivationState = this.appActivationState;
         if (appActivationState != null && appActivationState.value != null) {
-            final Message message = DronelinkDJI.getMessage(appActivationState.value);
+            final Message message = DronelinkDJI.getMessage(context, appActivationState.value);
             if (message != null) {
                 messages.add(message);
             }
@@ -214,7 +225,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         return messages;
     }
 
-        public void register() {
+    public void register(final Context context) {
         if (registered) {
             return;
         }
@@ -224,7 +235,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
             AsyncTask.execute(new Runnable() {
                 @Override
                 public void run() {
-                    DJISDKManager.getInstance().registerApp(Dronelink.getInstance().context, new DJISDKManager.SDKManagerCallback() {
+                    DJISDKManager.getInstance().registerApp(context, new DJISDKManager.SDKManagerCallback() {
                         @Override
                         public void onInitProcess(DJISDKInitEvent djisdkInitEvent, int i) {
 
@@ -257,7 +268,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
                                     closeSession();
                                 }
 
-                                session = new DJIDroneSession(self, drone);
+                                session = new DJIDroneSession(context, self, drone);
                                 for (final Listener listener : listeners) {
                                     listener.onOpened(session);
                                 }
