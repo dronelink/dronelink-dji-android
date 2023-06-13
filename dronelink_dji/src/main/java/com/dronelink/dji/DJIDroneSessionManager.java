@@ -57,6 +57,15 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         initAppActivationManagerStateListener(0);
     }
 
+    public void setLocale(final String locale) {
+        LocaleUtil.selectedLocale = locale;
+        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
+    }
+
+    public String testLocalization() {
+        return LocaleUtil.selectedLocale + "-6-" + context.getString(com.dronelink.dji.R.string.MissionDisengageReason_user_disengaged_title);
+    }
+
     private void initFlyZoneManagerCallback(final int attempt) {
         if (attempt < 10) {
             if (DJISDKManager.getInstance().getFlyZoneManager() == null) {
@@ -102,15 +111,6 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         }
         else {
             Log.e(TAG, "Unable to initialize DJI AppActivationManagerState listener");
-        }
-    }
-
-    @Override
-    public void setLocale(final String locale) {
-        LocaleUtil.selectedLocale = locale;
-        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
-        if (this.session != null) {
-            this.session.setLocale(locale);
         }
     }
 
