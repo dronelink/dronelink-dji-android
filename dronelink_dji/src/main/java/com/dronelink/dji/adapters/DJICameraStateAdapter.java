@@ -340,12 +340,17 @@ class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public boolean isZoomSupported() {
-        //FOR DJI mobile SDK v4, only support hybrid zoom
+        //Only support hybrid zoom
         //Some cameras return true for isHybridZoomSupported() but don't support zoom. The spec is 0 when that is the case, so we can use that to check.
         if (camera == null || (camera.isHybridZoomSupported() && zoomSpec.getStep() == 0)) {
             return false;
         }
         return camera.isHybridZoomSupported();
+    }
+
+    @Override
+    public boolean isThermalZoomSupported() {
+        return false;
     }
 
     @Override
@@ -355,7 +360,11 @@ class DJICameraStateAdapter implements CameraStateAdapter {
 
     @Override
     public Double getZoomValue() {
-        return zoomValue;
+        final Double zoomVal = zoomValue;
+        if (zoomVal != null) {
+            return zoomVal;
+        }
+        return null;
     }
 
     @Override

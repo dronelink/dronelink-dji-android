@@ -1174,8 +1174,17 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
         startListeningForChanges(CameraKey.create(CameraKey.HYBRID_ZOOM_SPEC), (oldValue, newValue) -> {
             final SettingsDefinitions.HybridZoomSpec hybridZoomSpec = newValue == null ? null : (SettingsDefinitions.HybridZoomSpec) newValue;
-            zoomSpec = hybridZoomSpec == null ? null : new DatedValue<>(new CameraZoomSpec(hybridZoomSpec.getMinHybridFocalLength(),
-                    hybridZoomSpec.getMaxHybridFocalLength(), hybridZoomSpec.getMaxOpticalFocalLength(), hybridZoomSpec.getFocalLengthStep()));
+            if (hybridZoomSpec != null) {
+                try {
+                    zoomSpec = new DatedValue<>(new CameraZoomSpec.Builder(hybridZoomSpec.getMinHybridFocalLength(),
+                            hybridZoomSpec.getMaxHybridFocalLength(), hybridZoomSpec.getMaxOpticalFocalLength(), hybridZoomSpec.getFocalLengthStep()).build());
+                } catch (final IllegalArgumentException e) {
+                    Log.e(TAG, e.getMessage());
+                    zoomSpec = null;
+                }
+            } else {
+                zoomSpec = null;
+            }
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.METERING_MODE), (oldValue, newValue) -> {
