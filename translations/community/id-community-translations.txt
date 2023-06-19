@@ -1,0 +1,308 @@
+# Command Type Unhandled
+MissionDisengageReason_command_type_unhandled=Jenis Perintah Tidak Tertangani
+
+# Mission Paused
+MissionDisengageReason_user_disengaged_title=Misi Dijeda
+
+# Drone Disconnected
+MissionDisengageReason_drone_disconnected_title=Drone Terputus
+
+# Drone Control Unavailable
+MissionDisengageReason_drone_control_unavailable_title=Kontrol Drone Tidak Tersedia
+
+# Automatic Control Interrupted
+MissionDisengageReason_drone_control_override_title=Kontrol Otomatis Terganggu
+
+# The drone must remain in P-GPS flight mode for automatic control.
+MissionDisengageReason_drone_control_override_details=Drone harus tetap dalam mode penerbangan P-GPS untuk kontrol otomatis.
+
+# Unable to Take Off
+MissionDisengageReason_take_off_failed_title=Tidak Dapat Lepas Landas
+
+# Unable to Take Control
+MissionDisengageReason_take_control_failed_title=Tidak Dapat Mengambil Kendali
+
+# Execution State Invalid
+MissionDisengageReason_execution_state_invalid_title=Status Eksekusi Tidak Valid
+
+# Unable to Load Mission
+MissionDisengageReason_load_mission_failed_title=Tidak Dapat Memuat Misi
+
+# Unable to Upload Mission
+MissionDisengageReason_upload_mission_failed_title=Tidak Dapat Mengunggah Misi
+
+# Unable to Start Mission
+MissionDisengageReason_start_mission_failed_title=Tidak Dapat Memulai Misi
+
+# Weak Signal
+MissionDisengageReason_telemetry_delayed_title=Sinyal lemah
+
+# • Please point the RC antennas towards the drone.\n• If the signal does not improve, try moving closer to the drone.\n• If the signal still does not improve, move to an area with fewer obstacles or RF interference.
+MissionDisengageReason_telemetry_delayed_details=• Harap arahkan antena RC ke arah drone.\n• Jika sinyal tidak membaik, coba mendekat ke drone.\n• Jika sinyal masih tidak membaik, pindahlah ke area dengan lebih sedikit rintangan atau gangguan RF.
+
+# Max Altitude Reached
+MissionDisengageReason_drone_max_altitude_title=Max Altitude Tercapai
+
+# Increase the max altitude setting to continue.
+MissionDisengageReason_drone_max_altitude_details=Tingkatkan pengaturan ketinggian maks untuk melanjutkan.
+
+# Max Distance Reached
+MissionDisengageReason_drone_max_distance_title=Jarak Maksimum Tercapai
+
+# Increase the max distance setting to continue.
+MissionDisengageReason_drone_max_distance_details=Tingkatkan pengaturan jarak maks untuk melanjutkan.
+
+# Flight Assistant Unavailable
+MissionDisengageReason_drone_flight_assistant_unavailable_title=Asisten Penerbangan Tidak Tersedia
+
+# Landing Gear Unavailable
+MissionDisengageReason_drone_landing_gear_unavailable_title=Alat Pendarat Tidak Tersedia
+
+# Lightbridge Link Unavailable
+MissionDisengageReason_drone_lightbridge_unavailable_title=Tautan Lightbridge Tidak Tersedia
+
+# OcuSync Link Unavailable
+MissionDisengageReason_drone_ocusync_unavailable_title=Tautan OcuSync Tidak Tersedia
+
+# Accessories Unavailable
+MissionDisengageReason_drone_accessory_aggregation_unavailable_title=Aksesori Tidak Tersedia
+
+# Beacon Unavailable
+MissionDisengageReason_drone_beacon_unavailable_title=Suar Tidak Tersedia
+
+# Spotlight Unavailable
+MissionDisengageReason_drone_spotlight_unavailable_title=Sorotan Tidak Tersedia
+
+# Live Streaming Unavailable
+MissionDisengageReason_live_streaming_unavailable_title=Streaming Langsung Tidak Tersedia
+
+# Unable to Start Live Streaming
+MissionDisengageReason_live_streaming_failed_title=Tidak Dapat Memulai Streaming Langsung
+
+# Remote Controller Unavailable
+MissionDisengageReason_drone_remote_controller_unavailable_title=Pengontrol Jarak Jauh Tidak Tersedia
+
+# Camera Unavailable
+MissionDisengageReason_drone_camera_unavailable_title=Kamera Tidak Tersedia
+
+# Lens Unavailable
+MissionDisengageReason_drone_lens_unavailable_title=Lensa Tidak Tersedia
+
+# Camera Mode Invalid
+MissionDisengageReason_drone_camera_mode_invalid_title=Mode Kamera Tidak Valid
+
+# Gimbal Unavailable
+MissionDisengageReason_drone_gimbal_unavailable_title=Gimbal Tidak Tersedia
+
+# Uploading waypoints | %1$d of %2$d
+DJIWaypointMissionSession_statusMessage_uploading_title=Mengunggah waypoint | %1$d dari %2$d
+
+# Component %1$d of %2$d
+DJIWaypointMissionSession_statusMessage_component_title=Komponen %1$d dari %2$d
+
+# Approaching waypoint %1$d of %2$d
+DJIWaypointMissionSession_statusMessage_waypoint_0_title=Mendekati waypoint %1$d dari %2$d
+
+# Flying to waypoint %1$d of %2$d | %3$s
+DJIWaypointMissionSession_statusMessage_waypoint_n_title=Terbang ke waypoint %1$d dari %2$d | %3$s
+
+# Resuming at %1$s to waypoint %2$d…
+DJIWaypointMissionSession.statusMessage_reengaging_title=Melanjutkan di %1$s ke waypoint %2$d…
+
+# Camera still capturing
+DJIDroneSession_cameraCommand_stop_capture_error=Kamera masih merekam
+
+# Media File Not Created
+DJIDroneSession_cameraCommand_start_shoot_photo_no_file=File Media Tidak Dibuat
+
+# Uncalibrated Focus Distance
+DJIDroneSession_cameraCommand_focus_distance_error=Jarak Fokus yang tidak dikalibrasi
+
+# Camera Busy
+DJIDroneSession_cameraCommand_focus_target_error=Kamera Sibuk
+
+# Focus Ring Outside Limits:
+DJIDroneSession_cameraCommand_focus_target_ring_invalid=Cincin Fokus Di Luar Batas:
+
+# Gimbal Not Rotated
+DJIDroneSession_gimbalCommand_orientation_not_achieved=Gimbal Tidak Diputar
+
+# Telemetry Unavailable
+DJIDroneSession_telemetry_unavailable=Telemetri Tidak Tersedia
+
+# Remote controller is unavailable.
+DJIDroneSessionManager_remoteControllerLinking_unavailable=Pengendali jarak jauh tidak tersedia.
+
+# DJI Activation
+DronelinkDJI_AppActivationState_title=Aktivasi DJI
+
+# Not Supported
+DronelinkDJI_AppActivationState_value_NOT_SUPPORTED=Tidak didukung
+
+# Login Required
+DronelinkDJI_AppActivationState_value_LOGIN_REQUIRED=login dibutuhkan
+
+# NFZ
+DronelinkDJI_FlyZoneState_title=NFZ
+
+# In Warning Zone with Height Limitation
+DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION=Di Zona Peringatan dengan Batasan Ketinggian
+
+# In Warning Zone
+DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE=Di Zona Peringatan
+
+# In Restricted Zone
+DronelinkDJI_FlyZoneState_value_IN_RESTRICTED_ZONE=Di Zona Terbatas
+
+# Near Restricted Zone
+DronelinkDJI_FlyZoneState_value_NEAR_RESTRICTED_ZONE=Dekat Zona Terbatas
+
+# Suspected in Warning Zone with Height Limitation
+DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION=Diduga di Zona Peringatan dengan Batasan Ketinggian
+
+# Phone in Warning Zone with Height Limitation
+DronelinkDJI_FlyZoneState_value_PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION=Telepon di Zona Peringatan dengan Batasan Tinggi
+
+# In Enhanced Warning Zone
+DronelinkDJI_FlyZoneState_value_IN_ENHANCE_WARNING_ZONE=Di Zona Peringatan yang Ditingkatkan
+
+# In Authorized Zone with License
+DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE_WITH_LICENSE=Di Zona Resmi dengan Lisensi
+
+# In Authorized Zone
+DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE=Di Zona Resmi
+
+# Suspected in Authorized Zone
+DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_AUTHORIZED_ZONE=Diduga di Zona Resmi
+
+# Suspected in Restricted Zone
+DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_RESTRICTED_ZONE=Diduga di Zona Terbatas
+
+# Phone in Restricted Zone
+DronelinkDJI_FlyZoneState_value_PHONE_IN_RESTRICTED_ZONE=Telepon di Zona Terbatas
+
+# Near Height Limited Zone
+DronelinkDJI_FlyZoneState_value_NEAR_HEIGHT_LIMITED_ZONE=Dekat Zona Terbatas Ketinggian
+
+# Near Authorized Zone with License
+DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE_WITH_LICENSE=Dekat Zona Resmi dengan Lisensi
+
+# Near Authorized Zone
+DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE=Dekat Zona Resmi
+
+# Near Multiple Type Zone
+DronelinkDJI_FlyZoneState_value_NEAR_MULTIPLE_TYPE_FLY_ZONE=Dekat Zona Tipe Ganda
+
+# Outside Special Unlock Zone
+DronelinkDJI_FlyZoneState_value_OUTSIDE_SPECIAL_UNLOCK_ZONE=Di luar Zona Buka Kunci Khusus
+
+# Fly Touch Authorize has License
+DronelinkDJI_FlyZoneState_value_FLY_TOUCH_AUTHORIZE_HAS_LICENSE=Fly Touch Otorisasi memiliki Lisensi
+
+# AirSense Alert
+DronelinkDJI_DJIAirSenseAirplaneState_title=Peringatan AirSense
+
+# Aircraft %1$s at %2$s %3$s
+DronelinkDJI_DJIAirSenseAirplaneState_message=Pesawat %1$s di %2$s %3$s
+
+# RTH
+DronelinkDJI_GoHomeExecutionState_title=RTH
+
+# Turning to Home Point
+DronelinkDJI_GoHomeExecutionState_value_TURN_DIRECTION_TO_HOME_POINT=Beralih ke Titik Awal
+
+# Ascending to Altitude
+DronelinkDJI_GoHomeExecutionState_value_GO_UP_TO_HEIGHT=Naik ke Ketinggian
+
+# Flying to Home Point
+DronelinkDJI_GoHomeExecutionState_value_AUTO_FLY_TO_HOME_POINT=Terbang ke Titik Asal
+
+# Descending to Ground
+DronelinkDJI_GoHomeExecutionState_value_GO_DOWN_TO_GROUND=Turun ke Tanah
+
+# Braking
+DronelinkDJI_GoHomeExecutionState_value_BRAKING=Pengereman
+
+# Bypassing
+DronelinkDJI_GoHomeExecutionState_value_BYPASSING=Melewati
+
+# GPS Signal Unavailable
+DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_title=Sinyal GPS Tidak Tersedia
+
+# Please wait for a strong GPS signal lock to continue.
+DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_details=Harap tunggu kunci sinyal GPS yang kuat untuk melanjutkan.
+
+# Home Location Not Set
+DJIDronelink_DJIFlightControllerState_statusMessages_homeLocationNotSet_title=Lokasi Rumah Tidak Ditetapkan
+
+# Critically Low Battery
+DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanSeriousBatteryWarningThreshold_title=Baterai Sangat Rendah
+
+# Low Battery
+DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanBatteryWarningThreshold_title=Baterai lemah
+
+# Max Distance
+DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightRadius_title=Jarak Maks
+
+# Max Altitude
+DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightHeight_title=Ketinggian Maks
+
+# Onboard Waypoints
+DronelinkDJI_DJIWaypointMissionState_title=Titik Arah Onboard
+
+# Recovering
+DronelinkDJI_DJIWaypointMissionState_value_RECOVERING=Memulihkan
+
+# Ready to Upload
+DronelinkDJI_DJIWaypointMissionState_value_READY_TO_UPLOAD=Siap untuk Mengunggah
+
+# Uploading
+DronelinkDJI_DJIWaypointMissionState_value_UPLOADING=Mengunggah
+
+# Ready to Go
+DronelinkDJI_DJIWaypointMissionState_value_READY_TO_EXECUTE=Siap untuk berangkat
+
+# Running
+DronelinkDJI_DJIWaypointMissionState_value_EXECUTING=Berlari
+
+# Paused
+DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSED=Dijeda
+
+# Pausing
+DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSING=Jeda
+
+# Compass Calibration
+DronelinkDJI_CompassCalibrationState_title=Kalibrasi Kompas
+
+# Rotate 360 Horizontally
+DronelinkDJI_CompassCalibrationState_value_HORIZONTAL=Putar 360 Secara Horizontal
+
+# Rotate 360 Vertically
+DronelinkDJI_CompassCalibrationState_value_VERTICAL=Putar 360 Vertikal
+
+# Finished
+DronelinkDJI_CompassCalibrationState_value_SUCCESSFUL=Selesai
+
+# Failed
+DronelinkDJI_CompassCalibrationState_value_FAILED=Gagal
+
+# Compass
+DronelinkDJI_CompassSensorState_title=Kompas
+
+# Disconnected
+DronelinkDJI_CompassSensorState_value_DISCONNECTED=Terputus
+
+# Calibrating
+DronelinkDJI_CompassSensorState_value_CALIBRATING=Mengkalibrasi
+
+# Uncalibrated
+DronelinkDJI_CompassSensorState_value_UNCALIBRATED=Tidak dikalibrasi
+
+# Data Exception
+DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION=Pengecualian Data
+
+# Calibration Failed
+DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED=Kalibrasi Gagal
+
+# Direction Exception
+DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION=Pengecualian Arah

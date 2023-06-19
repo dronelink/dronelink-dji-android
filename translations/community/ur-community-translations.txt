@@ -1,0 +1,308 @@
+# Command Type Unhandled
+MissionDisengageReason_command_type_unhandled=کمانڈ کی قسم غیر ہینڈل
+
+# Mission Paused
+MissionDisengageReason_user_disengaged_title=مشن روک دیا گیا۔
+
+# Drone Disconnected
+MissionDisengageReason_drone_disconnected_title=ڈرون سے رابطہ منقطع ہوگیا۔
+
+# Drone Control Unavailable
+MissionDisengageReason_drone_control_unavailable_title=ڈرون کنٹرول دستیاب نہیں ہے۔
+
+# Automatic Control Interrupted
+MissionDisengageReason_drone_control_override_title=خودکار کنٹرول میں خلل پڑا
+
+# The drone must remain in P-GPS flight mode for automatic control.
+MissionDisengageReason_drone_control_override_details=ڈرون کو خودکار کنٹرول کے لیے P-GPS فلائٹ موڈ میں رہنا چاہیے۔
+
+# Unable to Take Off
+MissionDisengageReason_take_off_failed_title=ٹیک آف کرنے سے قاصر
+
+# Unable to Take Control
+MissionDisengageReason_take_control_failed_title=کنٹرول کرنے سے قاصر
+
+# Execution State Invalid
+MissionDisengageReason_execution_state_invalid_title=پھانسی کی حالت غلط ہے۔
+
+# Unable to Load Mission
+MissionDisengageReason_load_mission_failed_title=مشن لوڈ کرنے سے قاصر
+
+# Unable to Upload Mission
+MissionDisengageReason_upload_mission_failed_title=مشن اپ لوڈ کرنے سے قاصر
+
+# Unable to Start Mission
+MissionDisengageReason_start_mission_failed_title=مشن شروع کرنے سے قاصر
+
+# Weak Signal
+MissionDisengageReason_telemetry_delayed_title=کمزور سگنل
+
+# • Please point the RC antennas towards the drone.\n• If the signal does not improve, try moving closer to the drone.\n• If the signal still does not improve, move to an area with fewer obstacles or RF interference.
+MissionDisengageReason_telemetry_delayed_details=• براہ کرم RC انٹینا کو ڈرون کی طرف رکھیں۔\n• اگر سگنل بہتر نہیں ہوتا ہے تو ڈرون کے قریب جانے کی کوشش کریں۔\n• اگر سگنل اب بھی بہتر نہیں ہوتا ہے تو کم رکاوٹوں یا RF مداخلت والے علاقے میں جائیں۔
+
+# Max Altitude Reached
+MissionDisengageReason_drone_max_altitude_title=زیادہ سے زیادہ اونچائی تک پہنچ گئی۔
+
+# Increase the max altitude setting to continue.
+MissionDisengageReason_drone_max_altitude_details=جاری رکھنے کے لیے زیادہ سے زیادہ اونچائی کی ترتیب میں اضافہ کریں۔
+
+# Max Distance Reached
+MissionDisengageReason_drone_max_distance_title=زیادہ سے زیادہ فاصلہ پہنچ گیا۔
+
+# Increase the max distance setting to continue.
+MissionDisengageReason_drone_max_distance_details=جاری رکھنے کے لیے زیادہ سے زیادہ فاصلے کی ترتیب میں اضافہ کریں۔
+
+# Flight Assistant Unavailable
+MissionDisengageReason_drone_flight_assistant_unavailable_title=فلائٹ اسسٹنٹ دستیاب نہیں ہے۔
+
+# Landing Gear Unavailable
+MissionDisengageReason_drone_landing_gear_unavailable_title=لینڈنگ گیئر دستیاب نہیں ہے۔
+
+# Lightbridge Link Unavailable
+MissionDisengageReason_drone_lightbridge_unavailable_title=لائٹ برج لنک دستیاب نہیں ہے۔
+
+# OcuSync Link Unavailable
+MissionDisengageReason_drone_ocusync_unavailable_title=OcuSync لنک دستیاب نہیں ہے۔
+
+# Accessories Unavailable
+MissionDisengageReason_drone_accessory_aggregation_unavailable_title=لوازمات دستیاب نہیں ہیں۔
+
+# Beacon Unavailable
+MissionDisengageReason_drone_beacon_unavailable_title=بیکن دستیاب نہیں ہے۔
+
+# Spotlight Unavailable
+MissionDisengageReason_drone_spotlight_unavailable_title=اسپاٹ لائٹ دستیاب نہیں ہے۔
+
+# Live Streaming Unavailable
+MissionDisengageReason_live_streaming_unavailable_title=لائیو سٹریمنگ دستیاب نہیں ہے۔
+
+# Unable to Start Live Streaming
+MissionDisengageReason_live_streaming_failed_title=لائیو سٹریمنگ شروع کرنے سے قاصر
+
+# Remote Controller Unavailable
+MissionDisengageReason_drone_remote_controller_unavailable_title=ریموٹ کنٹرولر دستیاب نہیں ہے۔
+
+# Camera Unavailable
+MissionDisengageReason_drone_camera_unavailable_title=کیمرہ دستیاب نہیں ہے۔
+
+# Lens Unavailable
+MissionDisengageReason_drone_lens_unavailable_title=لینس دستیاب نہیں ہے۔
+
+# Camera Mode Invalid
+MissionDisengageReason_drone_camera_mode_invalid_title=کیمرہ موڈ غلط ہے۔
+
+# Gimbal Unavailable
+MissionDisengageReason_drone_gimbal_unavailable_title=Gimbal دستیاب نہیں ہے۔
+
+# Uploading waypoints | %1$d of %2$d
+DJIWaypointMissionSession_statusMessage_uploading_title=وے پوائنٹس اپ لوڈ کرنا | %1$d از %2$d
+
+# Component %1$d of %2$d
+DJIWaypointMissionSession_statusMessage_component_title=جزو %1$d از %2$d
+
+# Approaching waypoint %1$d of %2$d
+DJIWaypointMissionSession_statusMessage_waypoint_0_title=%2$d میں سے %1$d کے قریب پہنچ رہا ہے۔
+
+# Flying to waypoint %1$d of %2$d | %3$s
+DJIWaypointMissionSession_statusMessage_waypoint_n_title=%1$d از %2$d | %3$s
+
+# Resuming at %1$s to waypoint %2$d…
+DJIWaypointMissionSession.statusMessage_reengaging_title=%1$s پر وے پوائنٹ %2$d پر دوبارہ شروع ہو رہا ہے…
+
+# Camera still capturing
+DJIDroneSession_cameraCommand_stop_capture_error=کیمرہ اب بھی کیپچر کر رہا ہے۔
+
+# Media File Not Created
+DJIDroneSession_cameraCommand_start_shoot_photo_no_file=میڈیا فائل نہیں بنائی گئی۔
+
+# Uncalibrated Focus Distance
+DJIDroneSession_cameraCommand_focus_distance_error=غیر منقطع فوکس فاصلہ
+
+# Camera Busy
+DJIDroneSession_cameraCommand_focus_target_error=کیمرہ مصروف
+
+# Focus Ring Outside Limits:
+DJIDroneSession_cameraCommand_focus_target_ring_invalid=فوکس رنگ حدود سے باہر:
+
+# Gimbal Not Rotated
+DJIDroneSession_gimbalCommand_orientation_not_achieved=Gimbal نہیں گھمایا
+
+# Telemetry Unavailable
+DJIDroneSession_telemetry_unavailable=ٹیلی میٹری دستیاب نہیں ہے۔
+
+# Remote controller is unavailable.
+DJIDroneSessionManager_remoteControllerLinking_unavailable=ریموٹ کنٹرولر دستیاب نہیں ہے۔
+
+# DJI Activation
+DronelinkDJI_AppActivationState_title=DJI ایکٹیویشن
+
+# Not Supported
+DronelinkDJI_AppActivationState_value_NOT_SUPPORTED=سہولت مہیا نہیں
+
+# Login Required
+DronelinkDJI_AppActivationState_value_LOGIN_REQUIRED=لاگ ان کی ضرورت ہے۔
+
+# NFZ
+DronelinkDJI_FlyZoneState_title=این ایف زیڈ
+
+# In Warning Zone with Height Limitation
+DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION=اونچائی کی حد کے ساتھ وارننگ زون میں
+
+# In Warning Zone
+DronelinkDJI_FlyZoneState_value_IN_WARNING_ZONE=وارننگ زون میں
+
+# In Restricted Zone
+DronelinkDJI_FlyZoneState_value_IN_RESTRICTED_ZONE=محدود زون میں
+
+# Near Restricted Zone
+DronelinkDJI_FlyZoneState_value_NEAR_RESTRICTED_ZONE=محدود زون کے قریب
+
+# Suspected in Warning Zone with Height Limitation
+DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION=اونچائی کی حد کے ساتھ وارننگ زون میں مشتبہ
+
+# Phone in Warning Zone with Height Limitation
+DronelinkDJI_FlyZoneState_value_PHONE_IN_WARNING_ZONE_WITH_HEIGHT_LIMITATION=اونچائی کی حد کے ساتھ وارننگ زون میں فون
+
+# In Enhanced Warning Zone
+DronelinkDJI_FlyZoneState_value_IN_ENHANCE_WARNING_ZONE=بہتر وارننگ زون میں
+
+# In Authorized Zone with License
+DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE_WITH_LICENSE=لائسنس کے ساتھ مجاز زون میں
+
+# In Authorized Zone
+DronelinkDJI_FlyZoneState_value_IN_AUTHORIZED_ZONE=مجاز زون میں
+
+# Suspected in Authorized Zone
+DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_AUTHORIZED_ZONE=مجاز زون میں مشتبہ
+
+# Suspected in Restricted Zone
+DronelinkDJI_FlyZoneState_value_SUSPECTED_IN_RESTRICTED_ZONE=ممنوعہ زون میں مشتبہ
+
+# Phone in Restricted Zone
+DronelinkDJI_FlyZoneState_value_PHONE_IN_RESTRICTED_ZONE=محدود زون میں فون
+
+# Near Height Limited Zone
+DronelinkDJI_FlyZoneState_value_NEAR_HEIGHT_LIMITED_ZONE=اونچائی محدود زون کے قریب
+
+# Near Authorized Zone with License
+DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE_WITH_LICENSE=لائسنس کے ساتھ مجاز زون کے قریب
+
+# Near Authorized Zone
+DronelinkDJI_FlyZoneState_value_NEAR_AUTHORIZED_ZONE=مجاز زون کے قریب
+
+# Near Multiple Type Zone
+DronelinkDJI_FlyZoneState_value_NEAR_MULTIPLE_TYPE_FLY_ZONE=ایک سے زیادہ قسم کے زون کے قریب
+
+# Outside Special Unlock Zone
+DronelinkDJI_FlyZoneState_value_OUTSIDE_SPECIAL_UNLOCK_ZONE=خصوصی انلاک زون کے باہر
+
+# Fly Touch Authorize has License
+DronelinkDJI_FlyZoneState_value_FLY_TOUCH_AUTHORIZE_HAS_LICENSE=فلائی ٹچ اتھارٹی کے پاس لائسنس ہے۔
+
+# AirSense Alert
+DronelinkDJI_DJIAirSenseAirplaneState_title=ایئر سینس الرٹ
+
+# Aircraft %1$s at %2$s %3$s
+DronelinkDJI_DJIAirSenseAirplaneState_message=ہوائی جہاز %1$s پر %2$s %3$s
+
+# RTH
+DronelinkDJI_GoHomeExecutionState_title=آر ٹی ایچ
+
+# Turning to Home Point
+DronelinkDJI_GoHomeExecutionState_value_TURN_DIRECTION_TO_HOME_POINT=ہوم پوائنٹ کا رخ کرنا
+
+# Ascending to Altitude
+DronelinkDJI_GoHomeExecutionState_value_GO_UP_TO_HEIGHT=اونچائی پر چڑھنا
+
+# Flying to Home Point
+DronelinkDJI_GoHomeExecutionState_value_AUTO_FLY_TO_HOME_POINT=ہوم پوائنٹ پر پرواز
+
+# Descending to Ground
+DronelinkDJI_GoHomeExecutionState_value_GO_DOWN_TO_GROUND=زمین پر اترنا
+
+# Braking
+DronelinkDJI_GoHomeExecutionState_value_BRAKING=بریک لگانا
+
+# Bypassing
+DronelinkDJI_GoHomeExecutionState_value_BYPASSING=بائی پاس کرنا
+
+# GPS Signal Unavailable
+DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_title=GPS سگنل دستیاب نہیں ہے۔
+
+# Please wait for a strong GPS signal lock to continue.
+DronelinkDJI_DJIFlightControllerState_statusMessages_locationUnavailable_details=براہ کرم جاری رہنے کے لیے مضبوط GPS سگنل لاک کا انتظار کریں۔
+
+# Home Location Not Set
+DJIDronelink_DJIFlightControllerState_statusMessages_homeLocationNotSet_title=گھر کی جگہ سیٹ نہیں ہے۔
+
+# Critically Low Battery
+DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanSeriousBatteryWarningThreshold_title=انتہائی کم بیٹری
+
+# Low Battery
+DJIDronelink_DJIFlightControllerState_statusMessages_isLowerThanBatteryWarningThreshold_title=کم بیٹری
+
+# Max Distance
+DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightRadius_title=زیادہ سے زیادہ فاصلہ
+
+# Max Altitude
+DJIDronelink_DJIFlightControllerState_statusMessages_hasReachedMaxFlightHeight_title=زیادہ سے زیادہ اونچائی
+
+# Onboard Waypoints
+DronelinkDJI_DJIWaypointMissionState_title=آن بورڈ وی پوائنٹس
+
+# Recovering
+DronelinkDJI_DJIWaypointMissionState_value_RECOVERING=بازیافتی ہورہی
+
+# Ready to Upload
+DronelinkDJI_DJIWaypointMissionState_value_READY_TO_UPLOAD=اپ لوڈ کرنے کے لیے تیار
+
+# Uploading
+DronelinkDJI_DJIWaypointMissionState_value_UPLOADING=اپ لوڈ ہو رہا ہے۔
+
+# Ready to Go
+DronelinkDJI_DJIWaypointMissionState_value_READY_TO_EXECUTE=جانے کے لیے تیار
+
+# Running
+DronelinkDJI_DJIWaypointMissionState_value_EXECUTING=چل رہا ہے۔
+
+# Paused
+DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSED=روک دیا گیا
+
+# Pausing
+DronelinkDJI_DJIWaypointMissionState_value_EXECUTION_PAUSING=روکنا
+
+# Compass Calibration
+DronelinkDJI_CompassCalibrationState_title=کمپاس کیلیبریشن
+
+# Rotate 360 Horizontally
+DronelinkDJI_CompassCalibrationState_value_HORIZONTAL=360 کو افقی طور پر گھمائیں۔
+
+# Rotate 360 Vertically
+DronelinkDJI_CompassCalibrationState_value_VERTICAL=360 کو عمودی طور پر گھمائیں۔
+
+# Finished
+DronelinkDJI_CompassCalibrationState_value_SUCCESSFUL=ختم
+
+# Failed
+DronelinkDJI_CompassCalibrationState_value_FAILED=ناکام
+
+# Compass
+DronelinkDJI_CompassSensorState_title=کمپاس
+
+# Disconnected
+DronelinkDJI_CompassSensorState_value_DISCONNECTED=منقطع
+
+# Calibrating
+DronelinkDJI_CompassSensorState_value_CALIBRATING=کیلیبریٹ کرنا
+
+# Uncalibrated
+DronelinkDJI_CompassSensorState_value_UNCALIBRATED=غیر حساب شدہ
+
+# Data Exception
+DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION=ڈیٹا استثناء
+
+# Calibration Failed
+DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED=کیلیبریشن ناکام ہو گئی۔
+
+# Direction Exception
+DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION=سمت استثناء
