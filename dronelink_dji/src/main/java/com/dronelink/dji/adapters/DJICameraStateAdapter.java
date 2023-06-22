@@ -342,7 +342,8 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public boolean isZoomSupported() {
         //Only support hybrid zoom
         //Some cameras return true for isHybridZoomSupported() but don't support zoom. The spec is 0 when that is the case, so we can use that to check.
-        if (camera == null || (camera.isHybridZoomSupported() && zoomSpec.getStep() == 0)) {
+        final CameraZoomSpec spec = zoomSpec;
+        if (camera == null || spec == null || (camera.isHybridZoomSupported() && spec.getStep() == 0)) {
             return false;
         }
         return camera.isHybridZoomSupported();
