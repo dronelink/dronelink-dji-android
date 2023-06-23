@@ -200,12 +200,6 @@ public class DJIWaypointMissionSession implements DroneControlSession {
         }
     }
 
-    @Override
-    public void setLocale(final String locale) {
-        LocaleUtil.selectedLocale = locale;
-        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
-    }
-
     private void activating() {
         if (state != State.ACTIVATING || djiWaypointMissionOperator == null) {
             return;

@@ -57,6 +57,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         initAppActivationManagerStateListener(0);
     }
 
+    @Override
     public void setLocale(final String locale) {
         LocaleUtil.selectedLocale = locale;
         LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);

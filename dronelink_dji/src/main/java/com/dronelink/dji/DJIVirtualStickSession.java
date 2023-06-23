@@ -62,12 +62,6 @@ public class DJIVirtualStickSession implements DroneControlSession {
         return ExecutionEngine.DRONELINK_KERNEL;
     }
 
-    @Override
-    public void setLocale(final String locale) {
-        LocaleUtil.selectedLocale = locale;
-        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
-    }
-
     public Message getDisengageReason() {
         if (attemptDisengageReason != null) {
             return attemptDisengageReason;

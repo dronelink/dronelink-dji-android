@@ -38,7 +38,7 @@ MissionDisengageReason_start_mission_failed_title=Impossible de démarrer la mis
 MissionDisengageReason_telemetry_delayed_title=Signal faible
 
 # • Please point the RC antennas towards the drone.\n• If the signal does not improve, try moving closer to the drone.\n• If the signal still does not improve, move to an area with fewer obstacles or RF interference.
-MissionDisengageReason_telemetry_delayed_details=• Veuillez diriger les antennes RC vers le drone.\n• Si le signal ne s'améliore pas, essayez de vous rapprocher du drone.\n• Si le signal ne s'améliore toujours pas, déplacez-vous vers une zone avec moins d'obstacles ou d'interférences RF.
+MissionDisengageReason_telemetry_delayed_details=• Veuillez diriger les antennes RC vers le drone.\n• Si le signal ne s\'améliore pas, essayez de vous rapprocher du drone.\n• Si le signal ne s\'améliore toujours pas, déplacez-vous vers une zone avec moins d\'obstacles ou d\'interférences RF.
 
 # Max Altitude Reached
 MissionDisengageReason_drone_max_altitude_title=Altitude maximale atteinte

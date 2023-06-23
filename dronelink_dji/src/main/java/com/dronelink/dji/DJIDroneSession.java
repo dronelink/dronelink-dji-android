@@ -436,12 +436,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         }.start();
     }
 
-    @Override
-    public void setLocale(final String locale) {
-        LocaleUtil.selectedLocale = locale;
-        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
-    }
-
     private Double gimbalYawRelativeToAircraftHeadingCorrected(final GimbalState gimbalState) {
         final Aircraft drone = adapter.getDrone();
         if (drone != null && drone.getModel() != null) {
