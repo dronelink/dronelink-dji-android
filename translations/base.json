@@ -118,7 +118,7 @@
     "MissionDisengageReason_upload_mission_failed_title": "Impossible de télécharger la mission",
     "MissionDisengageReason_start_mission_failed_title": "Impossible de démarrer la mission",
     "MissionDisengageReason_telemetry_delayed_title": "Signal faible",
-    "MissionDisengageReason_telemetry_delayed_details": "• Veuillez diriger les antennes RC vers le drone.\\n• Si le signal ne s'améliore pas, essayez de vous rapprocher du drone.\\n• Si le signal ne s'améliore toujours pas, déplacez-vous vers une zone avec moins d'obstacles ou d'interférences RF.",
+    "MissionDisengageReason_telemetry_delayed_details": "I am a bad string",
     "MissionDisengageReason_drone_max_altitude_title": "Altitude maximale atteinte",
     "MissionDisengageReason_drone_max_altitude_details": "Augmentez le paramètre d'altitude maximale pour continuer.",
     "MissionDisengageReason_drone_max_distance_title": "Distance maximale atteinte",

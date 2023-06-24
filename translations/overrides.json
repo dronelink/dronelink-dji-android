@@ -27,7 +27,7 @@
     "MissionDisengageReason_telemetry_delayed_title": "Signal faible",
     "MissionDisengageReason_telemetry_delayed_title.verification": "",
     "MissionDisengageReason_telemetry_delayed_details": "• Veuillez diriger les antennes RC vers le drone.\\n• Si le signal ne s'améliore pas, essayez de vous rapprocher du drone.\\n• Si le signal ne s'améliore toujours pas, déplacez-vous vers une zone avec moins d'obstacles ou d'interférences RF.",
-    "MissionDisengageReason_telemetry_delayed_details.verification": "",
+    "MissionDisengageReason_telemetry_delayed_details.verification": "verified",
     "MissionDisengageReason_drone_max_altitude_title": "Altitude maximale atteinte",
     "MissionDisengageReason_drone_max_altitude_title.verification": "",
     "MissionDisengageReason_drone_max_altitude_details": "Augmentez le paramètre d'altitude maximale pour continuer.",
