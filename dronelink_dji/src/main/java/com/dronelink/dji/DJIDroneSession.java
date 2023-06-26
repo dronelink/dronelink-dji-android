@@ -82,7 +82,8 @@ import com.dronelink.core.kernel.command.camera.VideoStandardCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoStreamSourceCameraCommand;
 import com.dronelink.core.kernel.command.camera.WhiteBalanceCustomCameraCommand;
 import com.dronelink.core.kernel.command.camera.WhiteBalancePresetCameraCommand;
-import com.dronelink.core.kernel.command.camera.ZoomCameraCommand;
+import com.dronelink.core.kernel.command.camera.ZoomPercentCameraCommand;
+import com.dronelink.core.kernel.command.camera.ZoomRatioCameraCommand;
 import com.dronelink.core.kernel.command.drone.AccessoryDroneCommand;
 import com.dronelink.core.kernel.command.drone.AuxiliaryLightModeDroneCommand;
 import com.dronelink.core.kernel.command.drone.BeaconDroneCommand;
@@ -135,6 +136,7 @@ import com.dronelink.core.kernel.core.GeoCoordinate;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.Orientation3Optional;
+import com.dronelink.core.kernel.core.PercentZoomSpec;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
@@ -283,7 +285,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
     private DatedValue<Double> zoomValue;
-    private DatedValue<CameraZoomSpec> zoomSpec;
+    private DatedValue<SettingsDefinitions.HybridZoomSpec> hybridZoomSpec;
     private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
     private DatedValue<Boolean> autoExposureLock;
 
@@ -1173,17 +1175,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.HYBRID_ZOOM_SPEC), (oldValue, newValue) -> {
-            final SettingsDefinitions.HybridZoomSpec hybridZoomSpec = newValue == null ? null : (SettingsDefinitions.HybridZoomSpec) newValue;
-            if (hybridZoomSpec != null) {
-                try {
-                    zoomSpec = new DatedValue<>(new CameraZoomSpec.Builder(hybridZoomSpec.getMinHybridFocalLength(),
-                            hybridZoomSpec.getMaxHybridFocalLength(), hybridZoomSpec.getMaxOpticalFocalLength(), hybridZoomSpec.getFocalLengthStep()).build());
-                } catch (final IllegalArgumentException e) {
-                    Log.e(TAG, e.getMessage());
-                    zoomSpec = null;
-                }
+            final SettingsDefinitions.HybridZoomSpec zoomSpec = newValue == null ? null : (SettingsDefinitions.HybridZoomSpec) newValue;
+            if (zoomSpec != null) {
+                hybridZoomSpec = new DatedValue<>(zoomSpec);
             } else {
-                zoomSpec = null;
+                hybridZoomSpec = null;
             }
         });
 
@@ -1752,7 +1748,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value,
                             zoomValue == null ? null : zoomValue.value,
-                            zoomSpec == null ? null : zoomSpec.value,
+                            hybridZoomSpec == null ? null : hybridZoomSpec.value,
                             meteringMode == null ? null : meteringMode.value,
                             autoExposureLock == null ? null : autoExposureLock.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
@@ -2809,23 +2805,28 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             return null;
         }
 
-        if (command instanceof ZoomCameraCommand) {
+        if (command instanceof ZoomPercentCameraCommand) {
             final CameraZoomSpec zoomSpec = djiState.getZoomSpec();
-            if (zoomSpec == null) {
+            if (zoomSpec == null || !(zoomSpec instanceof PercentZoomSpec)) {
                 return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
             }
-
-            int zoomMax = zoomSpec.getMax();
-            int zoomMin = zoomSpec.getMin();
-            int zoomStep = zoomSpec.getStep();
-            final int hybridZoomFocalLength = (int)Math.round((((ZoomCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep;
-            Command.conditionallyExecute(state.value.getZoomValue() == null || hybridZoomFocalLength != state.value.getZoomValue().intValue(), finished, new Command.ConditionalExecutor() {
+            final PercentZoomSpec percentZoomSpec = (PercentZoomSpec) zoomSpec;
+            final int zoomMax = percentZoomSpec.getMax();
+            final int zoomMin = percentZoomSpec.getMin();
+            final int zoomStep = percentZoomSpec.getStep();
+            final int hybridZoomFocalLength = (int)Math.round((((ZoomPercentCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep;
+            Command.conditionallyExecute( hybridZoomFocalLength != percentZoomSpec.getCurrentZoom().intValue(), finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
                     camera.setHybridZoomFocalLength(hybridZoomFocalLength, createCompletionCallback(finished));
                 }
             });
             return null;
+        }
+
+        if (command instanceof ZoomRatioCameraCommand) {
+            //This command should not be supported by mSDKv4 drones, because there is no real way to retrieve zoom ratios from the DJI SDK.
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
         }
 
         if (command instanceof ISOCameraCommand) {
