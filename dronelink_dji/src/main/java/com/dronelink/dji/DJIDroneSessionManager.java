@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.DroneSession;
 import com.dronelink.core.DroneSessionManager;
+import com.dronelink.core.LocaleUtil;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
 import com.dronelink.core.kernel.core.Message;
@@ -54,6 +55,16 @@ public class DJIDroneSessionManager implements DroneSessionManager {
 
         initFlyZoneManagerCallback(0);
         initAppActivationManagerStateListener(0);
+    }
+
+    @Override
+    public void setLocale(final String locale) {
+        LocaleUtil.selectedLocale = locale;
+        LocaleUtil.applyLocalizedContext(context, LocaleUtil.selectedLocale);
+    }
+
+    public String testLocalization() {
+        return LocaleUtil.selectedLocale + "-6-" + context.getString(com.dronelink.dji.R.string.MissionDisengageReason_user_disengaged_title);
     }
 
     private void initFlyZoneManagerCallback(final int attempt) {
