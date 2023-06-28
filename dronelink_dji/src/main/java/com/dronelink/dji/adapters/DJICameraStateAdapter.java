@@ -42,8 +42,6 @@ import dji.sdk.camera.Camera;
 
 public
 class DJICameraStateAdapter implements CameraStateAdapter {
-    private static final String TAG = DJICameraStateAdapter.class.getCanonicalName();
-
     public final Camera camera;
     public final SystemState state;
     public final CameraVideoStreamSource videoStreamSource;
