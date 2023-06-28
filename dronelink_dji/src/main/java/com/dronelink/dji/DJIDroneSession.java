@@ -1216,19 +1216,23 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             return;
         }
         final SettingsDefinitions.HybridZoomSpec spec = hybridZoomSpec.value;
+        try {
+            setPercentZoomSpec(spec, zoomValue.value);
+        } catch (final IllegalArgumentException e) {
+            Log.e(TAG, "Error initializing percent zoom spec: " + e.getMessage());
+        }
+    }
+
+    private void setPercentZoomSpec(SettingsDefinitions.HybridZoomSpec spec, Double zoomValue) {
         if (this.percentZoomSpec == null) {
-            try {
-                this.percentZoomSpec = new DatedValue<>(new PercentZoomSpec(zoomValue.value, spec.getMinHybridFocalLength(),
-                        spec.getMaxHybridFocalLength(), spec.getMaxOpticalFocalLength(), spec.getFocalLengthStep(), null));
-            } catch (final IllegalArgumentException e) {
-                Log.e(TAG, "Error initializing percent zoom spec: " + e.getMessage());
-            }
+            this.percentZoomSpec = new DatedValue<>(new PercentZoomSpec(zoomValue, spec.getMinHybridFocalLength(),
+                    spec.getMaxHybridFocalLength(), spec.getMaxOpticalFocalLength(), spec.getFocalLengthStep(), null));
             return;
         }
 
         final PercentZoomSpec percentZoomSpec = this.percentZoomSpec.value;
-        if (percentZoomSpec.getCurrentZoom() != zoomValue.value) {
-            percentZoomSpec.setCurrentZoom(zoomValue.value);
+        if (percentZoomSpec.getCurrentZoom() != zoomValue) {
+            percentZoomSpec.setCurrentZoom(zoomValue);
         }
         if (percentZoomSpec.getMin() != spec.getMinHybridFocalLength()) {
             percentZoomSpec.setMin(spec.getMinHybridFocalLength());
