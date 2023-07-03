@@ -1,6 +1,7 @@
 {
   "en": {
     "MissionDisengageReason_command_type_unhandled": "Command Type Unhandled",
+    "MissionDisengageReason_command_type_unsupported": "Command Type Unsupported on this Drone",
     "MissionDisengageReason_user_disengaged_title": "Mission Paused",
     "MissionDisengageReason_drone_disconnected_title": "Drone Disconnected",
     "MissionDisengageReason_drone_control_unavailable_title": "Drone Control Unavailable",
@@ -106,6 +107,7 @@
   },
   "fr": {
     "MissionDisengageReason_command_type_unhandled": "Type de commande non géré",
+    "MissionDisengageReason_command_type_unsupported": "Type de commande non pris en charge sur ce drone",
     "MissionDisengageReason_user_disengaged_title": "Mission en pause",
     "MissionDisengageReason_drone_disconnected_title": "Drone déconnecté",
     "MissionDisengageReason_drone_control_unavailable_title": "Contrôle du drone indisponible",
@@ -211,6 +213,7 @@
   },
   "de": {
     "MissionDisengageReason_command_type_unhandled": "Befehlstyp: Nicht behandelt",
+    "MissionDisengageReason_command_type_unsupported": "Befehlstyp wird auf dieser Drohne nicht unterstützt",
     "MissionDisengageReason_user_disengaged_title": "Mission pausiert",
     "MissionDisengageReason_drone_disconnected_title": "Drohne getrennt",
     "MissionDisengageReason_drone_control_unavailable_title": "Drohnensteuerung nicht verfügbar",
@@ -316,6 +319,7 @@
   },
   "it": {
     "MissionDisengageReason_command_type_unhandled": "Tipo di comando Non gestito",
+    "MissionDisengageReason_command_type_unsupported": "Tipo di comando non supportato su questo drone",
     "MissionDisengageReason_user_disengaged_title": "Missione sospesa",
     "MissionDisengageReason_drone_disconnected_title": "Drone disconnesso",
     "MissionDisengageReason_drone_control_unavailable_title": "Controllo drone non disponibile",
@@ -421,6 +425,7 @@
   },
   "pt": {
     "MissionDisengageReason_command_type_unhandled": "Tipo de comando não tratado",
+    "MissionDisengageReason_command_type_unsupported": "Tipo de comando não suportado neste drone",
     "MissionDisengageReason_user_disengaged_title": "Missão pausada",
     "MissionDisengageReason_drone_disconnected_title": "drone desconectado",
     "MissionDisengageReason_drone_control_unavailable_title": "Controle de drone indisponível",
@@ -526,6 +531,7 @@
   },
   "es": {
     "MissionDisengageReason_command_type_unhandled": "Tipo de comando no controlado",
+    "MissionDisengageReason_command_type_unsupported": "Tipo de comando no admitido en este dron",
     "MissionDisengageReason_user_disengaged_title": "Misión en pausa",
     "MissionDisengageReason_drone_disconnected_title": "Dron desconectado",
     "MissionDisengageReason_drone_control_unavailable_title": "Control de drones no disponible",
@@ -631,6 +637,7 @@
   },
   "hi": {
     "MissionDisengageReason_command_type_unhandled": "कमांड प्रकार बिना क्रिया के",
+    "MissionDisengageReason_command_type_unsupported": "इस ड्रोन पर कमांड प्रकार असमर्थित है",
     "MissionDisengageReason_user_disengaged_title": "मिशन रुका हुआ",
     "MissionDisengageReason_drone_disconnected_title": "ड्रोन डिस्कनेक्ट हो गया",
     "MissionDisengageReason_drone_control_unavailable_title": "ड्रोन नियंत्रण अनुपलब्ध",
@@ -736,6 +743,7 @@
   },
   "id": {
     "MissionDisengageReason_command_type_unhandled": "Jenis Perintah Tidak Tertangani",
+    "MissionDisengageReason_command_type_unsupported": "Tipe Perintah Tidak Didukung di Drone ini",
     "MissionDisengageReason_user_disengaged_title": "Misi Dijeda",
     "MissionDisengageReason_drone_disconnected_title": "Drone Terputus",
     "MissionDisengageReason_drone_control_unavailable_title": "Kontrol Drone Tidak Tersedia",
@@ -841,6 +849,7 @@
   },
   "pl": {
     "MissionDisengageReason_command_type_unhandled": "Nieobsługiwany typ polecenia",
+    "MissionDisengageReason_command_type_unsupported": "Typ polecenia nieobsługiwany w tym dronie",
     "MissionDisengageReason_user_disengaged_title": "Misja wstrzymana",
     "MissionDisengageReason_drone_disconnected_title": "Dron odłączony",
     "MissionDisengageReason_drone_control_unavailable_title": "Sterowanie dronem niedostępne",
@@ -946,6 +955,7 @@
   },
   "ro": {
     "MissionDisengageReason_command_type_unhandled": "Tip de comandă Netratată",
+    "MissionDisengageReason_command_type_unsupported": "Tip de comandă Neacceptat pe această dronă",
     "MissionDisengageReason_user_disengaged_title": "Misiune întreruptă",
     "MissionDisengageReason_drone_disconnected_title": "Dronă deconectată",
     "MissionDisengageReason_drone_control_unavailable_title": "Controlul dronei indisponibil",
@@ -1051,6 +1061,7 @@
   },
   "ru": {
     "MissionDisengageReason_command_type_unhandled": "Тип команды необработанный",
+    "MissionDisengageReason_command_type_unsupported": "Тип команды не поддерживается на этом дроне",
     "MissionDisengageReason_user_disengaged_title": "Миссия приостановлена",
     "MissionDisengageReason_drone_disconnected_title": "Дрон отключен",
     "MissionDisengageReason_drone_control_unavailable_title": "Управление дроном недоступно",
@@ -1156,6 +1167,7 @@
   },
   "sv": {
     "MissionDisengageReason_command_type_unhandled": "Kommandotyp ej hanterad",
+    "MissionDisengageReason_command_type_unsupported": "Kommandotyp stöds inte på denna drönare",
     "MissionDisengageReason_user_disengaged_title": "Uppdraget pausat",
     "MissionDisengageReason_drone_disconnected_title": "Drönare frånkopplad",
     "MissionDisengageReason_drone_control_unavailable_title": "Drönarkontroll ej tillgänglig",
@@ -1261,6 +1273,7 @@
   },
   "ur": {
     "MissionDisengageReason_command_type_unhandled": "کمانڈ کی قسم غیر ہینڈل",
+    "MissionDisengageReason_command_type_unsupported": "اس ڈرون پر کمانڈ کی قسم غیر تعاون یافتہ ہے۔",
     "MissionDisengageReason_user_disengaged_title": "مشن روک دیا گیا۔",
     "MissionDisengageReason_drone_disconnected_title": "ڈرون سے رابطہ منقطع ہوگیا۔",
     "MissionDisengageReason_drone_control_unavailable_title": "ڈرون کنٹرول دستیاب نہیں ہے۔",
