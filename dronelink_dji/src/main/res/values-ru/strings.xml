@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <resources>
   <string name="MissionDisengageReason_command_type_unhandled">Тип команды необработанный</string>
+  <string name="MissionDisengageReason_command_type_unsupported">Тип команды не поддерживается на этом дроне</string>
   <string name="MissionDisengageReason_user_disengaged_title">Миссия приостановлена</string>
   <string name="MissionDisengageReason_drone_disconnected_title">Дрон отключен</string>
   <string name="MissionDisengageReason_drone_control_unavailable_title">Управление дроном недоступно</string>

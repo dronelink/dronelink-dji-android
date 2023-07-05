@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <resources>
   <string name="MissionDisengageReason_command_type_unhandled">कमांड प्रकार बिना क्रिया के</string>
+  <string name="MissionDisengageReason_command_type_unsupported">इस ड्रोन पर कमांड प्रकार असमर्थित है</string>
   <string name="MissionDisengageReason_user_disengaged_title">मिशन रुका हुआ</string>
   <string name="MissionDisengageReason_drone_disconnected_title">ड्रोन डिस्कनेक्ट हो गया</string>
   <string name="MissionDisengageReason_drone_control_unavailable_title">ड्रोन नियंत्रण अनुपलब्ध</string>

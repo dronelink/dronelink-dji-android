@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <resources>
   <string name="MissionDisengageReason_command_type_unhandled">Jenis Perintah Tidak Tertangani</string>
+  <string name="MissionDisengageReason_command_type_unsupported">Tipe Perintah Tidak Didukung di Drone ini</string>
   <string name="MissionDisengageReason_user_disengaged_title">Misi Dijeda</string>
   <string name="MissionDisengageReason_drone_disconnected_title">Drone Terputus</string>
   <string name="MissionDisengageReason_drone_control_unavailable_title">Kontrol Drone Tidak Tersedia</string>

@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <resources>
   <string name="MissionDisengageReason_command_type_unhandled">Befehlstyp: Nicht behandelt</string>
+  <string name="MissionDisengageReason_command_type_unsupported">Befehlstyp wird auf dieser Drohne nicht unterstützt</string>
   <string name="MissionDisengageReason_user_disengaged_title">Mission pausiert</string>
   <string name="MissionDisengageReason_drone_disconnected_title">Drohne getrennt</string>
   <string name="MissionDisengageReason_drone_control_unavailable_title">Drohnensteuerung nicht verfügbar</string>

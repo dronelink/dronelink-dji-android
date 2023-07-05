@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <resources>
   <string name="MissionDisengageReason_command_type_unhandled">Kommandotyp ej hanterad</string>
+  <string name="MissionDisengageReason_command_type_unsupported">Kommandotyp stöds inte på denna drönare</string>
   <string name="MissionDisengageReason_user_disengaged_title">Uppdraget pausat</string>
   <string name="MissionDisengageReason_drone_disconnected_title">Drönare frånkopplad</string>
   <string name="MissionDisengageReason_drone_control_unavailable_title">Drönarkontroll ej tillgänglig</string>

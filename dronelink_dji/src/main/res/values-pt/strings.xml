@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <resources>
   <string name="MissionDisengageReason_command_type_unhandled">Tipo de comando não tratado</string>
+  <string name="MissionDisengageReason_command_type_unsupported">Tipo de comando não suportado neste drone</string>
   <string name="MissionDisengageReason_user_disengaged_title">Missão pausada</string>
   <string name="MissionDisengageReason_drone_disconnected_title">drone desconectado</string>
   <string name="MissionDisengageReason_drone_control_unavailable_title">Controle de drone indisponível</string>
