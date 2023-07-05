@@ -6,6 +6,8 @@
 //
 package com.dronelink.dji.adapters;
 
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
@@ -29,7 +31,6 @@ import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.dji.DronelinkDJI;
-
 import dji.common.camera.CameraVideoStreamSource;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.FocusState;
@@ -42,6 +43,7 @@ import dji.sdk.camera.Camera;
 
 public
 class DJICameraStateAdapter implements CameraStateAdapter {
+    private static final String TAG = DJICameraStateAdapter.class.getCanonicalName();
     public final Camera camera;
     public final SystemState state;
     public final CameraVideoStreamSource videoStreamSource;
@@ -67,7 +69,8 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.FocusMode focusMode;
     public final Double focusRingValue;
     public final Double focusRingMax;
-    public final PercentZoomSpec zoomSpec;
+    public final Double zoomValue;
+    public final SettingsDefinitions.HybridZoomSpec hybridZoomSpec;
     public final SettingsDefinitions.MeteringMode meteringMode;
     public final Boolean isAutoExposureLockEnabled;
 
@@ -98,7 +101,8 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final SettingsDefinitions.FocusMode focusMode,
             final Double focusRingValue,
             final Double focusRingMax,
-            final PercentZoomSpec zoomSpec,
+            final Double zoomValue,
+            final SettingsDefinitions.HybridZoomSpec hybridZoomSpec,
             final SettingsDefinitions.MeteringMode meteringMode,
             final Boolean isAutoExposureLockEnabled) {
         this.camera = camera;
@@ -126,7 +130,8 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         this.focusMode = focusMode;
         this.focusRingValue = focusRingValue;
         this.focusRingMax = focusRingMax;
-        this.zoomSpec = zoomSpec;
+        this.zoomValue = zoomValue;
+        this.hybridZoomSpec = hybridZoomSpec;
         this.meteringMode = meteringMode;
         this.isAutoExposureLockEnabled = isAutoExposureLockEnabled;
     }
@@ -341,11 +346,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public boolean isPercentZoomSupported() {
         //Only support hybrid zoom
-        //Some cameras return true for isHybridZoomSupported() but don't support zoom. The spec is 0 when that is the case, so we can use that to check.
-        if (camera == null || zoomSpec == null || (zoomSpec != null && zoomSpec.getStep() == 0)) {
-            return false;
-        }
-        return camera.isHybridZoomSupported();
+        return camera != null && camera.isHybridZoomSupported();
     }
 
     @Override
@@ -356,10 +357,19 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     @Nullable
     public PercentZoomSpec getZoomSpec() {
-        if(!isPercentZoomSupported()) {
+        final SettingsDefinitions.HybridZoomSpec spec = this.hybridZoomSpec;
+        final Double zoomValue = this.zoomValue;
+        //Some cameras return true for isPercentZoomSupported but don't support zoom. The spec is 0 when that is the case, so we can use that to check.
+        if(!isPercentZoomSupported() || spec == null || zoomValue == null || spec.getFocalLengthStep() == 0) {
             return null;
         }
-        return zoomSpec;
+        try {
+            return new PercentZoomSpec(zoomValue, spec.getMinHybridFocalLength(), spec.getMaxHybridFocalLength(),
+                    spec.getMaxOpticalFocalLength(), spec.getFocalLengthStep(), null);
+        } catch (final IllegalArgumentException e) {
+            Log.e(TAG, "Error initializing percent zoom spec: " + e.getMessage());
+        }
+        return null;
     }
 
     @Override

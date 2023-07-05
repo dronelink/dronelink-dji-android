@@ -285,7 +285,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<Double> focusRingMax;
     private DatedValue<Double> zoomValue;
     private DatedValue<SettingsDefinitions.HybridZoomSpec> hybridZoomSpec;
-    private DatedValue<PercentZoomSpec> percentZoomSpec;
     private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
     private DatedValue<Boolean> autoExposureLock;
 
@@ -1172,7 +1171,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             else {
                 zoomValue = null;
             }
-            updatePercentZoomSpec();
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.HYBRID_ZOOM_SPEC), (oldValue, newValue) -> {
@@ -1182,7 +1180,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             } else {
                 hybridZoomSpec = null;
             }
-            updatePercentZoomSpec();
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.METERING_MODE), (oldValue, newValue) -> {
@@ -1206,47 +1203,6 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 state.remoteControllerGimbalChannel = null;
             }
         });
-    }
-
-    private void updatePercentZoomSpec() {
-        final DatedValue<Double> zoomValue = this.zoomValue;
-        final DatedValue<SettingsDefinitions.HybridZoomSpec> hybridZoomSpec = this.hybridZoomSpec;
-        if (zoomValue == null || hybridZoomSpec == null) {
-            this.percentZoomSpec = null;
-            return;
-        }
-        final SettingsDefinitions.HybridZoomSpec spec = hybridZoomSpec.value;
-        try {
-            setPercentZoomSpec(spec, zoomValue.value);
-        } catch (final IllegalArgumentException e) {
-            Log.e(TAG, "Error initializing percent zoom spec: " + e.getMessage());
-        }
-    }
-
-    private void setPercentZoomSpec(SettingsDefinitions.HybridZoomSpec spec, Double zoomValue) {
-        if (this.percentZoomSpec == null) {
-            this.percentZoomSpec = new DatedValue<>(new PercentZoomSpec(zoomValue, spec.getMinHybridFocalLength(),
-                    spec.getMaxHybridFocalLength(), spec.getMaxOpticalFocalLength(), spec.getFocalLengthStep(), null));
-            return;
-        }
-
-        final PercentZoomSpec percentZoomSpec = this.percentZoomSpec.value;
-        if (percentZoomSpec.getCurrentZoom() != zoomValue) {
-            percentZoomSpec.setCurrentZoom(zoomValue);
-        }
-        if (percentZoomSpec.getMin() != spec.getMinHybridFocalLength()) {
-            percentZoomSpec.setMin(spec.getMinHybridFocalLength());
-        }
-        if (percentZoomSpec.getMax() != spec.getMaxHybridFocalLength()) {
-            percentZoomSpec.setMax(spec.getMaxHybridFocalLength());
-        }
-        if (percentZoomSpec.getmaxOptical() != spec.getMaxOpticalFocalLength()) {
-            percentZoomSpec.setMaxOptical(spec.getMaxOpticalFocalLength());
-        }
-        if (percentZoomSpec.getStep() != spec.getFocalLengthStep()) {
-            percentZoomSpec.setStep(spec.getFocalLengthStep());
-        }
-        this.percentZoomSpec = new DatedValue<>(percentZoomSpec);
     }
 
     private void startListeningForChanges(final DJIKey key, final KeyListener listener) {
@@ -1790,7 +1746,8 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             focusMode == null ? null : focusMode.value,
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value,
-                            percentZoomSpec == null ? null : percentZoomSpec.value,
+                            zoomValue == null ? null : zoomValue.value,
+                            hybridZoomSpec == null ? null : hybridZoomSpec.value,
                             meteringMode == null ? null : meteringMode.value,
                             autoExposureLock == null ? null : autoExposureLock.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
@@ -2852,11 +2809,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             if (zoomSpec == null) {
                 return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
             }
-            final int zoomMax = zoomSpec.getMax();
-            final int zoomMin = zoomSpec.getMin();
-            final int zoomStep = zoomSpec.getStep();
-            final int hybridZoomFocalLength = (int)Math.round((((ZoomPercentCameraCommand)command).zoomPercent * (zoomMax - zoomMin) + zoomMin) / zoomStep) * zoomStep;
-            Command.conditionallyExecute( hybridZoomFocalLength != zoomSpec.getCurrentZoom().intValue(), finished, new Command.ConditionalExecutor() {
+            final int max = zoomSpec.max;
+            final int min = zoomSpec.min;
+            final int step = zoomSpec.step;
+            final int hybridZoomFocalLength = (int)Math.round((((ZoomPercentCameraCommand)command).zoomPercent * (max - min) + min) / step) * step;
+            Command.conditionallyExecute( hybridZoomFocalLength != zoomSpec.currentZoom.intValue(), finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
                     camera.setHybridZoomFocalLength(hybridZoomFocalLength, createCompletionCallback(finished));
