@@ -359,8 +359,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public PercentZoomSpec getZoomSpec() {
         final SettingsDefinitions.HybridZoomSpec spec = this.hybridZoomSpec;
         final Double zoomValue = this.zoomValue;
-        //Some cameras return true for isPercentZoomSupported but don't support zoom. The spec focal length is 0 when that is the case, so we can use that to check.
-        if(!isPercentZoomSupported() || spec == null || zoomValue == null || spec.getFocalLengthStep() == 0) {
+        if(!isPercentZoomSupported() || spec == null || zoomValue == null) {
             return null;
         }
         try {
