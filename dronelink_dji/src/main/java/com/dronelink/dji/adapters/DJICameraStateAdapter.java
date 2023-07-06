@@ -31,6 +31,7 @@ import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.dji.DronelinkDJI;
+
 import dji.common.camera.CameraVideoStreamSource;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.FocusState;
