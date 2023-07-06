@@ -74,8 +74,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.HybridZoomSpec hybridZoomSpec;
     public final SettingsDefinitions.MeteringMode meteringMode;
     public final Boolean isAutoExposureLockEnabled;
-
-
+    
     public DJICameraStateAdapter(
             final Camera camera,
             final SystemState state,
