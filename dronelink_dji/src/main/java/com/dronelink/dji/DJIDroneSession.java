@@ -131,11 +131,12 @@ import com.dronelink.core.kernel.command.livestreaming.RTMPSettingsLiveStreaming
 import com.dronelink.core.kernel.command.remotecontroller.RemoteControllerCommand;
 import com.dronelink.core.kernel.command.remotecontroller.TargetGimbalChannelRemoteControllerCommand;
 import com.dronelink.core.kernel.core.CameraFocusCalibration;
+import com.dronelink.core.kernel.core.CameraZoomSpecification;
 import com.dronelink.core.kernel.core.GeoCoordinate;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.Orientation3Optional;
-import com.dronelink.core.kernel.core.PercentZoomSpec;
+import com.dronelink.core.kernel.core.PercentZoomSpecification;
 import com.dronelink.core.kernel.core.enums.CameraMode;
 import com.dronelink.core.kernel.core.enums.CameraStorageLocation;
 import com.dronelink.core.kernel.core.enums.ExecutionEngine;
@@ -284,7 +285,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<Double> focusRingValue;
     private DatedValue<Double> focusRingMax;
     private DatedValue<Double> zoomValue;
-    private DatedValue<SettingsDefinitions.HybridZoomSpec> hybridZoomSpec;
+    private DatedValue<SettingsDefinitions.HybridZoomSpec> hybridZoomSpecification;
     private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
     private DatedValue<Boolean> autoExposureLock;
 
@@ -1174,11 +1175,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         });
 
         startListeningForChanges(CameraKey.create(CameraKey.HYBRID_ZOOM_SPEC), (oldValue, newValue) -> {
-            final SettingsDefinitions.HybridZoomSpec zoomSpec = newValue == null ? null : (SettingsDefinitions.HybridZoomSpec) newValue;
-            if (zoomSpec != null) {
-                hybridZoomSpec = new DatedValue<>(zoomSpec);
+            final SettingsDefinitions.HybridZoomSpec zoomSpecification = newValue == null ? null : (SettingsDefinitions.HybridZoomSpec) newValue;
+            if (zoomSpecification != null) {
+                hybridZoomSpecification = new DatedValue<>(zoomSpecification);
             } else {
-                hybridZoomSpec = null;
+                hybridZoomSpecification = null;
             }
         });
 
@@ -1747,7 +1748,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             focusRingValue == null ? null : focusRingValue.value,
                             focusRingMax == null ? null : focusRingMax.value,
                             zoomValue == null ? null : zoomValue.value,
-                            hybridZoomSpec == null ? null : hybridZoomSpec.value,
+                            hybridZoomSpecification == null ? null : hybridZoomSpecification.value,
                             meteringMode == null ? null : meteringMode.value,
                             autoExposureLock == null ? null : autoExposureLock.value);
                     return new DatedValue<>(cameraStateAdapter, systemState.date);
@@ -2805,15 +2806,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
         }
 
         if (command instanceof ZoomPercentCameraCommand) {
-            final PercentZoomSpec zoomSpec = djiState.getZoomSpec();
-            if (zoomSpec == null) {
+            final CameraZoomSpecification defaultZoomSpecification = djiState.getDefaultZoomSpecification();
+            if (!(defaultZoomSpecification instanceof PercentZoomSpecification)) {
                 return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
             }
-            final int max = zoomSpec.max;
-            final int min = zoomSpec.min;
-            final int step = zoomSpec.step;
-            final int hybridZoomFocalLength = (int)Math.round((((ZoomPercentCameraCommand)command).zoomPercent * (max - min) + min) / step) * step;
-            Command.conditionallyExecute( hybridZoomFocalLength != zoomSpec.currentZoom.intValue(), finished, new Command.ConditionalExecutor() {
+            final PercentZoomSpecification zoomSpecification = (PercentZoomSpecification) defaultZoomSpecification;
+            final int hybridZoomFocalLength = (int) (Math.round((((ZoomPercentCameraCommand) command).zoomPercent
+                    * (zoomSpecification.max - zoomSpecification.min) + zoomSpecification.min) / zoomSpecification.step) * zoomSpecification.step);
+
+            Command.conditionallyExecute( hybridZoomFocalLength != (int) zoomSpecification.currentZoom, finished, new Command.ConditionalExecutor() {
                 @Override
                 public void execute() {
                     camera.setHybridZoomFocalLength(hybridZoomFocalLength, createCompletionCallback(finished));
