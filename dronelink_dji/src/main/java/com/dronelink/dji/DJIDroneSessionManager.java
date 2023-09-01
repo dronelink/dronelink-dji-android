@@ -232,6 +232,7 @@ public class DJIDroneSessionManager implements DroneSessionManager {
         }
 
         if (isRegistrationInProgress.compareAndSet(false, true)) {
+            Log.d(TAG, "Registering with DJI SDK...");
             final DJIDroneSessionManager self = this;
             AsyncTask.execute(new Runnable() {
                 @Override

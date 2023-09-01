@@ -769,14 +769,12 @@ public class DJIWaypointMissionSession implements DroneControlSession {
 
         if (WaypointMissionState.EXECUTING.equals(djiWaypointMissionOperator.getCurrentState())) {
             Log.i(TAG, "Attempting to engage mission in progress");
-            try {
-                missionExecutor.engage(session, new Executor.EngageDisallowed() {
-                    @Override
-                    public void disallowed(final Message reason) {
-                        Log.e(TAG,"Mission engage failed: " + reason.toString());
-                    }
-                });
-            } catch (final Dronelink.DroneSerialNumberUnavailableException ignored) {}
+            missionExecutor.engage(session, new Executor.EngageDisallowed() {
+                @Override
+                public void disallowed(final Message reason) {
+                    Log.e(TAG,"Mission engage failed: " + reason.toString());
+                }
+            });
             return;
         }
 

@@ -366,7 +366,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             return new PercentZoomSpecification(zoomValue, specification.getMinHybridFocalLength(), specification.getMaxHybridFocalLength(),
                     specification.getMaxOpticalFocalLength(), specification.getFocalLengthStep(), null);
         } catch (final IllegalArgumentException e) {
-            Log.e(TAG, "Error initializing percent zoom specification: " + e.getMessage());
+            //Log.e(TAG, "Error initializing percent zoom specification: " + e.getMessage());
         }
         return null;
     }
