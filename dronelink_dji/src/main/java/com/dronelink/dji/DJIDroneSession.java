@@ -288,6 +288,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<SettingsDefinitions.HybridZoomSpec> hybridZoomSpecification;
     private DatedValue<SettingsDefinitions.MeteringMode> meteringMode;
     private DatedValue<Boolean> autoExposureLock;
+    private DatedValue<HardwareState.Button> remoteControllerFunctionButton;
 
     private DatedValue<CameraFile> mostRecentCameraFile;
     public DatedValue<CameraFile> getMostRecentCameraFile() {
@@ -1204,6 +1205,17 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 state.remoteControllerGimbalChannel = null;
             }
         });
+
+        startListeningForChanges(RemoteControllerKey.create(RemoteControllerKey.FUNCTION_BUTTON), (oldValue, newValue) -> {
+            if (newValue instanceof HardwareState.Button) {
+                if (((HardwareState.Button) newValue).isClicked()) {
+                    remoteControllerFunctionButton = new DatedValue<>((HardwareState.Button) newValue);
+                }
+            }
+            else {
+                remoteControllerFunctionButton = null;
+            }
+        });
     }
 
     private void startListeningForChanges(final DJIKey key, final KeyListener listener) {
@@ -1686,7 +1698,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
-                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerGPSData);
+                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerGPSData, remoteControllerFunctionButton != null && new Date().getTime() - remoteControllerFunctionButton.date.getTime() <= 250 ? remoteControllerFunctionButton.value : null, state.model);
                     return new DatedValue<>(remoteControllerStateAdapter, remoteControllerState.date);
                 }
             }).get();
