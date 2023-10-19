@@ -1206,6 +1206,9 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             }
         });
 
+        //HadwareState is unreliable for the function button, so we have to switch to this listener. Unfortunately, the listener only fires after the button has been pressed,
+        //which means that the duration of functionButton.isPressed is too short unless we let it be valid for 250ms after we receive a isClicked = true version of the button.
+        //See getRemoteControllerState for the 250ms timeout.
         startListeningForChanges(RemoteControllerKey.create(RemoteControllerKey.FUNCTION_BUTTON), (oldValue, newValue) -> {
             if (newValue instanceof HardwareState.Button) {
                 if (((HardwareState.Button) newValue).isClicked()) {
@@ -1698,7 +1701,9 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                         return null;
                     }
 
-                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerGPSData, remoteControllerFunctionButton != null && new Date().getTime() - remoteControllerFunctionButton.date.getTime() <= 250 ? remoteControllerFunctionButton.value : null, state.model);
+                    final RemoteControllerStateAdapter remoteControllerStateAdapter = new DJIRemoteControllerStateAdapter(remoteControllerState.value, remoteControllerGPSData,
+                            //Refer to comment in the listener for remoteControllerFunctionButton to understand why we are hard coding 250ms
+                            remoteControllerFunctionButton != null && new Date().getTime() - remoteControllerFunctionButton.date.getTime() <= 250 ? remoteControllerFunctionButton.value : null, state.model);
                     return new DatedValue<>(remoteControllerStateAdapter, remoteControllerState.date);
                 }
             }).get();
