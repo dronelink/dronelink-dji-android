@@ -20,15 +20,27 @@ import dji.common.remotecontroller.HardwareState;
 public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAdapter {
     public final HardwareState state;
     private final GPSData gpsData;
+    private HardwareState.Button functionButton;
+    private String droneModel;
 
-    public DJIRemoteControllerStateAdapter(final HardwareState state, final GPSData gpsData) {
+    public DJIRemoteControllerStateAdapter(final HardwareState state, final GPSData gpsData, final HardwareState.Button functionButton, final String droneModel) {
         this.state = state;
         this.gpsData = gpsData;
+        this.functionButton = functionButton;
+        this.droneModel = droneModel;
     }
 
     @Override
     public Location getLocation() {
         return DronelinkDJI.getLocation(gpsData);
+    }
+
+    /* Method that ensures custom buttons are not returned if the function button is pressed on a remote controller that combines function, c1, and c2. See:
+     https://developer.dji.com/api-reference/android-api/Components/RemoteController/DJIRemoteController_DJIRCHardwareState.html?search=c1&i=2&#djiremotecontroller_djirchardwarestate_custombutton1_inline
+     for more information */
+    private boolean cancelCustomButtons() {
+        final RemoteControllerButton funcButton = getFunctionButton();
+        return funcButton != null && funcButton.pressed && ("DJI Mini 2".equals(droneModel) || "Mavic Air 2".equals(droneModel) || "DJI Air 2S".equals(droneModel));
     }
 
     public RemoteControllerStick getLeftStick() {
@@ -68,15 +80,15 @@ public class DJIRemoteControllerStateAdapter implements RemoteControllerStateAda
 
     @Override
     public RemoteControllerButton getFunctionButton() {
-        return state == null || state.getFunctionButton() == null ? null : new RemoteControllerButton(state.getFunctionButton().isPresent(), state.getFunctionButton().isClicked());
+        return functionButton == null ? null : new RemoteControllerButton(functionButton.isPresent(), functionButton.isClicked());
     }
 
     public RemoteControllerButton getC1Button() {
-        return state == null || state.getC1Button() == null ? null : new RemoteControllerButton(state.getC1Button().isPresent(), state.getC1Button().isClicked());
+        return state == null || state.getC1Button() == null || cancelCustomButtons() ? null : new RemoteControllerButton(state.getC1Button().isPresent(), state.getC1Button().isClicked());
     }
 
     public RemoteControllerButton getC2Button() {
-        return state == null || state.getC2Button() == null ? null : new RemoteControllerButton(state.getC2Button().isPresent(), state.getC2Button().isClicked());
+        return state == null || state.getC2Button() == null || cancelCustomButtons() ? null : new RemoteControllerButton(state.getC2Button().isPresent(), state.getC2Button().isClicked());
     }
 
     @Override
