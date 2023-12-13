@@ -11,6 +11,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
+import com.dronelink.core.kernel.core.CameraVideoResolutionFrameRateSpecification;
 import com.dronelink.core.kernel.core.CameraZoomSpecification;
 import com.dronelink.core.kernel.core.PercentZoomSpecification;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
@@ -33,9 +34,19 @@ import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.dji.DronelinkDJI;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import dji.common.camera.CameraVideoStreamSource;
 import dji.common.camera.ExposureSettings;
 import dji.common.camera.FocusState;
+import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.StorageState;
 import dji.common.camera.SystemState;
@@ -43,8 +54,7 @@ import dji.common.camera.WhiteBalance;
 
 import dji.sdk.camera.Camera;
 
-public
-class DJICameraStateAdapter implements CameraStateAdapter {
+public class DJICameraStateAdapter implements CameraStateAdapter {
     private static final String TAG = DJICameraStateAdapter.class.getCanonicalName();
     public final Camera camera;
     public final SystemState state;
@@ -65,6 +75,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.VideoFileFormat videoFileFormat;
     public final SettingsDefinitions.VideoFrameRate videoFrameRate;
     public final SettingsDefinitions.VideoResolution videoResolution;
+    public final ResolutionAndFrameRate[] videoResolutionAndFrameRateRange;
     public final WhiteBalance whiteBalance;
     public final SettingsDefinitions.ISO iso;
     public final SettingsDefinitions.ShutterSpeed shutterSpeed;
@@ -95,6 +106,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
             final SettingsDefinitions.VideoFileFormat videoFileFormat,
             final SettingsDefinitions.VideoFrameRate videoFrameRate,
             final SettingsDefinitions.VideoResolution videoResolution,
+            final ResolutionAndFrameRate[] videoResolutionAndFrameRateRange,
             final WhiteBalance whiteBalance,
             final SettingsDefinitions.ISO iso,
             final SettingsDefinitions.ShutterSpeed shutterSpeed,
@@ -124,6 +136,7 @@ class DJICameraStateAdapter implements CameraStateAdapter {
         this.videoFileFormat = videoFileFormat;
         this.videoFrameRate = videoFrameRate;
         this.videoResolution = videoResolution;
+        this.videoResolutionAndFrameRateRange = videoResolutionAndFrameRateRange;
         this.whiteBalance = whiteBalance;
         this.iso = iso;
         this.shutterSpeed = shutterSpeed;
@@ -254,13 +267,48 @@ class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
-    public CameraVideoFrameRate getVideoFrameRate() {
+    //TODO N remove
+    public CameraVideoFrameRate getVideoFrameRateTest() {
         return DronelinkDJI.getCameraVideoFrameRate(videoFrameRate == null ? SettingsDefinitions.VideoFrameRate.UNKNOWN : videoFrameRate);
     }
 
     @Override
-    public CameraVideoResolution getVideoResolution() {
+    //TODO N remove
+    public CameraVideoResolution getVideoResolutionTest() {
         return DronelinkDJI.getCameraVideoResolution(videoResolution == null ? SettingsDefinitions.VideoResolution.UNKNOWN : videoResolution);
+    }
+
+    @Override
+    public CameraVideoResolutionFrameRateSpecification getVideoResolutionFrameRateSpecification() {
+        return new CameraVideoResolutionFrameRateSpecification(
+                DronelinkDJI.getCameraVideoResolution(videoResolution == null ? SettingsDefinitions.VideoResolution.UNKNOWN : videoResolution),
+                DronelinkDJI.getCameraVideoFrameRate(videoFrameRate == null ? SettingsDefinitions.VideoFrameRate.UNKNOWN : videoFrameRate),
+                getResolutionFrameRateOptions()
+        );
+    }
+
+    private Map<CameraVideoResolution, List<CameraVideoFrameRate>> getResolutionFrameRateOptions() {
+        final ResolutionAndFrameRate[] videoResolutionAndFrameRateRange = this.videoResolutionAndFrameRateRange;
+        if (videoResolutionAndFrameRateRange == null) {
+            return null;
+        }
+        final Map<CameraVideoResolution, List<CameraVideoFrameRate>> resolutionFrameRateOptions = new LinkedHashMap<>();
+        for (final ResolutionAndFrameRate resolutionAndFrameRate : videoResolutionAndFrameRateRange) {
+            final SettingsDefinitions.VideoResolution keyResolution = resolutionAndFrameRate.getResolution();
+            if (keyResolution != null) {
+                final List<CameraVideoFrameRate> frameRates = new ArrayList<>();
+                for (final ResolutionAndFrameRate resAndFrameRate : videoResolutionAndFrameRateRange) {
+                    final SettingsDefinitions.VideoFrameRate frameRate = resAndFrameRate.getFrameRate();
+                    final SettingsDefinitions.VideoResolution currentResolution = resAndFrameRate.getResolution();
+                    if (frameRate != null && currentResolution != null && currentResolution == keyResolution) {
+                        frameRates.add(DronelinkDJI.getCameraVideoFrameRate(frameRate));
+                    }
+
+                }
+                resolutionFrameRateOptions.put(DronelinkDJI.getCameraVideoResolution(keyResolution), frameRates);
+            }
+        }
+        return resolutionFrameRateOptions;
     }
 
     @Override

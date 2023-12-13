@@ -16,6 +16,9 @@ import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import com.dronelink.core.CameraFile;
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
@@ -278,6 +281,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private DatedValue<SettingsDefinitions.PhotoAEBCount> aebCount;
     private DatedValue<SettingsDefinitions.VideoFileFormat> videoFileFormat;
     private DatedValue<ResolutionAndFrameRate> videoResolutionAndFrameRate;
+    private DatedValue<ResolutionAndFrameRate[]> videoResolutionAndFrameRateRange;
     private DatedValue<WhiteBalance> whiteBalance;
     private DatedValue<SettingsDefinitions.ISO> iso;
     private DatedValue<SettingsDefinitions.ShutterSpeed> shutterSpeed;
@@ -1132,6 +1136,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             videoResolutionAndFrameRate = newValue == null ? null : new DatedValue<>((ResolutionAndFrameRate) newValue);
         });
 
+        startListeningForChanges(CameraKey.create(CameraKey.VIDEO_RESOLUTION_FRAME_RATE_RANGE), (oldValue, newValue) -> {
+            videoResolutionAndFrameRateRange = newValue == null ? null : new DatedValue<>((ResolutionAndFrameRate[]) newValue);
+        });
+
         startListeningForChanges(CameraKey.create(CameraKey.WHITE_BALANCE), (oldValue, newValue) -> {
             whiteBalance = newValue == null ? null : new DatedValue<>((WhiteBalance)newValue);
         });
@@ -1758,6 +1766,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                             videoFileFormat == null ? null : videoFileFormat.value,
                             videoResolutionAndFrameRate == null ? null : videoResolutionAndFrameRate.value.getFrameRate(),
                             videoResolutionAndFrameRate == null ? null : videoResolutionAndFrameRate.value.getResolution(),
+                            videoResolutionAndFrameRateRange == null ? null : videoResolutionAndFrameRateRange.value,
                             whiteBalance == null ? null : whiteBalance.value,
                             iso == null ? null : iso.value,
                             shutterSpeed == null ? null : shutterSpeed.value,
