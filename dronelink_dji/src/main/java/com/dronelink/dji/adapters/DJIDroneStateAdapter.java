@@ -16,6 +16,7 @@ import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.enums.DroneAuxiliaryLightMode;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
+import com.dronelink.core.kernel.core.enums.DroneObstacleAvoidanceMode;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
 import com.dronelink.dji.DronelinkDJI;
 
@@ -318,6 +319,11 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return (double)goHomeAssessment.getRemainingFlightTime();
         }
 
+        return null;
+    }
+
+    @Override
+    public DroneObstacleAvoidanceMode getObstacleAvoidanceMode() {
         return null;
     }
 
