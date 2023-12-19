@@ -237,7 +237,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     public boolean isClosed() {
         return closed;
     }
-
+    private boolean sessionLowBatteryReturnHomeIssued = false;
     private final List<Listener> listeners = new LinkedList<>();
     private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
     private final CommandQueue droneCommands = new CommandQueue();
@@ -426,6 +426,16 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                                     }
                                 }
                             });
+                            //Sometimes the DJI SDK does not automatically issue a RTH on low battery.
+                            //If the battery drops a few percentage below the threshold and is still engaged, manually issue the RTH
+                            if (!sessionLowBatteryReturnHomeIssued && state.getBatteryPercent() <= state.getLowBatteryThreshold() - 2) {
+                                adapter.startReturnHome(error -> {
+                                    if (error != null) {
+                                        Log.e(TAG, "Failed to start RTH: " + error.description);
+                                    }
+                                });
+                                sessionLowBatteryReturnHomeIssued = true;
+                            }
                         }
                         sleep(100);
                     }
