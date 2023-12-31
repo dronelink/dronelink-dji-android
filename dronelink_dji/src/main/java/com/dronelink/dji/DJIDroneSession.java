@@ -118,7 +118,7 @@ import com.dronelink.core.kernel.command.drone.SeriousLowBatteryWarningThreshold
 import com.dronelink.core.kernel.command.drone.SmartReturnHomeDroneCommand;
 import com.dronelink.core.kernel.command.drone.SpotlightBrightnessDroneCommand;
 import com.dronelink.core.kernel.command.drone.SpotlightDroneCommand;
-import com.dronelink.core.kernel.command.drone.UpwardsAvoidanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.UpwardAvoidanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.VisionAssistedPositioningDroneCommand;
 import com.dronelink.core.kernel.command.gimbal.GimbalCommand;
 import com.dronelink.core.kernel.command.gimbal.ModeGimbalCommand;
@@ -2219,11 +2219,11 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             return null;
         }
 
-        if (command instanceof UpwardsAvoidanceDroneCommand) {
+        if (command instanceof UpwardAvoidanceDroneCommand) {
             flightAssistant.getUpwardVisionObstacleAvoidanceEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
                 @Override
                 public void execute(final Boolean current) {
-                    final Boolean target = ((UpwardsAvoidanceDroneCommand) command).enabled;
+                    final Boolean target = ((UpwardAvoidanceDroneCommand) command).enabled;
                     Command.conditionallyExecute(!target.equals(current), finished, new Command.ConditionalExecutor() {
                         @Override
                         public void execute() {
