@@ -12,10 +12,12 @@ import android.location.Location;
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
 import com.dronelink.core.adapters.DroneStateAdapter;
+import com.dronelink.core.kernel.core.DroneObstacleAvoidanceSpecification;
 import com.dronelink.core.kernel.core.Message;
 import com.dronelink.core.kernel.core.Orientation3;
 import com.dronelink.core.kernel.core.enums.DroneAuxiliaryLightMode;
 import com.dronelink.core.kernel.core.enums.DroneLightbridgeFrequencyBand;
+import com.dronelink.core.kernel.core.enums.DroneObstacleAvoidanceMode;
 import com.dronelink.core.kernel.core.enums.DroneOcuSyncFrequencyBand;
 import com.dronelink.dji.DronelinkDJI;
 
@@ -318,6 +320,11 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
             return (double)goHomeAssessment.getRemainingFlightTime();
         }
 
+        return null;
+    }
+
+    @Override
+    public DroneObstacleAvoidanceSpecification getObstacleAvoidanceSpecification() {
         return null;
     }
 

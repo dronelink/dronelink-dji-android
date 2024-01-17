@@ -115,6 +115,7 @@ import com.dronelink.core.kernel.command.drone.OcuSyncFrequencyBandDroneCommand;
 import com.dronelink.core.kernel.command.drone.OcuSyncVideoFeedSourcesDroneCommand;
 import com.dronelink.core.kernel.command.drone.PrecisionLandingDroneCommand;
 import com.dronelink.core.kernel.command.drone.ReturnHomeAltitudeDroneCommand;
+import com.dronelink.core.kernel.command.drone.ReturnHomeDroneCommand;
 import com.dronelink.core.kernel.command.drone.ReturnHomeObstacleAvoidanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.ReturnHomeRemoteObstacleAvoidanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.SeriousLowBatteryWarningThresholdDroneCommand;
@@ -2053,6 +2054,16 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     });
                 }
             }, finished));
+            return null;
+        }
+
+        if (command instanceof ReturnHomeDroneCommand) {
+            Command.conditionallyExecute(state.isFlying() && !state.isReturningHome(), finished, new Command.ConditionalExecutor() {
+                @Override
+                public void execute() {
+                    adapter.startReturnHome(finished);
+                }
+            });
             return null;
         }
 
