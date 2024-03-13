@@ -72,6 +72,7 @@ import com.dronelink.core.kernel.command.camera.ShutterSpeedCameraCommand;
 import com.dronelink.core.kernel.command.camera.SpotMeteringTargetCameraCommand;
 import com.dronelink.core.kernel.command.camera.StartCaptureCameraCommand;
 import com.dronelink.core.kernel.command.camera.StopCaptureCameraCommand;
+import com.dronelink.core.kernel.command.camera.StorageCustomFolderNameCameraCommand;
 import com.dronelink.core.kernel.command.camera.StorageLocationCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoCaptionCameraCommand;
 import com.dronelink.core.kernel.command.camera.VideoFileCompressionStandardCameraCommand;
@@ -3189,6 +3190,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                     return new CommandError(context.getString(R.string.MissionDisengageReason_drone_camera_mode_invalid_title));
             }
             return null;
+        }
+
+        if (command instanceof StorageCustomFolderNameCameraCommand) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
         }
 
         if (command instanceof StorageLocationCameraCommand) {
