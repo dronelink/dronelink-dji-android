@@ -10,6 +10,7 @@ import com.dronelink.core.Dronelink;
 import com.dronelink.core.Kernel;
 import com.dronelink.core.adapters.CameraAdapter;
 import com.dronelink.core.adapters.EnumElement;
+import com.dronelink.core.adapters.EnumElementTuple;
 import com.dronelink.core.command.Command;
 import com.dronelink.core.command.CommandError;
 import com.dronelink.core.kernel.core.enums.CameraPhotoFileFormat;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import dji.common.camera.ResolutionAndFrameRate;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.error.DJIError;
 import dji.common.util.CommonCallbacks;
@@ -174,5 +176,28 @@ public class DJICameraAdapter implements CameraAdapter {
         }
 
         return enumElements.isEmpty() ? null : enumElements;
+    }
+
+    @Override
+    public List<EnumElementTuple> getTupleEnumElements(final String parameter) {
+        final List<EnumElementTuple> tuples = new ArrayList<>();
+        switch (parameter) {
+            case "CameraVideoResolutionFrameRate":
+                for (final ResolutionAndFrameRate value : camera.getCapabilities().videoResolutionAndFrameRateRange()) {
+                    final String resolutionRaw = Kernel.enumRawValue(DronelinkDJI.getCameraVideoResolution(value.getResolution()));
+                    final String frameRateRaw = Kernel.enumRawValue(DronelinkDJI.getCameraVideoFrameRate(value.getFrameRate()));
+                    tuples.add(
+                        new EnumElementTuple(
+                            new EnumElement(Dronelink.getInstance().formatEnum("CameraVideoResolution", resolutionRaw), resolutionRaw),
+                            new EnumElement(Dronelink.getInstance().formatEnum("CameraVideoFrameRate", frameRateRaw), frameRateRaw)
+                        )
+                    );
+                }
+                break;
+            default:
+                return null;
+        }
+
+        return tuples.isEmpty() ? null : tuples;
     }
 }
