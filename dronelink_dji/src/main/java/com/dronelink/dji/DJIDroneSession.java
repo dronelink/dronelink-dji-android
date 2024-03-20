@@ -136,6 +136,7 @@ import com.dronelink.core.kernel.command.livestreaming.RTMPLiveStreamingCommand;
 import com.dronelink.core.kernel.command.livestreaming.RTMPSettingsLiveStreamingCommand;
 import com.dronelink.core.kernel.command.remotecontroller.RemoteControllerCommand;
 import com.dronelink.core.kernel.command.remotecontroller.TargetGimbalChannelRemoteControllerCommand;
+import com.dronelink.core.kernel.command.rtk.RTKCommand;
 import com.dronelink.core.kernel.core.CameraFocusCalibration;
 import com.dronelink.core.kernel.core.CameraZoomSpecification;
 import com.dronelink.core.kernel.core.GeoCoordinate;
@@ -1595,6 +1596,14 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 public CommandError execute(final Command.Finisher finished) {
                     onCommandExecuted(command);
                     return executeGimbalCommand((GimbalCommand)command, finished);
+                }
+            };
+        }
+        else if (command instanceof RTKCommand) {
+            executor = new Command.Executor() {
+                @Override
+                public CommandError execute(final Command.Finisher finished) {
+                    return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
                 }
             };
         }
