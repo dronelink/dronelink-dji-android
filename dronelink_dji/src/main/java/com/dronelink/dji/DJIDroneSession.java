@@ -16,7 +16,6 @@ import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 
-
 import com.dronelink.core.CameraFile;
 import com.dronelink.core.Convert;
 import com.dronelink.core.DatedValue;
