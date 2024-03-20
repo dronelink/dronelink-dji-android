@@ -9,7 +9,6 @@ package com.dronelink.dji.adapters;
 import androidx.annotation.Nullable;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
-import com.dronelink.core.kernel.core.CameraVideoResolutionFrameRateSpecification;
 import com.dronelink.core.kernel.core.CameraZoomSpecification;
 import com.dronelink.core.kernel.core.PercentZoomSpecification;
 import com.dronelink.core.kernel.core.enums.CameraAEBCount;
@@ -31,11 +30,6 @@ import com.dronelink.core.kernel.core.enums.CameraVideoFrameRate;
 import com.dronelink.core.kernel.core.enums.CameraVideoResolution;
 import com.dronelink.core.kernel.core.enums.CameraWhiteBalancePreset;
 import com.dronelink.dji.DronelinkDJI;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 import dji.common.camera.CameraVideoStreamSource;
 import dji.common.camera.ExposureSettings;
@@ -268,30 +262,6 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     @Override
     public CameraVideoResolution getVideoResolution() {
         return DronelinkDJI.getCameraVideoResolution(videoResolution == null ? SettingsDefinitions.VideoResolution.UNKNOWN : videoResolution);
-    }
-
-    private Map<CameraVideoResolution, List<CameraVideoFrameRate>> resolutionFrameRateOptions() {
-        final ResolutionAndFrameRate[] range = this.videoResolutionAndFrameRateRange;
-        if (range == null) {
-            return null;
-        }
-
-        final Map<CameraVideoResolution, List<CameraVideoFrameRate>> options = new LinkedHashMap<>();
-        for (final ResolutionAndFrameRate resolutionAndFrameRate : range) {
-            final SettingsDefinitions.VideoResolution keyResolution = resolutionAndFrameRate.getResolution();
-            if (keyResolution != null) {
-                final List<CameraVideoFrameRate> frameRates = new ArrayList<>();
-                for (final ResolutionAndFrameRate resAndFrameRate : range) {
-                    final SettingsDefinitions.VideoFrameRate frameRate = resAndFrameRate.getFrameRate();
-                    final SettingsDefinitions.VideoResolution resolution = resAndFrameRate.getResolution();
-                    if (frameRate != null && resolution != null && resolution == keyResolution) {
-                        frameRates.add(DronelinkDJI.getCameraVideoFrameRate(frameRate));
-                    }
-                }
-                options.put(DronelinkDJI.getCameraVideoResolution(keyResolution), frameRates);
-            }
-        }
-        return options;
     }
 
     @Override
