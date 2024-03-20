@@ -261,24 +261,13 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     }
 
     @Override
-    //TODO N remove
-    public CameraVideoFrameRate getVideoFrameRateTest() {
+    public CameraVideoFrameRate getVideoFrameRate() {
         return DronelinkDJI.getCameraVideoFrameRate(videoFrameRate == null ? SettingsDefinitions.VideoFrameRate.UNKNOWN : videoFrameRate);
     }
 
     @Override
-    //TODO N remove
-    public CameraVideoResolution getVideoResolutionTest() {
+    public CameraVideoResolution getVideoResolution() {
         return DronelinkDJI.getCameraVideoResolution(videoResolution == null ? SettingsDefinitions.VideoResolution.UNKNOWN : videoResolution);
-    }
-
-    @Override
-    public CameraVideoResolutionFrameRateSpecification getVideoResolutionFrameRateSpecification() {
-        return new CameraVideoResolutionFrameRateSpecification(
-                DronelinkDJI.getCameraVideoResolution(videoResolution),
-                DronelinkDJI.getCameraVideoFrameRate(videoFrameRate),
-                resolutionFrameRateOptions()
-        );
     }
 
     private Map<CameraVideoResolution, List<CameraVideoFrameRate>> resolutionFrameRateOptions() {
