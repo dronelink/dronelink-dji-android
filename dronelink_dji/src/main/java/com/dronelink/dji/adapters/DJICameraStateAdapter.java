@@ -63,7 +63,6 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
     public final SettingsDefinitions.VideoFileFormat videoFileFormat;
     public final SettingsDefinitions.VideoFrameRate videoFrameRate;
     public final SettingsDefinitions.VideoResolution videoResolution;
-    public final ResolutionAndFrameRate[] videoResolutionAndFrameRateRange;
     public final WhiteBalance whiteBalance;
     public final SettingsDefinitions.ISO iso;
     public final SettingsDefinitions.ShutterSpeed shutterSpeed;
@@ -94,7 +93,6 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
             final SettingsDefinitions.VideoFileFormat videoFileFormat,
             final SettingsDefinitions.VideoFrameRate videoFrameRate,
             final SettingsDefinitions.VideoResolution videoResolution,
-            final ResolutionAndFrameRate[] videoResolutionAndFrameRateRange,
             final WhiteBalance whiteBalance,
             final SettingsDefinitions.ISO iso,
             final SettingsDefinitions.ShutterSpeed shutterSpeed,
@@ -124,7 +122,6 @@ public class DJICameraStateAdapter implements CameraStateAdapter {
         this.videoFileFormat = videoFileFormat;
         this.videoFrameRate = videoFrameRate;
         this.videoResolution = videoResolution;
-        this.videoResolutionAndFrameRateRange = videoResolutionAndFrameRateRange;
         this.whiteBalance = whiteBalance;
         this.iso = iso;
         this.shutterSpeed = shutterSpeed;
