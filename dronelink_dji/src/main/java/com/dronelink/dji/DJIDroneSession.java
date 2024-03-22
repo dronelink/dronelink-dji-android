@@ -249,6 +249,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
     private final CommandQueue droneCommands = new CommandQueue();
     private final CommandQueue liveStreamingCommands = new CommandQueue();
+    private final CommandQueue rtkCommands = new CommandQueue();
     private final MultiChannelCommandQueue remoteControllerCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue cameraCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue gimbalCommands = new MultiChannelCommandQueue();
@@ -371,6 +372,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
                         droneCommands.process();
                         liveStreamingCommands.process();
+                        rtkCommands.process();
                         remoteControllerCommands.process();
                         cameraCommands.process();
                         gimbalCommands.process();
@@ -1603,6 +1605,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             executor = new Command.Executor() {
                 @Override
                 public CommandError execute(final Command.Finisher finished) {
+                    onCommandExecuted(command);
                     return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
                 }
             };
@@ -1646,6 +1649,9 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             else if (command instanceof LiveStreamingCommand) {
                 liveStreamingCommands.addCommand(c);
             }
+            else if (command instanceof RTKCommand) {
+                rtkCommands.addCommand(c);
+            }
             else if (command instanceof RemoteControllerCommand) {
                 remoteControllerCommands.addCommand(((RemoteControllerCommand)command).channel, c);
             }
@@ -1665,6 +1671,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     public void removeCommands() {
         droneCommands.removeAll();
         liveStreamingCommands.removeAll();
+        rtkCommands.removeAll();
         remoteControllerCommands.removeAll();
         cameraCommands.removeAll();
         gimbalCommands.removeAll();
