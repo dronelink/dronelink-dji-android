@@ -91,29 +91,41 @@ public class DJICameraAdapter implements CameraAdapter {
         final List<String> range = new ArrayList<>();
         switch (parameter) {
             case "CameraAperture":
-                for (final SettingsDefinitions.Aperture value : camera.getCapabilities().apertureRange()) {
-                    range.add(Kernel.enumRawValue(DronelinkDJI.getCameraAperture(value)));
+                final SettingsDefinitions.Aperture[] apertureRange = camera.getCapabilities().apertureRange();
+                if (apertureRange != null) {
+                    for (final SettingsDefinitions.Aperture value : apertureRange) {
+                        range.add(Kernel.enumRawValue(DronelinkDJI.getCameraAperture(value)));
+                    }
                 }
                 break;
             case "CameraExposureCompensation":
-                for (final SettingsDefinitions.ExposureCompensation value : camera.getCapabilities().exposureCompensationRange()) {
-                    range.add(Kernel.enumRawValue(DronelinkDJI.getCameraExposureCompensation(value)));
+                final SettingsDefinitions.ExposureCompensation[] exposureCompensationRange = camera.getCapabilities().exposureCompensationRange();
+                if (exposureCompensationRange != null) {
+                    for (final SettingsDefinitions.ExposureCompensation value : exposureCompensationRange) {
+                        range.add(Kernel.enumRawValue(DronelinkDJI.getCameraExposureCompensation(value)));
+                    }
                 }
                 break;
             case "CameraExposureMode":
-                for (final SettingsDefinitions.ExposureMode value : camera.getCapabilities().exposureModeRange()) {
-                    range.add(Kernel.enumRawValue(DronelinkDJI.getCameraExposureMode(value)));
+                final SettingsDefinitions.ExposureMode[] exposureModeRange = camera.getCapabilities().exposureModeRange();
+                if (exposureModeRange != null) {
+                    for (final SettingsDefinitions.ExposureMode value : exposureModeRange) {
+                        range.add(Kernel.enumRawValue(DronelinkDJI.getCameraExposureMode(value)));
+                    }
                 }
                 break;
             case "CameraISO":
-                for (final SettingsDefinitions.ISO value : camera.getCapabilities().ISORange()) {
-                    range.add(Kernel.enumRawValue(DronelinkDJI.getCameraISO(value)));
+                final SettingsDefinitions.ISO[] isoRange = camera.getCapabilities().ISORange();
+                if (isoRange != null) {
+                    for (final SettingsDefinitions.ISO value : isoRange) {
+                        range.add(Kernel.enumRawValue(DronelinkDJI.getCameraISO(value)));
+                    }
                 }
                 break;
             case "CameraPhotoMode":
-                final SettingsDefinitions.FlatCameraMode[] modes = camera.getCapabilities().FlatCameraModeRange();
-                if (modes != null) {
-                    for (final SettingsDefinitions.FlatCameraMode value : modes) {
+                final SettingsDefinitions.FlatCameraMode[] photoModeRange = camera.getCapabilities().FlatCameraModeRange();
+                if (photoModeRange != null) {
+                    for (final SettingsDefinitions.FlatCameraMode value : photoModeRange) {
                         range.add(Kernel.enumRawValue(DronelinkDJI.getCameraPhotoMode(value)));
                     }
                 }
@@ -131,13 +143,19 @@ public class DJICameraAdapter implements CameraAdapter {
                 range.add(Kernel.enumRawValue(CameraPhotoFileFormat.RAW_JPEG));
                 break;
             case "CameraMode":
-                for (final SettingsDefinitions.CameraMode value : camera.getCapabilities().modeRange()) {
-                    range.add(Kernel.enumRawValue(DronelinkDJI.getCameraMode(value)));
+                final SettingsDefinitions.CameraMode[] modeRange = camera.getCapabilities().modeRange();
+                if (modeRange != null) {
+                    for (final SettingsDefinitions.CameraMode value : modeRange) {
+                        range.add(Kernel.enumRawValue(DronelinkDJI.getCameraMode(value)));
+                    }
                 }
                 break;
             case "CameraShutterSpeed":
-                for (final SettingsDefinitions.ShutterSpeed value : camera.getCapabilities().shutterSpeedRange()) {
-                    range.add(Kernel.enumRawValue(DronelinkDJI.getCameraShutterSpeed(value)));
+                final SettingsDefinitions.ShutterSpeed[] shutterSpeedRange = camera.getCapabilities().shutterSpeedRange();
+                if (shutterSpeedRange != null) {
+                    for (final SettingsDefinitions.ShutterSpeed value : shutterSpeedRange) {
+                        range.add(Kernel.enumRawValue(DronelinkDJI.getCameraShutterSpeed(value)));
+                    }
                 }
                 break;
             case "CameraStorageLocation":
