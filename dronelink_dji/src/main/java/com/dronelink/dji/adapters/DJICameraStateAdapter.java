@@ -6,8 +6,6 @@
 //
 package com.dronelink.dji.adapters;
 
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 
 import com.dronelink.core.adapters.CameraStateAdapter;
@@ -43,8 +41,7 @@ import dji.common.camera.WhiteBalance;
 
 import dji.sdk.camera.Camera;
 
-public
-class DJICameraStateAdapter implements CameraStateAdapter {
+public class DJICameraStateAdapter implements CameraStateAdapter {
     private static final String TAG = DJICameraStateAdapter.class.getCanonicalName();
     public final Camera camera;
     public final SystemState state;
