@@ -49,6 +49,7 @@ import com.dronelink.core.kernel.command.camera.AutoLockGimbalCameraCommand;
 import com.dronelink.core.kernel.command.camera.CameraCommand;
 import com.dronelink.core.kernel.command.camera.ColorCameraCommand;
 import com.dronelink.core.kernel.command.camera.ContrastCameraCommand;
+import com.dronelink.core.kernel.command.camera.DewarpingCameraCommand;
 import com.dronelink.core.kernel.command.camera.DisplayModeCameraCommand;
 import com.dronelink.core.kernel.command.camera.ExposureCompensationCameraCommand;
 import com.dronelink.core.kernel.command.camera.ExposureCompensationStepCameraCommand;
@@ -89,6 +90,7 @@ import com.dronelink.core.kernel.command.drone.AuxiliaryLightModeDroneCommand;
 import com.dronelink.core.kernel.command.drone.BeaconDroneCommand;
 import com.dronelink.core.kernel.command.drone.CollisionAvoidanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.ConnectionFailSafeBehaviorDroneCommand;
+import com.dronelink.core.kernel.command.drone.DownwardAvoidanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.DroneCommand;
 import com.dronelink.core.kernel.command.drone.FlightAssistantDroneCommand;
 import com.dronelink.core.kernel.command.drone.HomeLocationDroneCommand;
@@ -105,6 +107,9 @@ import com.dronelink.core.kernel.command.drone.LowBatteryWarningThresholdDroneCo
 import com.dronelink.core.kernel.command.drone.MaxAltitudeDroneCommand;
 import com.dronelink.core.kernel.command.drone.MaxDistanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.MaxDistanceLimitationDroneCommand;
+import com.dronelink.core.kernel.command.drone.ObstacleAvoidanceBrakingDistanceDroneCommand;
+import com.dronelink.core.kernel.command.drone.ObstacleAvoidanceModeDroneCommand;
+import com.dronelink.core.kernel.command.drone.ObstacleAvoidanceWarningDistanceDroneCommand;
 import com.dronelink.core.kernel.command.drone.OcuSyncChannelDroneCommand;
 import com.dronelink.core.kernel.command.drone.OcuSyncChannelSelectionModeDroneCommand;
 import com.dronelink.core.kernel.command.drone.OcuSyncDroneCommand;
@@ -131,6 +136,7 @@ import com.dronelink.core.kernel.command.livestreaming.RTMPLiveStreamingCommand;
 import com.dronelink.core.kernel.command.livestreaming.RTMPSettingsLiveStreamingCommand;
 import com.dronelink.core.kernel.command.remotecontroller.RemoteControllerCommand;
 import com.dronelink.core.kernel.command.remotecontroller.TargetGimbalChannelRemoteControllerCommand;
+import com.dronelink.core.kernel.command.rtk.RTKCommand;
 import com.dronelink.core.kernel.core.CameraFocusCalibration;
 import com.dronelink.core.kernel.core.CameraZoomSpecification;
 import com.dronelink.core.kernel.core.GeoCoordinate;
@@ -243,6 +249,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     private final ExecutorService listenerExecutor = Executors.newSingleThreadExecutor();
     private final CommandQueue droneCommands = new CommandQueue();
     private final CommandQueue liveStreamingCommands = new CommandQueue();
+    private final CommandQueue rtkCommands = new CommandQueue();
     private final MultiChannelCommandQueue remoteControllerCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue cameraCommands = new MultiChannelCommandQueue();
     private final MultiChannelCommandQueue gimbalCommands = new MultiChannelCommandQueue();
@@ -365,6 +372,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
 
                         droneCommands.process();
                         liveStreamingCommands.process();
+                        rtkCommands.process();
                         remoteControllerCommands.process();
                         cameraCommands.process();
                         gimbalCommands.process();
@@ -1593,6 +1601,15 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 }
             };
         }
+        else if (command instanceof RTKCommand) {
+            executor = new Command.Executor() {
+                @Override
+                public CommandError execute(final Command.Finisher finished) {
+                    onCommandExecuted(command);
+                    return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
+                }
+            };
+        }
 
         if (executor != null) {
             final Command c = new Command(
@@ -1632,6 +1649,9 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             else if (command instanceof LiveStreamingCommand) {
                 liveStreamingCommands.addCommand(c);
             }
+            else if (command instanceof RTKCommand) {
+                rtkCommands.addCommand(c);
+            }
             else if (command instanceof RemoteControllerCommand) {
                 remoteControllerCommands.addCommand(((RemoteControllerCommand)command).channel, c);
             }
@@ -1651,6 +1671,7 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
     public void removeCommands() {
         droneCommands.removeAll();
         liveStreamingCommands.removeAll();
+        rtkCommands.removeAll();
         remoteControllerCommands.removeAll();
         cameraCommands.removeAll();
         gimbalCommands.removeAll();
@@ -2182,6 +2203,18 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
             return null;
         }
 
+        if (command instanceof ObstacleAvoidanceBrakingDistanceDroneCommand) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
+        }
+
+        if (command instanceof ObstacleAvoidanceModeDroneCommand) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
+        }
+
+        if (command instanceof ObstacleAvoidanceWarningDistanceDroneCommand) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
+        }
+
         if (command instanceof PrecisionLandingDroneCommand) {
             flightAssistant.getPrecisionLandingEnabled(createCompletionCallbackWith(new Command.FinisherWith<Boolean>() {
                 @Override
@@ -2244,6 +2277,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 }
             }, finished));
             return null;
+        }
+
+        if (command instanceof DownwardAvoidanceDroneCommand) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
         }
 
         if (command instanceof VisionAssistedPositioningDroneCommand) {
@@ -2711,6 +2748,10 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 }
             }, finished));
             return null;
+        }
+
+        if (command instanceof DewarpingCameraCommand) {
+            return new CommandError(context.getString(R.string.MissionDisengageReason_command_type_unsupported));
         }
 
         if (command instanceof ExposureCompensationCameraCommand) {
