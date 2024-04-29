@@ -37,9 +37,11 @@ public class DJIGimbalStateAdapter implements GimbalStateAdapter {
         final Orientation3 orientation = new Orientation3();
         if (state != null) {
             final Attitude attitude = state.getAttitudeInDegrees();
-            orientation.x = Convert.DegreesToRadians(attitude.getPitch());
-            orientation.y = Convert.DegreesToRadians(attitude.getRoll());
-            orientation.z = Convert.DegreesToRadians(attitude.getYaw());
+            if (attitude != null) {
+                orientation.x = Convert.DegreesToRadians(attitude.getPitch());
+                orientation.y = Convert.DegreesToRadians(attitude.getRoll());
+                orientation.z = Convert.DegreesToRadians(attitude.getYaw());
+            }
         }
         return orientation;
     }
