@@ -104,6 +104,6 @@
     <string name="DronelinkDJI_CompassSensorState_value_DATA_EXCEPTION">Data Exception</string>
     <string name="DronelinkDJI_CompassSensorState_value_CALIBRATION_FAILED">Calibration Failed</string>
     <string name="DronelinkDJI_CompassSensorState_value_DIRECTION_EXCEPTION">Direction Exception</string>
-    <string name="DJIDroneSessionManager_authorization_fly_zones_unsupported">Retrieving authorization zones is not supported on this drone.</string>
-    <string name="DJIDroneSessionManager_authorization_fly_zone_unlock_unsupported">Unlocking authorization fly zones is not supported on this drone</string>
+    <string name="DJIDroneSessionManager_authorization_fly_zones_unsupported">Retrieving authorization zones is not supported</string>
+    <string name="DJIDroneSessionManager_authorization_fly_zone_unlock_unsupported">Unlocking authorization fly zones is not supported</string>
 </resources>
