@@ -199,6 +199,18 @@ public class DJIDroneSessionManager implements DroneSessionManager {
     }
 
     @Override
+    public void authorizationFlyZonesInSurroundingArea(Command.Finisher finishedWithError, Command.FinisherWith<String> finishedWithValue) {
+        //TODO N localize
+        finishedWithError.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_authorization_fly_zones_unsupported)));
+    }
+
+    @Override
+    public void unlockAuthorizationFlyZone(String flyZoneID, Command.Finisher finisher) {
+        //TODO N localize
+        finisher.execute(new CommandError(context.getString(R.string.DJIDroneSessionManager_authorization_fly_zone_unlock_unsupported)));
+    }
+
+    @Override
     public DroneSession getSession() {
         return session;
     }
