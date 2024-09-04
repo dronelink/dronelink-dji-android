@@ -236,24 +236,6 @@ public class DJIDroneStateAdapter implements DroneStateAdapter {
     }
 
     @Override
-    public double getVelocityX() {
-        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
-        return flightControllerState == null ? 0 : flightControllerState.value.getVelocityX();
-    }
-
-    @Override
-    public double getVelocityY() {
-        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
-        return flightControllerState == null ? 0 : flightControllerState.value.getVelocityY();
-    }
-
-    @Override
-    public double getVelocityZ() {
-        final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
-        return flightControllerState == null ? 0 : flightControllerState.value.getVelocityZ();
-    }
-
-    @Override
     public double getHorizontalSpeed() {
         final DatedValue<FlightControllerState> flightControllerState = this.flightControllerState;
         return flightControllerState == null ? 0 : Math.sqrt(Math.pow(flightControllerState.value.getVelocityX(), 2) + Math.pow(flightControllerState.value.getVelocityY(), 2));
