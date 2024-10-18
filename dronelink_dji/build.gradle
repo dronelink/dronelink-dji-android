@@ -2,13 +2,13 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'com.dronelink.dji'
-    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
+        compileSdk 34
         versionCode 1
-        versionName "4.8.0"
+        versionName "5.0.0"
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -22,8 +22,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.github.dronelink:dronelink-core-android:4.9.0'
-    compileOnly 'com.dji:dji-sdk:4.17'
-    compileOnly 'com.dji:dji-sdk-provided:4.17'
+    implementation 'androidx.annotation:annotation:1.9.0'
+    implementation 'com.github.dronelink:dronelink-core-android:5.0.0'
+    compileOnly 'com.dji:dji-sdk-alpha:4.18-a1'
+    compileOnly 'com.dji:dji-sdk-provided-alpha:4.18-a1'
 }
