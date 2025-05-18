@@ -1707,6 +1707,8 @@ public class DJIDroneSession implements DroneSession, VideoFeeder.PhysicalSource
                 }
                 break;
 
+            case DJI2:
+                break;
             default:
                 break;
         }
